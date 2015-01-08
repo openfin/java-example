@@ -1,7 +1,7 @@
 # java-example
 Examples for OpenFin Java adapter
 
-# Run the example
+## Run the example
 
 1. Download and Install "Hello OpenFin" demo app from the app gallery page at http://www.openfin.co/app-gallery.html
 
@@ -17,7 +17,7 @@ Examples for OpenFin Java adapter
 
 7. After FXLive starts, you can use the buttons under Window Control of Java app to control FXLive window.
 
-# Source Code Review
+## Source Code Review
 
 Source code for the example is located in /src/main/java/com/openfin/desktop/demo/OpenFinDesktopDemo.java.  The followings overview of how it communicates with OpenFin Runtime with API calls supported by the Java adapter:
 
@@ -75,7 +75,7 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
                                 }
                             });
 
-# More Info
+## More Info
 
 More information and API documentation can be found at https://www.openfin.co/developers.html?url=developers/api/java/overview.html
 
