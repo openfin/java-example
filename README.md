@@ -3,19 +3,17 @@ Examples for OpenFin Java adapter
 
 ## Run the example
 
-1. Download and Install "Hello OpenFin" demo app from the app gallery page at http://www.openfin.co/app-gallery.html
+1. Clone this repository
 
-2. Clone this repository
+2. Go to release directory and start run.bat
 
-3. Go to release directory and start run.bat
+3. Once the java app starts, click on Start button, which should start OpenFin Runtime and "Hello OpenFin" HTML5 demo app.  The java app will wait and try to connect to OpenFin Runtime.
 
-5. Once the java app starts, click on Start button, which should start OpenFin Runtime and "Hello OpenFin" HTML5 demo app.  The java app will wait and try to connect to OpenFin Runtime.
+4. You can use buttons in Window Control section to move and re-size HTML5 window of Hello OpenFin app.
 
-6. You can use buttons in Window Control section to move and re-size HTML5 window of Hello OpenFin app.
+5. Click "Create Application" button, which should start a dialog with all the fields pre-populated for our FXLive demo HTML5 application.  Just click on "Create" button.
 
-7. Click "Create Application" button, which should start a dialog with all the fields pre-populated for our FXLive demo HTML5 application.  Just click on "Create" button.
-
-7. After FXLive starts, you can use the buttons under Window Control of Java app to control FXLive window.
+6. After FXLive starts, you can use the buttons under Window Control of Java app to control FXLive window.
 
 ## Source Code Review
 
@@ -29,7 +27,7 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 2. Launch and connect to OpenFin runtime:
 
-            controller.launchAndConnect(this.desktop_path, this.desktopCommandLine, listener, 10000);
+            controller.launchAndConnect(this.desktopCommandLine, listener, 10000);
 
    listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.
 
