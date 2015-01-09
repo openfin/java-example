@@ -29,7 +29,8 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
             controller.launchAndConnect(this.desktopCommandLine, listener, 10000);
 
-   listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.
+   listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  desktopCommandLine is a string of arguments passed to OpenFinRVM.
+   This example by default passes remote config file for Hello OpenFin app.  If the app is not installed, OpenFinRVM will install the app and start it as the first app in OpenFin RUntime.
 
 3. Create new application when clicking on Create App:
 
