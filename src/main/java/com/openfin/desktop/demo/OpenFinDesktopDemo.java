@@ -54,22 +54,20 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     protected LoadAppsDialog loadAppsDialog;
 
     protected JTextArea status;
-    private final String desktop_path;
     private final String desktopCommandLine;
     private String startupUUID;
 
-    private JLabel uuidLabel, nameLabel, versionLabel, urlLabel, adminLabel, resizeLabel, autoShowLabel, draggableLabel, onBottomLabel, frameLabel, taskIconLabel;
+    private JLabel uuidLabel, nameLabel, versionLabel, urlLabel, adminLabel, resizeLabel, autoShowLabel, draggableLabel, frameLabel;
 
 
-    public OpenFinDesktopDemo(final String desktop_path, final String desktopCommandLine, final Integer port, String startupUUID) {
+    public OpenFinDesktopDemo(final String desktopCommandLine, String startupUUID) {
         this.startupUUID = startupUUID;
         try {
-            this.controller = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", port);
+            this.controller = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", 9696);
             this.controller.setLogLevel(true);
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
-        this.desktop_path = desktop_path;
         this.desktopCommandLine = desktopCommandLine;
         this.appCreateDialog = new AppCreateDialog();
         this.loadAppsDialog = new LoadAppsDialog();
@@ -167,8 +165,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         panel.add(nameLabel = new JLabel(), "0, 1, 0, 1");
         panel.add(versionLabel = new JLabel(), "0, 2, 0, 2");
         panel.add(urlLabel = new JLabel(), "0, 3, 0, 3");
-        panel.add(onBottomLabel = new JLabel(), "0, 4, 0, 4");
-        panel.add(taskIconLabel = new JLabel(), "0, 5, 0, 5");
 
         panel.add(adminLabel = new JLabel(), "1, 0, 1, 0");
         panel.add(resizeLabel = new JLabel(), "1, 1, 1, 1");
@@ -412,11 +408,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         };
 
         try {
-            if (this.desktop_path != null) {
-                controller.launchAndConnect(this.desktop_path, this.desktopCommandLine, listener, 10000);
-            } else {
-                controller.connect(listener);
-            }
+            controller.launchAndConnect(this.desktopCommandLine, listener, 10000);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -676,14 +668,13 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         java.lang.System.out.println("descApplication " + options.getName());
         this.uuidLabel.setText(" UUID: " + options.getUUID());
         this.nameLabel.setText(" Name: " + options.getName());
-        this.versionLabel.setText(" Version: " + options.getVersion());
-        this.urlLabel.setText(" URL: " + options.getURL());
+        this.versionLabel.setText(" Version: " + (options.getVersion() != null ? options.getVersion() : " " ));
+        this.urlLabel.setText(" URL: " + (options.getURL() != null ? options.getURL() : " "));
 
         WindowOptions mainWindowOptions = options.getMainWindowOptions();
         this.resizeLabel.setText(" resize: " + getBooleanString(mainWindowOptions.getResizable()));
         this.frameLabel.setText(" frame: " + getBooleanString(mainWindowOptions.getFrame()));
         this.autoShowLabel.setText(" autoShow: " + getBooleanString(mainWindowOptions.getAutoShow()));
-        this.taskIconLabel.setText(" showTaskBarIcon: " + getBooleanString(mainWindowOptions.getShowTaskbarIcon()));
 
         this.selectedApplication = this.applicationList.get(options.getUUID());
         try {
@@ -697,14 +688,14 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         return value ? "Y" : "N";
     }
 
-    private static void createAndShowGUI(final String desktop_path, final String desktopCommandLine, Integer port, String startupUUID) {
+    private static void createAndShowGUI(final String desktopCommandLine, String startupUUID) {
 
         //Create and set up the window.
         jFrame = new JFrame("Java Login Demo");
         jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         //Create and set up the content pane.
-        OpenFinDesktopDemo newContentPane = new OpenFinDesktopDemo(desktop_path, desktopCommandLine, port, startupUUID);
+        OpenFinDesktopDemo newContentPane = new OpenFinDesktopDemo(desktopCommandLine, startupUUID);
         newContentPane.setOpaque(true); //content panes must be opaque
         jFrame.setContentPane(newContentPane);
         jFrame.addWindowListener(newContentPane);
@@ -719,15 +710,10 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     /**
-     * To start OpenFin Desktop and Connect, pass full path of OpenFin with
-     *
-     *    -DOpenFinPath="mypath\OpenFinRVM.exe" -DOpenFinPort=9696 -DOpenFinOption=--config=\"RemoteConfigUrl\"
-     *
-     * If OpenFin is already running, pass port number with
-     *                  -DOpenFinPort=9696
+     * To start OpenFin Desktop and Connect, pass full path of OpenFin with*
+     *    -DOpenFinOption=--config=\"RemoteConfigUrl\"
      *
      * Set UUID of startup to control it
-     *
      *    -DStartupUUID="550e8400-e29b-41d4-a716-4466333333000"
      *
      * @param args
@@ -735,24 +721,17 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     public static void main(String[] args) throws Exception {
         final String desktop_path;
         final String desktop_option = java.lang.System.getProperty("OpenFinOption");
-        String portStr = java.lang.System.getProperty("OpenFinPort");
-        final Integer port;
-        if (portStr != null) {
-            port = Integer.parseInt(portStr);
+
+        final String startupUUID;
+        if (java.lang.System.getProperty("StartupUUID") != null) {
+            startupUUID = java.lang.System.getProperty("StartupUUID");
         } else {
-            port = null;
+            startupUUID = "OpenFinHelloWorld";
         }
 
-        if (java.lang.System.getProperty("OpenFinPath") == null) {
-            desktop_path = "%LOCALAPPDATA%\\OpenFin\\OpenFinRVM.exe";
-        } else {
-            desktop_path = java.lang.System.getProperty("OpenFinPath");
-        }
-
-        final String startupUUID = java.lang.System.getProperty("StartupUUID");
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI(desktop_path, desktop_option, port, startupUUID);
+                createAndShowGUI(desktop_option, startupUUID);
             }
         });
     }
