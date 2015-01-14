@@ -1,1 +1,1 @@
-java -cp openfin-desktop-java-adapter-3.0.1.0.jar -DOpenFinOption=--config=\"https://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/app.json\" com.openfin.desktop.demo.OpenFinDesktopDemo
+java -cp openfin-desktop-java-adapter-v3.0.1.0.jar -DOpenFinOption=--config=\"https://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/app.json\" com.openfin.desktop.demo.OpenFinDesktopDemo
