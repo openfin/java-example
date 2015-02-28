@@ -5,9 +5,7 @@ import com.openfin.desktop.System;
 import com.openfin.desktop.animation.AnimationTransitions;
 import com.openfin.desktop.animation.OpacityTransition;
 import com.openfin.desktop.animation.PositionTransition;
-import de.roderick.weberknecht.WebSocketException;
 import info.clearthought.layout.TableLayout;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.swing.*;
@@ -99,7 +97,9 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             @Override
             public void valueChanged(ListSelectionEvent listSelectionEvent) {
                 int selected = activeApplications.getSelectedIndex();
-                descApplication(appOptionsList.get(selected));
+                if (selected >= 0) {
+                    descApplication(appOptionsList.get(selected));
+                }
             }
         });
         panel.add(this.activeApplications, "0,2,0,2");
@@ -342,9 +342,14 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private void closeDesktop() {
         if (controller != null && controller.isConnected()) {
             try {
-//                new System(controller).exit();
-                Application app = Application.wrap(this.startupUUID, this.controller);
-                app.close();
+                new System(controller).exit();
+//                Application app = Application.wrap(this.startupUUID, this.controller);
+//                app.close();
+                setMainButtonsEnabled(false);
+                setAppButtonsEnabled(false);
+                ((DefaultListModel) this.activeApplications.getModel()).clear();
+                this.applicationList.clear();
+                this.appOptionsList.clear();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -353,12 +358,12 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                jFrame.dispose();
+//                jFrame.dispose();
             }
         });
         try {
             Thread.sleep(1000);
-            java.lang.System.exit(0);
+//            java.lang.System.exit(0);
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -377,6 +382,13 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             options.setMainWindowOptions(new WindowOptions());
             this.applicationList.put(options.getUUID(), app);
             addApplication(options);
+
+            app.addEventListener("closed", new EventListener() {
+                @Override
+                public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                    updateMessagePanel("startup app closed");
+                }
+            }, null);
         }
     }
 
@@ -394,6 +406,10 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             @Override
             public void onError(String reason) {
                 updateMessagePanel("Connection failed: " + reason);
+
+                if (!controller.isConnected()) {
+
+                }
             }
 
             @Override
@@ -728,6 +744,9 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         } else {
             startupUUID = "OpenFinHelloWorld";
         }
+
+        java.lang.System.out.println(System.getAdapterVersion());
+        java.lang.System.out.println(System.getAdapterBuildTime());
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>co.openfin</groupId>
+    <artifactId>openfin-desktop-java-example</artifactId>
+    <version>3.0.1.2</version>
+    <packaging>jar</packaging>
+
+    <name>openfin-desktop-java-example</name>
+    <url>http://www.openfin.co</url>
+
+    <properties>
+        <user.name>support@openfin.co</user.name>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>co.openfin</groupId>
+            <artifactId>openfin-desktop-java-adapter</artifactId>
+            <version>3.0.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>tablelayout</groupId>
+            <artifactId>TableLayout</artifactId>
+            <version>20050920</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!-- To combine all the dependencies into one jar: -->
+                <!-- mvn assembly:assembly -DdescriptorId=jar-with-dependencies -->
+                <!-- need to compile first since this plugin does NOT build the project -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestFile>${basedir}/target/classes/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+
+</project>
