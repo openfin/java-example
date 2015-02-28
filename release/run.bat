@@ -1,1 +1,1 @@
-java -cp openfin-deskop-java-example-3.0.1.2.jar;openfin-desktop-java-adapter-3.0.1.2.jar;TableLayout-20050920.jar -DOpenFinOption=--config=\"https://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/app.json\" com.openfin.desktop.demo.OpenFinDesktopDemo
+java -cp openfin-desktop-java-example-3.0.1.2.jar;openfin-desktop-java-adapter-3.0.1.2.jar;TableLayout-20050920.jar -DOpenFinOption=--config=\"https://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/app.json\" com.openfin.desktop.demo.OpenFinDesktopDemo
