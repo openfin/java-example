@@ -19,11 +19,13 @@ import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
  * GUI example that allows for instantiating and controlling
  */
 public class OpenFinDesktopDemo extends JPanel implements ActionListener, WindowListener {
+    private final static Logger logger = Logger.getLogger(OpenFinDesktopDemo.class.getName());
 
 
     private static JFrame jFrame;
@@ -62,7 +64,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         this.startupUUID = startupUUID;
         try {
             this.controller = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", 9696);
-            this.controller.setLogLevel(true);
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
