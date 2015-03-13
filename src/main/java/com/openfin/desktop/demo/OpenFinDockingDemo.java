@@ -205,19 +205,35 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
 
     private void dockToStartupApp() {
         try {
-            Window w = Window.wrap(startupUuid, javaWindowName, controller);
-            w.joinGroup(Window.wrap(startupUuid, startupUuid, controller));
+            externalWindowObserver = new ExternalWindowObserver(controller.getPort(), startupUuid, javaWindowName, jFrame,
+                    new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            if (ack.isSuccessful()) {
+                                try {
+                                    Window w = Window.wrap(startupUuid, javaWindowName, controller);
+                                    w.joinGroup(Window.wrap(startupUuid, startupUuid, controller));
+                                    dock.setEnabled(false);
+                                    undock.setEnabled(true);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        @Override
+                        public void onError(Ack ack) {
+                        }
+                    });
         } catch (Exception e) {
             e.printStackTrace();
         }
-        dock.setEnabled(false);
-        undock.setEnabled(true);
     }
 
     private void undockFromStartupApp() {
         try {
             Window w = Window.wrap(startupUuid, javaWindowName, controller);
             w.leaveGroup();
+            externalWindowObserver.dispose();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -225,14 +241,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         undock.setEnabled(false);
     }
 
-    private void registerExternalWindow() {
-        try {
-            externalWindowObserver = new ExternalWindowObserver(controller.getPort(), startupUuid, javaWindowName, jFrame);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
     private void runStartAction() {
         try {
             DesktopStateListener listener = new DesktopStateListener() {
@@ -240,7 +248,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                 public void onReady() {
                     updateMessagePanel("Connection authorized.");
                     setMainButtonsEnabled(true);
-                    registerExternalWindow();
                 }
 
                 @Override
