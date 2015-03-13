@@ -22,7 +22,11 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 /**
+ *
  * GUI example that allows for instantiating and controlling
+ *
+ * Created by wche on 2/28/15.
+ *
  */
 public class OpenFinDesktopDemo extends JPanel implements ActionListener, WindowListener {
     private final static Logger logger = Logger.getLogger(OpenFinDesktopDemo.class.getName());
@@ -736,7 +740,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        final String desktop_path;
         final String desktop_option = java.lang.System.getProperty("OpenFinOption");
 
         final String startupUUID;
@@ -745,9 +748,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         } else {
             startupUUID = "OpenFinHelloWorld";
         }
-
-        java.lang.System.out.println(System.getAdapterVersion());
-        java.lang.System.out.println(System.getAdapterBuildTime());
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {

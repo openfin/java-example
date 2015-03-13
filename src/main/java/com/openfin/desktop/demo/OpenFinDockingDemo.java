@@ -2,18 +2,21 @@ package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
 import com.openfin.desktop.System;
+import com.openfin.desktop.Window;
+import com.openfin.desktop.win32.ExternalWindowObserver;
 import info.clearthought.layout.TableLayout;
-import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
 
 /**
- * Created by richard on 2/28/15.
+ * Example of docking Java window with OpenFin html5 window
+ *
+ * clicking dock button to dock this app to the HTML5 app.
+ *
+ * Created by wche on 2/28/15.
+ *
  */
 public class OpenFinDockingDemo extends JPanel implements ActionListener, WindowListener {
 
@@ -23,46 +26,27 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     protected JButton launch;
     protected JButton close;
 
-    protected JButton minimizeButton, maximizeButton, restoreButton;
-    protected JButton largerButton, smallerButton, upButton, downButton, rightButton, leftButton;
+    protected JButton dock, undock;
 
-    protected JButton createDockWindow;
-
-    protected java.util.List<ApplicationOptions> appOptionsList;
-    protected java.util.Map<String, Application> applicationList;
-    protected Application selectedApplication;
-
-    //    Application admin;
-    InterApplicationBus bus;
+    protected ExternalWindowObserver externalWindowObserver;
+    protected String javaWindowName = "Java Dock Window";
+    protected String appUuid = "JavaDocking";
+    protected String startupUuid = "OpenFinHelloWorld";
+    protected String desktopOption;
 
     protected DesktopConnection controller;
-    protected AppCreateDialog appCreateDialog;
-    protected LoadAppsDialog loadAppsDialog;
 
     protected JTextArea status;
-    private final String desktop_path;
-    private final String desktopCommandLine;
-    private String authorizationToken;
 
-    private JLabel uuidLabel, nameLabel, versionLabel, urlLabel, adminLabel, resizeLabel, autoShowLabel, draggableLabel, onBottomLabel, frameLabel, taskIconLabel;
-    private DockingDemo dockingOne;
-    private DockingDemo dockingTwo;
-    private boolean isDocking = false;
-    public OpenFinDockingDemo(final String desktop_path, final String desktopCommandLine, final int port) {
-        authorizationToken = UUID.randomUUID().toString();  //"e5683b8c";
+    public OpenFinDockingDemo(final String desktopOption, final String startupUuid) {
+        this.startupUuid = startupUuid;
+        this.desktopOption = desktopOption;
         try {
-            this.controller = new DesktopConnection("JavaDocking", "localhost", port);
+            this.controller = new DesktopConnection(appUuid, "localhost", 9696);
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
-        this.desktop_path = desktop_path;
-        this.desktopCommandLine = desktopCommandLine;
-        this.appCreateDialog = new AppCreateDialog();
-        this.loadAppsDialog = new LoadAppsDialog();
-        isDocking = true;
-
         setLayout(new BorderLayout());
-
         add(layoutCenterPanel(), BorderLayout.CENTER);
         add(layoutLeftPanel(), BorderLayout.WEST);
         setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
@@ -74,13 +58,8 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         JPanel panel = new JPanel();
         double size[][] = {{410}, {120, TableLayout.FILL}};
         panel.setLayout(new TableLayout(size));
-
         panel.add(layoutActionButtonPanel(), "0,0,0,0");
         panel.add(layoutStatusPanel(), "0, 1, 0, 1");
-
-        this.appOptionsList = new ArrayList<ApplicationOptions>();
-        this.applicationList = new HashMap<String, Application>();
-
         return panel;
     }
 
@@ -88,26 +67,31 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         JPanel buttonPanel = new JPanel();
 
         JPanel topPanel = new JPanel();
-        double size[][] = {{100, 90, 20, 90, 100}, {25, 10, 25, 10}};
+        double size[][] = {{10, 190, 20, 190, 10}, {25, 10, 25, 10}};
         topPanel.setLayout(new TableLayout(size));
         topPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(2), "Desktop"));
 
-        launch = new JButton("Start");
+        launch = new JButton("Launch OpenFin");
         launch.setActionCommand("start");
-        close = new JButton("Close");
+        close = new JButton("Shutdown OpenFin");
         close.setActionCommand("close");
         topPanel.add(launch, "1,0,1,0");
         topPanel.add(close, "3,0,3,0");
 
-        createDockWindow = new JButton("Creating Docking Windows");
-        createDockWindow.setActionCommand("dock-window");
-        createDockWindow.setEnabled(false);
-        topPanel.add(createDockWindow, "1,2,3,2");
+        dock = new JButton("Dock to HTML5 app");
+        dock.setActionCommand("dock-window");
+        dock.setEnabled(false);
+        topPanel.add(dock, "1,2,1,2");
 
+        undock = new JButton("Undock from HTML5 app");
+        undock.setActionCommand("undock-window");
+        undock.setEnabled(false);
+        topPanel.add(undock, "3,2,3,2");
 
         close.addActionListener(this);
         launch.addActionListener(this);
-        createDockWindow.addActionListener(this);
+        dock.addActionListener(this);
+        undock.addActionListener(this);
 
         buttonPanel.add(topPanel, "0,0");
         return buttonPanel;
@@ -142,12 +126,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         panel.add(statusPane, BorderLayout.CENTER);
 
         return panel;
-    }
-
-    private void closeWebSocket() {
-        if (controller != null && controller.isConnected()) {
-            controller.disconnect();
-        }
     }
 
     @Override
@@ -225,63 +203,44 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         }
     }
 
-
-
-    public void init() {
-        dockingOne = DockingDemo.createAndShowGUI(jFrame, "Dock1");
-        dockingTwo = DockingDemo.createAndShowGUI(jFrame, "Dock2");
-        Rectangle bounds = dockingOne.getFrame().getBounds();
-        bounds.setLocation((int)bounds.getX() + 450, (int)(bounds.getY() - 125));
-        dockingOne.getFrame().setBounds(bounds);
-        bounds.setLocation((int)bounds.getX(), (int)(bounds.getY() + 250));
-        dockingTwo.getFrame().setBounds(bounds);
-        dockingOne.setApplication(dockingApp);
-        dockingTwo.setApplication(dockingApp);
-    }
-
-    Application dockingApp;
-
-    private void createDockingApplication() {
-        ApplicationOptions options = new ApplicationOptions("Docking Demo", "dockingapp", "https://developer.openf.in/docking/1.2.0.0b/docking.html");
-        dockingApp = new Application(options, controller, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                try {
-                    ((Application) ack.getSource()).run();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
-        });
-
-
-        updateMessagePanel("Creating InterAppBus");
-        bus = controller.getInterApplicationBus();
-
+    private void dockToStartupApp() {
         try {
-            bus.subscribe("dockingapp", "utils-ready", new BusListener() {
-                @Override
-                public void onMessageReceived(String sourceUuid, String topic, Object payload) {
-                    updateMessagePanel("Docking Demo ready");
-                    init();
-                }
-            });
+            Window w = Window.wrap(startupUuid, javaWindowName, controller);
+            w.joinGroup(Window.wrap(startupUuid, startupUuid, controller));
         } catch (Exception e) {
             e.printStackTrace();
         }
+        dock.setEnabled(false);
+        undock.setEnabled(true);
     }
 
+    private void undockFromStartupApp() {
+        try {
+            Window w = Window.wrap(startupUuid, javaWindowName, controller);
+            w.leaveGroup();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        dock.setEnabled(true);
+        undock.setEnabled(false);
+    }
+
+    private void registerExternalWindow() {
+        try {
+            externalWindowObserver = new ExternalWindowObserver(controller.getPort(), startupUuid, javaWindowName, jFrame);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
     private void runStartAction() {
         try {
-            controller.launchAndConnect(desktop_path, desktopCommandLine, new DesktopStateListener() {
+            DesktopStateListener listener = new DesktopStateListener() {
                 @Override
                 public void onReady() {
                     updateMessagePanel("Connection authorized.");
-                    //                createAdminApplication();
                     setMainButtonsEnabled(true);
+                    registerExternalWindow();
                 }
 
                 @Override
@@ -299,7 +258,9 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                     updateMessagePanel("<--TO DESKTOP-" + message);
                 }
 
-            }, 10000);
+            };
+            controller.launchAndConnect(null, desktopOption, listener, 10000);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -310,132 +271,64 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             runStartAction();
         } else if ("close".equals(e.getActionCommand())) {
             closeDesktop();
-        } else if ("create-application".equals(e.getActionCommand())) {
-            this.appCreateDialog.show(this);
-            ApplicationOptions options = this.appCreateDialog.getApplicatonOptions();
-            if (options != null) {
-                createApplication(options);
-            }
         } else if ("dock-window".equals(e.getActionCommand())) {
-            createDockingApplication();
-        } else if ("load-apps".equals(e.getActionCommand())) {
-            JSONObject message = this.loadAppsDialog.getCredentials();
-            if (message != null) {
-                retrieveApplications(message);
-            }
+            dockToStartupApp();
+        } else if ("undock-window".equals(e.getActionCommand())) {
+            undockFromStartupApp();
         }
     }
 
 
     private void setMainButtonsEnabled(boolean enabled) {
         launch.setEnabled(!enabled);
-        createDockWindow.setEnabled(enabled);
+        dock.setEnabled(enabled);
         close.setEnabled(enabled);
     }
 
     private void setAppButtonsEnabled(boolean enabled) {
     }
 
-    private void retrieveApplications(JSONObject message) {
-        bus = controller.getInterApplicationBus();
-        try {
-            bus.send("ExternalClientUtils", "get-user-app-settings", message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
-    private void createApplication(final ApplicationOptions options) {
-        Application app = new Application(options, controller, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                Application application = (Application) ack.getSource();
-                try {
-                    application.run();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                addApplication(options);
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
-        });
-        this.applicationList.put(options.getUUID(), app);
-        this.dockingOne.setApplication(app);
-        this.dockingTwo.setApplication(app);
-    }
-
-    private void addApplication(ApplicationOptions options) {
-        setAppButtonsEnabled(true);
-        this.appOptionsList.add(options);
-    }
-
-    private void descApplication(ApplicationOptions options) {
-//        this.uuidLabel.setText(" UUID: " + options.getUUID());
-//        this.nameLabel.setText(" Name: " + options.getName());
-//        this.versionLabel.setText(" Version: " + options.getVersion());
-//        this.urlLabel.setText(" URL: " + options.getURL());
-//        this.adminLabel.setText(" admin: " + getBooleanString(options.getIsAdmin()));
-//        this.resizeLabel.setText(" resize: " + getBooleanString(options.getResize()));
-//        this.frameLabel.setText(" frame: " + getBooleanString(options.getFrame()));
-//        this.autoShowLabel.setText(" autoShow: " + getBooleanString(options.getAutoShow()));
-//        this.draggableLabel.setText(" draggable: " + getBooleanString(options.getDraggable()));
-//        this.onBottomLabel.setText(" alwaysOnBottom: " + getBooleanString(options.getAlwaysOnBottom()));
-//        this.taskIconLabel.setText(" showTaskBarIcon: " + getBooleanString(options.getShowTaskbarIcon()));
-
-        this.selectedApplication = this.applicationList.get(options.getUUID());
-        try {
-            selectedApplication.getWindow().bringToFront();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String getBooleanString(boolean value) {
-        return value ? "Y" : "N";
-    }
-
-    private static void createAndShowGUI(final String desktop_path, final String desktopCommandLine, int port) {
+    private static void createAndShowGUI(final String desktopOption, final String startupUuid) {
         //Create and set up the window.
         jFrame = new JFrame("Java Docking Demo");
         jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         //Create and set up the content pane.
-        OpenFinDockingDemo newContentPane = new OpenFinDockingDemo(desktop_path, desktopCommandLine, port);
+        OpenFinDockingDemo newContentPane = new OpenFinDockingDemo(desktopOption, startupUuid);
         newContentPane.setOpaque(true); //content panes must be opaque
         jFrame.setContentPane(newContentPane);
         jFrame.addWindowListener(newContentPane);
 
         //Display the window.
         jFrame.pack();
-        jFrame.setSize(450, 500);
+        jFrame.setSize(470, 500);
         jFrame.setLocationRelativeTo(null);
         jFrame.setResizable(false);
         jFrame.setVisible(true);
-
     }
 
+    /**
+     * To start OpenFin Desktop and Connect, pass full path of OpenFin with*
+     *    -DOpenFinOption=--config=\"RemoteConfigUrl\"
+     *
+     * Set UUID of startup HTML5 app to dock to
+     *    -DStartupUUID="550e8400-e29b-41d4-a716-4466333333000"
+     *
+     * @param args
+     */
     public static void main(String[] args) {
-        if (args.length >= 2) {
-            final String desktop_path = args[0];
-            final int port = Integer.parseInt(args[1]);
-            java.lang.System.out.println("Starting Demo: " + desktop_path + " " + port);
-            String desktop_cmd_line = "";
-            if (args.length > 2) {
-                for (int i = 2; i < args.length; i++) {
-                    desktop_cmd_line += (args[i] + " ");
-                }
-                java.lang.System.out.println("Passing desktop args: " + desktop_cmd_line);
-            }
-            final String desktopCommandLine = desktop_cmd_line;
-            javax.swing.SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    createAndShowGUI(desktop_path, desktopCommandLine, port);
-                }
-            });
+        final String desktop_option = java.lang.System.getProperty("OpenFinOption");
+        final String startupUUID;
+        if (java.lang.System.getProperty("StartupUUID") != null) {
+            startupUUID = java.lang.System.getProperty("StartupUUID");
         } else {
-            java.lang.System.err.println("Required args: [path to openfin.exe] [WebSocket port]");
+            startupUUID = "OpenFinHelloWorld";
         }
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createAndShowGUI(desktop_option, startupUUID);
+            }
+        });
     }
 }
