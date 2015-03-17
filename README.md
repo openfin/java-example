@@ -106,35 +106,6 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 3. dockToStartupApp and undockFromStartupApp show to dock and undock 2 windows.
 
 
-## Run the example of embeding HTML5 application to Java Swing window with awt.canvas
-
-1. Clone this repository
-
-2. Go to release directory and start embedding.bat
-
-3. Once the java app starts, click on "Launch OpenFin" button, which should start OpenFin Runtime and "Hello OpenFin" HTML5 demo app.  The java app will wait and try to connect to OpenFin Runtime.
-
-4. You can click "Embed HTML5 app" button bring HTML5 window into Swing window.
-
-## Source Code Review for embedding windows
-
-Source code for the example is located in /src/main/java/com/openfin/desktop/demo/WindowEmbedDemo.java.  The followings overview of how it communicates with OpenFin Runtime with API calls supported by the Java adapter:
-
-1. Create connection object:
-
-            this.controller = new DesktopConnection("OpenFinDockingDemo", "localhost", port);
-
-    This code just creates an instance and it does not try to connect to runtime.
-
-2. Launch and connect to OpenFin runtime:
-
-            controller.launchAndConnect(this.desktopCommandLine, listener, 10000);
-
-   listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  desktopCommandLine is a string of arguments passed to OpenFinRVM.
-   This example by default passes remote config file for Hello OpenFin app, which will be started as the first app in OpenFin Runtime.
-
-3. embedStartupApp method shows to embed HTML5 app to Swing window.
-
 
 ## More Info
 
