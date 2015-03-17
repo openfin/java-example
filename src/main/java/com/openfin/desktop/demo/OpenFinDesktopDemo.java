@@ -54,6 +54,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     InterApplicationBus bus;
 
     protected DesktopConnection controller;
+    protected System openfinSystem;
     protected AppCreateDialog appCreateDialog;
     protected LoadAppsDialog loadAppsDialog;
 
@@ -378,6 +379,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private void createAdminApplication() {
         updateMessagePanel("Creating InterAppBus");
         bus = controller.getInterApplicationBus();
+        openfinSystem = new System(controller);
         updateMessagePanel("Connected to Desktop");
         setMainButtonsEnabled(true);
 
@@ -395,6 +397,22 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 }
             }, null);
         }
+
+        openfinSystem.addEventListener("desktop-icon-clicked", new EventListener() {
+            @Override
+            public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                updateMessagePanel("desktop-icon-clicked");
+            }
+        }, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+            }
+            @Override
+            public void onError(Ack ack) {
+                java.lang.System.out.println("error with desktop-icon-clicked " + ack.getJsonObject().toString());
+            }
+        });
+
     }
 
     public void init() {
