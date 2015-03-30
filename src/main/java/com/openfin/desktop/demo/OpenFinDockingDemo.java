@@ -5,6 +5,7 @@ import com.openfin.desktop.System;
 import com.openfin.desktop.Window;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 import info.clearthought.layout.TableLayout;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -205,6 +206,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
 
     private void dockToStartupApp() {
         try {
+            createNotification("Docking Java and HTML5");
             externalWindowObserver = new ExternalWindowObserver(controller.getPort(), startupUuid, javaWindowName, jFrame,
                     new AckListener() {
                         @Override
@@ -229,8 +231,46 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         }
     }
 
+    private void createNotification(String text) throws Exception {
+        NotificationOptions options = new NotificationOptions("http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/views/notification.html");
+        options.setTimeout(5000);
+        options.setMessageText(text);
+        Notification notification = new Notification(options, new NotificationListener() {
+            @Override
+            public void onClick(Ack ack) {
+                java.lang.System.out.println("notification onClick");
+            }
+
+            @Override
+            public void onClose(Ack ack) {
+                java.lang.System.out.println("notification onClose");
+            }
+
+            @Override
+            public void onDismiss(Ack ack) {
+                java.lang.System.out.println("notification onDismiss");
+            }
+
+            @Override
+            public void onError(Ack ack) {
+                java.lang.System.out.println("notification onError");
+            }
+
+            @Override
+            public void onMessage(Ack ack) {
+                java.lang.System.out.println("notification onMessage");
+            }
+
+            @Override
+            public void onShow(Ack ack) {
+                java.lang.System.out.println("notification onShow");
+            }
+        }, this.controller, null);
+    }
+
     private void undockFromStartupApp() {
         try {
+            createNotification("Undocking Java and HTML5");
             Window w = Window.wrap(startupUuid, javaWindowName, controller);
             w.leaveGroup();
             externalWindowObserver.dispose();
