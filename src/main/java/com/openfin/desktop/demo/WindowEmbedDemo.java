@@ -207,8 +207,26 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         }
     }
 
+    private boolean trayIconAdded = false;
+    private Application startupHtml5app;
+
     private void embedStartupApp() {
         try {
+            if (startupHtml5app == null) {
+                startupHtml5app = Application.wrap(this.startupUuid, this.controller);
+            }
+            if (!trayIconAdded) {
+                startupHtml5app.setTrayIcon("http://icons.iconarchive.com/icons/marcus-roberto/google-play/512/Google-Search-icon.png", new EventListener() {
+                    public void eventReceived(ActionEvent actionEvent) {
+                        java.lang.System.out.println("Tray icon clicked");
+                    }
+                }, null);
+                trayIconAdded = true;
+            } else {
+                startupHtml5app.removeTrayIcon(null);
+                trayIconAdded = false;
+            }
+
             Window html5Wnd = Window.wrap(startupUuid, startupUuid, controller);
             long parentHWndId = Native.getComponentID(this.embedCanvas);
             System.out.println("Canvas HWND " + Long.toHexString(parentHWndId));

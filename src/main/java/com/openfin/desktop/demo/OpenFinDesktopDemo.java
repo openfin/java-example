@@ -289,7 +289,11 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
     private void closeWebSocket() {
         if (controller != null && controller.isConnected()) {
-            controller.disconnect();
+            try {
+                controller.disconnect();
+            } catch (DesktopException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -376,7 +380,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
 
-    private void createAdminApplication() {
+    private void createAdminApplication() throws DesktopException {
         updateMessagePanel("Creating InterAppBus");
         bus = controller.getInterApplicationBus();
         openfinSystem = new System(controller);
@@ -396,6 +400,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                     updateMessagePanel("startup app closed");
                 }
             }, null);
+
         }
 
         openfinSystem.addEventListener("desktop-icon-clicked", new EventListener() {
@@ -423,8 +428,12 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         final DesktopStateListener listener = new DesktopStateListener() {
             @Override
             public void onReady() {
-                updateMessagePanel("Connection authorized.");
-                createAdminApplication();
+                try {
+                    updateMessagePanel("Connection authorized.");
+                    createAdminApplication();
+                } catch (DesktopException e) {
+                    e.printStackTrace();
+                }
             }
             @Override
             public void onError(String reason) {
