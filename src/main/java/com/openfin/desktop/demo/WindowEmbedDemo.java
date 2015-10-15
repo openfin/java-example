@@ -98,6 +98,19 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         launch.setEnabled(!enabled);
         embed.setEnabled(enabled);
         close.setEnabled(enabled);
+
+        if (enabled) {
+            this.controller.getInterApplicationBus().addSubscribeListener(new SubscriptionListener() {
+                public void subscribed(String uuid, String topic) {
+                    System.out.println("subscribed " + uuid + " on topic " + topic);
+                }
+
+                public void unsubscribed(String uuid, String topic) {
+                    System.out.println("unsubscribed " + uuid + " on topic " + topic);
+
+                }
+            });
+        }
     }
 
     private static void createAndShowGUI(final String desktopOption, final String startupUuid) {
@@ -120,7 +133,9 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     private void closeDesktop() {
         if (controller != null && controller.isConnected()) {
             try {
-                new com.openfin.desktop.System(controller).exit();
+//                new com.openfin.desktop.System(controller).exit();
+                System.out.println("disconnecting ");
+                controller.disconnect();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -200,7 +215,8 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 public void onOutgoingMessage(String message) {
                 }
             };
-            controller.launchAndConnect(null, desktopOption, listener, 10000);
+//            controller.launchAndConnect(null, desktopOption, listener, 10000);
+            controller.connect(listener);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -283,6 +299,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         } else {
             startupUUID = "OpenFinHelloWorld";
         }
+        java.lang.System.out.println("starting: ");
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 createAndShowGUI(desktop_option, startupUUID);

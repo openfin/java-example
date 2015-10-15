@@ -10,11 +10,29 @@
     <packaging>jar</packaging>
 
     <name>openfin-desktop-java-example</name>
+    <description>Examples of OpenFin Java API</description>
     <url>http://www.openfin.co</url>
 
     <properties>
         <user.name>support@openfin.co</user.name>
     </properties>
+
+    <licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <email>support@gmail.com</email>
+            <name>OpenFin</name>
+            <url>https://openfin.co</url>
+            <id>openfin</id>
+        </developer>
+    </developers>
 
     <dependencies>
         <dependency>
@@ -43,8 +61,25 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <archive>
+                        <manifestFile>${basedir}/target/classes/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
 
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
 
     </build>
 
