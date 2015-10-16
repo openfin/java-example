@@ -105,7 +105,26 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 3. dockToStartupApp and undockFromStartupApp show to dock and undock 2 windows.
 
+## Source Code Review for JNLP Example
 
+Source code for the example is located in /src/main/java/com/openfin/desktop/demo/JNLPExample.java.  The followings overview of how it communicates with OpenFin Runtime with API calls supported by the Java adapter:
+
+1. Create connection object:
+
+        this.desktopConnection = new DesktopConnection("WebStartExample");
+
+    This code just creates an instance and it does not try to connect to runtime.
+
+2. Launch and connect to OpenFin runtime:
+
+        desktopConnection.connectToVersion("stable", listener, 100000);
+
+   listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  connectToVersion connects to "stable" version of Runtime.  If "stable" version is not running, this method will try to start it.
+
+3. Once the Runtime is running, launchHTML5App method is called to start Hello OpenFin demo app.
+
+4. To run the demo, please import webstart/OpenFinSigner.csr into Java Webstart as Signer CA first, and then load 
+[Demo JNLP](http://openfin.github.io/java-example/webstart/JNLPExample.jnlp) to start the demo.
 
 ## More Info
 
