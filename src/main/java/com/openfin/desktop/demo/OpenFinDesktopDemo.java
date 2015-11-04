@@ -59,20 +59,20 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     protected LoadAppsDialog loadAppsDialog;
 
     protected JTextArea status;
-    private final String desktopCommandLine;
-    private String startupUUID;
 
-    private JLabel uuidLabel, nameLabel, versionLabel, urlLabel, adminLabel, resizeLabel, autoShowLabel, draggableLabel, frameLabel;
+    private JLabel uuidLabel, nameLabel, versionLabel, urlLabel, resizeLabel, autoShowLabel, frameLabel;
 
 
-    public OpenFinDesktopDemo(final String desktopCommandLine, String startupUUID) {
-        this.startupUUID = startupUUID;
+    public OpenFinDesktopDemo(final String securityRealm) {
         try {
-            this.controller = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", 9696);
+            this.controller = new DesktopConnection("OpenFinDesktopDemoJava");
+            if (securityRealm != null) {
+                this.controller.setRuntimeSecurityRealm(securityRealm);
+            }
+            this.controller.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
-        this.desktopCommandLine = desktopCommandLine;
         this.appCreateDialog = new AppCreateDialog();
         this.loadAppsDialog = new LoadAppsDialog();
 
@@ -172,11 +172,9 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         panel.add(versionLabel = new JLabel(), "0, 2, 0, 2");
         panel.add(urlLabel = new JLabel(), "0, 3, 0, 3");
 
-        panel.add(adminLabel = new JLabel(), "1, 0, 1, 0");
         panel.add(resizeLabel = new JLabel(), "1, 1, 1, 1");
         panel.add(frameLabel = new JLabel(), "1, 2, 1, 2");
         panel.add(autoShowLabel = new JLabel(), "1, 3, 1, 3");
-        panel.add(draggableLabel = new JLabel(), "1, 4, 1, 4");
 
         return panel;
     }
@@ -387,22 +385,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         updateMessagePanel("Connected to Desktop");
         setMainButtonsEnabled(true);
 
-        if (this.startupUUID != null) {
-            Application app = Application.wrap(this.startupUUID, this.controller);
-            ApplicationOptions options = new ApplicationOptions("Startup App", this.startupUUID, null);
-            options.setMainWindowOptions(new WindowOptions());
-            this.applicationList.put(options.getUUID(), app);
-            addApplication(options);
-
-            app.addEventListener("closed", new EventListener() {
-                @Override
-                public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
-                    updateMessagePanel("startup app closed");
-                }
-            }, null);
-
-        }
-
         openfinSystem.addEventListener("desktop-icon-clicked", new EventListener() {
             @Override
             public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
@@ -456,7 +438,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         };
 
         try {
-            controller.launchAndConnect(this.desktopCommandLine, listener, 10000);
+            controller.connectToVersion("stable", listener, 10000);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -473,19 +455,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 ApplicationOptions options = this.appCreateDialog.getApplicatonOptions();
                 if (options != null) {
                     createApplication(options);
-                }
-            } else if ("create-rfq".equals(e.getActionCommand())) {
-                InterApplicationBus bus = controller.getInterApplicationBus();
-
-                org.json.JSONObject message = getRandomQuote(random.nextInt());
-
-                bus.publish("price", message);
-
-            } else if ("load-apps".equals(e.getActionCommand())) {
-                this.loadAppsDialog.show(this);
-                JSONObject message = this.loadAppsDialog.getCredentials();
-                if (message != null) {
-                    retrieveApplications(message);
                 }
             } else if ("minimize".equals(e.getActionCommand())) {
                 if (this.selectedApplication != null) {
@@ -619,44 +588,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private static final String[] platforms = {"Trade Desk"};
     private static final String[] types = {"ASK", "BID"};
 
-    private JSONObject getRandomQuote(int id) {
-        String issuer = issuers[random.nextInt(issuers.length)];
-        String year = new Integer(random.nextInt(11)).toString();
-        if (year.length() == 1) {
-            year = "0" + year;
-        }
-        String maturity = new Integer(random.nextInt(12) + 1).toString() + "/" + new Integer(random.nextInt(30) + 1).toString() + "/" + year;
-        double coupon = Math.abs(1 * random.nextGaussian()) + 5;
-        int size = 1000000 * (random.nextInt(10) + 1);
-        String ccy = ccys[random.nextInt(ccys.length)];
-        String account = accounts[random.nextInt(accounts.length)];
-        String platform = platforms[random.nextInt(platforms.length)];
-        double marketData = Math.abs(200 * random.nextGaussian() + 1000);
-        String type = types[random.nextInt(types.length)];
-        int expirationTime = 30;
-
-        JSONObject quote = new JSONObject();
-
-        try {
-            quote.put(ISSUER, issuer);
-            quote.put(MATURITY, maturity);
-            quote.put(COUPON, coupon);
-            quote.put(SIZE, size);
-            quote.put(CCY, ccy);
-            quote.put(ACCOUNT, account);
-            quote.put(PLATFORM, platform);
-            quote.put(MARKET_DATA, marketData);
-            quote.put(TYPE, type);
-            quote.put(EXPIRATION_TIME, expirationTime);
-            quote.put(ID, id);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-
-        return quote;
-    }
-
     private void setMainButtonsEnabled(boolean enabled) {
+        java.lang.System.out.println("setMainButtonsEnabled " + enabled);
         launch.setEnabled(!enabled);
 
         close.setEnabled(enabled);
@@ -674,15 +607,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         rightButton.setEnabled(enabled);
         leftButton.setEnabled(enabled);
 
-    }
-
-    private void retrieveApplications(JSONObject message) {
-        bus = controller.getInterApplicationBus();
-        try {
-            bus.send("ExternalClientUtils", "get-user-app-settings", message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void createApplication(final ApplicationOptions options) {
@@ -736,14 +660,14 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         return value ? "Y" : "N";
     }
 
-    private static void createAndShowGUI(final String desktopCommandLine, String startupUUID) {
+    private static void createAndShowGUI(final String securityRealm) {
 
         //Create and set up the window.
         jFrame = new JFrame("Java Login Demo");
         jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         //Create and set up the content pane.
-        OpenFinDesktopDemo newContentPane = new OpenFinDesktopDemo(desktopCommandLine, startupUUID);
+        OpenFinDesktopDemo newContentPane = new OpenFinDesktopDemo(securityRealm);
         newContentPane.setOpaque(true); //content panes must be opaque
         jFrame.setContentPane(newContentPane);
         jFrame.addWindowListener(newContentPane);
@@ -767,18 +691,17 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        final String desktop_option = java.lang.System.getProperty("OpenFinOption");
 
-        final String startupUUID;
-        if (java.lang.System.getProperty("StartupUUID") != null) {
-            startupUUID = java.lang.System.getProperty("StartupUUID");
+        final String securityRealm;
+        if (java.lang.System.getProperty("SecurityRealm") != null) {
+            securityRealm = java.lang.System.getProperty("SecurityRealm");
         } else {
-            startupUUID = "OpenFinHelloWorld";
+            securityRealm = null;
         }
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI(desktop_option, startupUUID);
+                createAndShowGUI(securityRealm);
             }
         });
     }

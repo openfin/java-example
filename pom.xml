@@ -38,7 +38,7 @@
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-            <version>4.40.2.7</version>
+            <version>4.40.2.10</version>
         </dependency>
         <dependency>
             <groupId>tablelayout</groupId>
