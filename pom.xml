@@ -6,7 +6,7 @@
 
     <groupId>co.openfin</groupId>
     <artifactId>openfin-desktop-java-example</artifactId>
-    <version>3.0.1.5</version>
+    <version>5.44.2.0</version>
     <packaging>jar</packaging>
 
     <name>openfin-desktop-java-example</name>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-            <version>4.40.2.10</version>
+            <version>5.44.2.0</version>
         </dependency>
         <dependency>
             <groupId>tablelayout</groupId>

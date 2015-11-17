@@ -693,8 +693,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     public static void main(String[] args) throws Exception {
 
         final String securityRealm;
-        if (java.lang.System.getProperty("SecurityRealm") != null) {
-            securityRealm = java.lang.System.getProperty("SecurityRealm");
+        if (java.lang.System.getProperty("com.openfin.demo.security.realm") != null) {
+            securityRealm = java.lang.System.getProperty("com.openfin.demo.security.realm");
         } else {
             securityRealm = null;
         }
