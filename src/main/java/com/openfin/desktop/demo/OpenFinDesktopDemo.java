@@ -351,7 +351,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         if (controller != null && controller.isConnected()) {
             try {
                 new System(controller).exit();
-//                Application app = Application.wrap(this.startupUUID, this.controller);
+//                Application app = Application.wrap(this.startupUUID, this.desktopConnection);
 //                app.close();
                 setMainButtonsEnabled(false);
                 setAppButtonsEnabled(false);

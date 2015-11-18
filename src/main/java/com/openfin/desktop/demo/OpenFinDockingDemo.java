@@ -5,7 +5,6 @@ import com.openfin.desktop.System;
 import com.openfin.desktop.Window;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 import info.clearthought.layout.TableLayout;
-import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,17 +32,14 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     protected String javaWindowName = "Java Dock Window";
     protected String appUuid = "JavaDocking";
     protected String startupUuid = "OpenFinHelloWorld";
-    protected String desktopOption;
 
-    protected DesktopConnection controller;
+    protected DesktopConnection desktopConnection;
 
     protected JTextArea status;
 
-    public OpenFinDockingDemo(final String desktopOption, final String startupUuid) {
-        this.startupUuid = startupUuid;
-        this.desktopOption = desktopOption;
+    public OpenFinDockingDemo() {
         try {
-            this.controller = new DesktopConnection(appUuid, "localhost", 9696);
+            this.desktopConnection = new DesktopConnection(appUuid);
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
@@ -181,9 +177,9 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
 
 
     private void closeDesktop() {
-        if (controller != null && controller.isConnected()) {
+        if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
-                new System(controller).exit();
+                new System(desktopConnection).exit();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -207,14 +203,14 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     private void dockToStartupApp() {
         try {
             createNotification("Docking Java and HTML5");
-            externalWindowObserver = new ExternalWindowObserver(controller.getPort(), startupUuid, javaWindowName, jFrame,
+            externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), startupUuid, javaWindowName, jFrame,
                     new AckListener() {
                         @Override
                         public void onSuccess(Ack ack) {
                             if (ack.isSuccessful()) {
                                 try {
-                                    Window w = Window.wrap(startupUuid, javaWindowName, controller);
-                                    w.joinGroup(Window.wrap(startupUuid, startupUuid, controller));
+                                    Window w = Window.wrap(startupUuid, javaWindowName, desktopConnection);
+                                    w.joinGroup(Window.wrap(startupUuid, startupUuid, desktopConnection));
                                     dock.setEnabled(false);
                                     undock.setEnabled(true);
                                 } catch (Exception e) {
@@ -265,13 +261,13 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             public void onShow(Ack ack) {
                 java.lang.System.out.println("notification onShow");
             }
-        }, this.controller, null);
+        }, this.desktopConnection, null);
     }
 
     private void undockFromStartupApp() {
         try {
             createNotification("Undocking Java and HTML5");
-            Window w = Window.wrap(startupUuid, javaWindowName, controller);
+            Window w = Window.wrap(startupUuid, javaWindowName, desktopConnection);
             w.leaveGroup();
             externalWindowObserver.dispose();
         } catch (Exception e) {
@@ -288,6 +284,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                 public void onReady() {
                     updateMessagePanel("Connection authorized.");
                     setMainButtonsEnabled(true);
+                    launchHelloOpenFin();
                 }
 
                 @Override
@@ -306,7 +303,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                 }
 
             };
-            controller.launchAndConnect(null, desktopOption, listener, 10000);
+            desktopConnection.connectToVersion("stable", listener, 10000);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -335,14 +332,44 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     private void setAppButtonsEnabled(boolean enabled) {
     }
 
+    private void launchHelloOpenFin() {
+        ApplicationOptions options = new ApplicationOptions(startupUuid, startupUuid, "http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/index.html");
+        options.setApplicationIcon("http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/img/openfin.ico");
 
-    private static void createAndShowGUI(final String desktopOption, final String startupUuid) {
+        WindowOptions mainWindowOptions = new WindowOptions();
+        mainWindowOptions.setAutoShow(false);
+        mainWindowOptions.setDefaultHeight(525);
+        mainWindowOptions.setDefaultLeft(10);
+        mainWindowOptions.setDefaultTop(50);
+        mainWindowOptions.setDefaultWidth(395);
+        mainWindowOptions.setResizable(false);
+        mainWindowOptions.setFrame(false);
+        mainWindowOptions.setShowTaskbarIcon(true);
+        options.setMainWindowOptions(mainWindowOptions);
+
+        Application app = new Application(options, desktopConnection, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                Application application = (Application) ack.getSource();
+                try {
+                    application.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+    }
+
+    private static void createAndShowGUI() {
         //Create and set up the window.
         jFrame = new JFrame("Java Docking Demo");
         jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         //Create and set up the content pane.
-        OpenFinDockingDemo newContentPane = new OpenFinDockingDemo(desktopOption, startupUuid);
+        OpenFinDockingDemo newContentPane = new OpenFinDockingDemo();
         newContentPane.setOpaque(true); //content panes must be opaque
         jFrame.setContentPane(newContentPane);
         jFrame.addWindowListener(newContentPane);
@@ -355,26 +382,15 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         jFrame.setVisible(true);
     }
 
+
     /**
-     * To start OpenFin Desktop and Connect, pass full path of OpenFin with*
-     *    -DOpenFinOption=--config=\"RemoteConfigUrl\"
-     *
-     * Set UUID of startup HTML5 app to dock to
-     *    -DStartupUUID="550e8400-e29b-41d4-a716-4466333333000"
      *
      * @param args
      */
     public static void main(String[] args) {
-        final String desktop_option = java.lang.System.getProperty("OpenFinOption");
-        final String startupUUID;
-        if (java.lang.System.getProperty("StartupUUID") != null) {
-            startupUUID = java.lang.System.getProperty("StartupUUID");
-        } else {
-            startupUUID = "OpenFinHelloWorld";
-        }
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI(desktop_option, startupUUID);
+                createAndShowGUI();
             }
         });
     }

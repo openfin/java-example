@@ -133,7 +133,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     private void closeDesktop() {
         if (controller != null && controller.isConnected()) {
             try {
-//                new com.openfin.desktop.System(controller).exit();
+//                new com.openfin.desktop.System(desktopConnection).exit();
                 System.out.println("disconnecting ");
                 controller.disconnect();
             } catch (Exception e) {
@@ -215,7 +215,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 public void onOutgoingMessage(String message) {
                 }
             };
-//            controller.launchAndConnect(null, desktopOption, listener, 10000);
+//            desktopConnection.launchAndConnect(null, desktopOption, listener, 10000);
             controller.connect(listener);
 
         } catch (Exception e) {
