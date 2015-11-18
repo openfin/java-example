@@ -6,7 +6,6 @@ import com.openfin.desktop.animation.AnimationTransitions;
 import com.openfin.desktop.animation.OpacityTransition;
 import com.openfin.desktop.animation.PositionTransition;
 import info.clearthought.layout.TableLayout;
-import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -53,7 +52,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
     InterApplicationBus bus;
 
-    protected DesktopConnection controller;
+    protected DesktopConnection desktopConnection;
     protected System openfinSystem;
     protected AppCreateDialog appCreateDialog;
     protected LoadAppsDialog loadAppsDialog;
@@ -65,11 +64,11 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
     public OpenFinDesktopDemo(final String securityRealm) {
         try {
-            this.controller = new DesktopConnection("OpenFinDesktopDemoJava");
+            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava");
             if (securityRealm != null) {
-                this.controller.setRuntimeSecurityRealm(securityRealm);
+                this.desktopConnection.setRuntimeSecurityRealm(securityRealm);
             }
-            this.controller.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
+            this.desktopConnection.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
@@ -286,9 +285,9 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void closeWebSocket() {
-        if (controller != null && controller.isConnected()) {
+        if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
-                controller.disconnect();
+                desktopConnection.disconnect();
             } catch (DesktopException e) {
                 e.printStackTrace();
             }
@@ -348,9 +347,9 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
 
     private void closeDesktop() {
-        if (controller != null && controller.isConnected()) {
+        if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
-                new System(controller).exit();
+                new System(desktopConnection).exit();
 //                Application app = Application.wrap(this.startupUUID, this.desktopConnection);
 //                app.close();
                 setMainButtonsEnabled(false);
@@ -380,8 +379,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
     private void createAdminApplication() throws DesktopException {
         updateMessagePanel("Creating InterAppBus");
-        bus = controller.getInterApplicationBus();
-        openfinSystem = new System(controller);
+        bus = desktopConnection.getInterApplicationBus();
+        openfinSystem = new System(desktopConnection);
         updateMessagePanel("Connected to Desktop");
         setMainButtonsEnabled(true);
 
@@ -421,7 +420,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             public void onError(String reason) {
                 updateMessagePanel("Connection failed: " + reason);
 
-                if (!controller.isConnected()) {
+                if (!desktopConnection.isConnected()) {
 
                 }
             }
@@ -438,7 +437,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         };
 
         try {
-            controller.connectToVersion("stable", listener, 10000);
+            desktopConnection.connectToVersion("stable", listener, 10000);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -610,7 +609,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void createApplication(final ApplicationOptions options) {
-        Application app = new Application(options, controller, new AckListener() {
+        Application app = new Application(options, desktopConnection, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 Application application = (Application) ack.getSource();
