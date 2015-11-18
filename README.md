@@ -21,13 +21,13 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 1. Create connection object:
 
-            this.controller = new DesktopConnection("OpenFinDesktopDemo", "localhost", port);
+            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemo", "localhost", port);
 
     This code just creates an instance and it does not try to connect to runtime.
 
-2. Launch and connect to OpenFin runtime:
+2. Launch and connect to stable version of OpenFin runtime:
 
-            controller.launchAndConnect(this.desktopCommandLine, listener, 10000);
+            desktopConnection.connectToVersion("stable", listener, 10000);
 
    listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  desktopCommandLine is a string of arguments passed to OpenFinRVM.
    This example by default passes remote config file for Hello OpenFin app, which will be started as the first app in OpenFin Runtime.
@@ -64,11 +64,11 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 6. Publishes messages to a topic with InterApplicationBus
 
             org.json.JSONObject message = createSomeJsonMessage();
-            controller.getInterApplicationBus().publish("someTopic", message);
+            desktopConnection.getInterApplicationBus().publish("someTopic", message);
 
 7. Subscribes to a topic with InterApplicationBus
 
-                            controller.getInterApplicationBus().subscribe("*", "someTopic", new BusListener() {
+                            desktopConnection.getInterApplicationBus().subscribe("*", "someTopic", new BusListener() {
                                 public void onMessageReceived(String sourceUuid, String topic, Object payload) {
                                     JSONObject message = (JSONObject) payload;
                                 }
@@ -92,13 +92,13 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 1. Create connection object:
 
-            this.controller = new DesktopConnection("OpenFinDockingDemo", "localhost", port);
+            this.desktopConnection = new DesktopConnection("OpenFinDockingDemo", "localhost", port);
 
     This code just creates an instance and it does not try to connect to runtime.
 
-2. Launch and connect to OpenFin runtime:
+2. Launch and connect to stable version of OpenFin runtime:
 
-            controller.launchAndConnect(this.desktopCommandLine, listener, 10000);
+            desktopConnection.connectToVersion("stable", listener, 10000);
 
    listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  desktopCommandLine is a string of arguments passed to OpenFinRVM.
    This example by default passes remote config file for Hello OpenFin app, which will be started as the first app in OpenFin Runtime.
