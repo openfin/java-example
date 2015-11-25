@@ -6,3 +6,4 @@ Build-Jdk: ${java.version}
 Built-By: OpenFin
 Created-By: OpenFin
 Application-Name: JNLP Example of OpenFin Runtime
+Permissions: all-permissions
