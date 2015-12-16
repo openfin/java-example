@@ -17,12 +17,26 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.logging.Logger;
 
 /**
  *
  * GUI example that allows for instantiating and controlling
+ *
+ * Supported system properties by this demo:
+ *
+ *  1. to specify security realm for OpenFin Runtime
+ *      -Dcom.openfin.demo.security.realm=SampleRealm
+ *
+ *  2. to specify version of OpenFin Runtime
+ *      -Dcom.openfin.demo.version=5.44.8.56
+ *
+ *  3. to specify arguments to be passed to RVM installer
+ *      -Dcom.openfin.demo.rvm.arguments="--assetsUrl=https://myServer/release --rvm-config=https://myServer/rvm.json"
+ *
+ *  4. to connect to a port of a running instance of OpenFin Runtime (this is a deprecated use of OpenFin API
+ *      -Dcom.openfin.demo.port=9000
+ *
  *
  * Created by wche on 2/28/15.
  *
@@ -454,6 +468,11 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 if (desktopVersion == null) {
                     desktopVersion = "stable";
                 }
+                String rvmArgs = java.lang.System.getProperty("com.openfin.demo.rvm.arguments");
+                if (rvmArgs != null) {
+                    updateMessagePanel("Additional RVM arguments: " + rvmArgs);
+                    desktopConnection.setAdditionalRvmArguments(rvmArgs);
+                }
                 updateMessagePanel("Connecting to version " + desktopVersion);
                 desktopConnection.connectToVersion(desktopVersion, listener, 10000);
             }
@@ -584,27 +603,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             }
         }, null);
     }
-
-    final static public String ISSUER = "issuer";
-    final static public String MATURITY = "maturity";
-    final static public String COUPON = "coupon";
-    final static public String SIZE = "size";
-    final static public String CCY = "ccy";
-    final static public String ACCOUNT = "account";
-    final static public String PLATFORM = "platform";
-    final static public String MARKET_DATA = "marketData";
-    final static public String TYPE = "type";
-    final static public String STATUS = "status";
-    final static public String EXPIRATION_TIME = "expirationTime";
-    final static public String ID = "id";
-    final static public String PRICE = "price";
-
-    private Random random = new Random();
-    private static final String[] issuers = {"GS", "JPM", "UBS", "MS", "DB", "BC", "BA"};
-    private static final String[] ccys = {"USD", "JPY", "GBP", "EUR", "CHF", "CAD"};
-    private static final String[] accounts = {"ABC Capital", "DEF Capital", "GHI Capital"};
-    private static final String[] platforms = {"Trade Desk"};
-    private static final String[] types = {"ASK", "BID"};
 
     private void setMainButtonsEnabled(boolean enabled) {
         java.lang.System.out.println("setMainButtonsEnabled " + enabled);
