@@ -53,6 +53,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     InterApplicationBus bus;
 
     protected DesktopConnection desktopConnection;
+    protected int desktopPort = -1; // if set, assuming Runtime is already running on the port
     protected System openfinSystem;
     protected AppCreateDialog appCreateDialog;
     protected LoadAppsDialog loadAppsDialog;
@@ -64,7 +65,15 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
     public OpenFinDesktopDemo(final String securityRealm) {
         try {
-            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava");
+
+            if (java.lang.System.getProperty("com.openfin.demo.port") != null) {
+                this.desktopPort = Integer.parseInt(java.lang.System.getProperty("com.openfin.demo.port"));
+            }
+            if (this.desktopPort > 0) {
+                this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", this.desktopPort);
+            } else {
+                this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava");
+            }
             if (securityRealm != null) {
                 this.desktopConnection.setRuntimeSecurityRealm(securityRealm);
             }
@@ -437,7 +446,17 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         };
 
         try {
-            desktopConnection.connectToVersion("stable", listener, 10000);
+            if (this.desktopPort > 0) {
+                updateMessagePanel("Connecting to Runtime already running at port " + this.desktopPort);
+                desktopConnection.connect(listener);
+            } else {
+                String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
+                if (desktopVersion == null) {
+                    desktopVersion = "stable";
+                }
+                updateMessagePanel("Connecting to version " + desktopVersion);
+                desktopConnection.connectToVersion(desktopVersion, listener, 10000);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
