@@ -128,7 +128,7 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 ## More Info
 
-More information and API documentation can be found at https://www.openfin.co/developers.html?url=developers/api/java/overview.html
+More information and API documentation can be found at https://openfin.co/java-api/
 
 ## Getting help
 
