@@ -77,24 +77,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private JLabel uuidLabel, nameLabel, versionLabel, urlLabel, resizeLabel, autoShowLabel, frameLabel;
 
 
-    public OpenFinDesktopDemo(final String securityRealm) {
-        try {
-
-            if (java.lang.System.getProperty("com.openfin.demo.port") != null) {
-                this.desktopPort = Integer.parseInt(java.lang.System.getProperty("com.openfin.demo.port"));
-            }
-            if (this.desktopPort > 0) {
-                this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", this.desktopPort);
-            } else {
-                this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava");
-            }
-            if (securityRealm != null) {
-                this.desktopConnection.setRuntimeSecurityRealm(securityRealm);
-            }
-            this.desktopConnection.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
-        } catch (DesktopException desktopError) {
-            desktopError.printStackTrace();
-        }
+    public OpenFinDesktopDemo() {
         this.appCreateDialog = new AppCreateDialog();
         this.loadAppsDialog = new LoadAppsDialog();
 
@@ -104,6 +87,25 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         add(layoutLeftPanel(), BorderLayout.WEST);
         setMainButtonsEnabled(false);
         setAppButtonsEnabled(false);
+    }
+
+    private void initDesktopConnection() throws DesktopException {
+        if (java.lang.System.getProperty("com.openfin.demo.port") != null) {
+            this.desktopPort = Integer.parseInt(java.lang.System.getProperty("com.openfin.demo.port"));
+        }
+        if (this.desktopPort > 0) {
+            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", this.desktopPort);
+        } else {
+            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava");
+        }
+        String securityRealm = null;
+        if (java.lang.System.getProperty("com.openfin.demo.security.realm") != null) {
+            securityRealm = java.lang.System.getProperty("com.openfin.demo.security.realm");
+        }
+        if (securityRealm != null) {
+            this.desktopConnection.setRuntimeSecurityRealm(securityRealm);
+        }
+        this.desktopConnection.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
     }
 
     private JPanel layoutLeftPanel() {
@@ -429,6 +431,12 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void runStartAction() {
+        try {
+            initDesktopConnection();
+        } catch (DesktopException desktopError) {
+            desktopError.printStackTrace();
+        }
+
         final DesktopStateListener listener = new DesktopStateListener() {
             @Override
             public void onReady() {
@@ -631,7 +639,19 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             public void onSuccess(Ack ack) {
                 Application application = (Application) ack.getSource();
                 try {
-                    application.run();
+                    application.run(new AckListener() {
+                        public void onSuccess(Ack ack) {
+                            java.lang.System.out.println("Intalling minimized event listener");
+                            Application application = (Application) ack.getSource();
+                            application.getWindow().addEventListener("minimized", new EventListener() {
+                                public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                                    java.lang.System.out.println("eventReceived " + actionEvent.getType());
+                                }
+                            }, null);
+                        }
+                        public void onError(Ack ack) {
+                        }
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -676,14 +696,14 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         return value ? "Y" : "N";
     }
 
-    private static void createAndShowGUI(final String securityRealm) {
+    private static void createAndShowGUI() {
 
         //Create and set up the window.
         jFrame = new JFrame("Java Login Demo");
         jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         //Create and set up the content pane.
-        OpenFinDesktopDemo newContentPane = new OpenFinDesktopDemo(securityRealm);
+        OpenFinDesktopDemo newContentPane = new OpenFinDesktopDemo();
         newContentPane.setOpaque(true); //content panes must be opaque
         jFrame.setContentPane(newContentPane);
         jFrame.addWindowListener(newContentPane);
@@ -708,16 +728,10 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
      */
     public static void main(String[] args) throws Exception {
 
-        final String securityRealm;
-        if (java.lang.System.getProperty("com.openfin.demo.security.realm") != null) {
-            securityRealm = java.lang.System.getProperty("com.openfin.demo.security.realm");
-        } else {
-            securityRealm = null;
-        }
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI(securityRealm);
+                createAndShowGUI();
             }
         });
     }
