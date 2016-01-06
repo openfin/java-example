@@ -17,7 +17,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -42,7 +43,7 @@ import java.util.logging.Logger;
  *
  */
 public class OpenFinDesktopDemo extends JPanel implements ActionListener, WindowListener {
-    private final static Logger logger = Logger.getLogger(OpenFinDesktopDemo.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(OpenFinDesktopDemo.class.getName());
 
 
     private static JFrame jFrame;
