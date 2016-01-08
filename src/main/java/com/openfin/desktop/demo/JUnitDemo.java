@@ -58,6 +58,7 @@ public class JUnitDemo {
 
         desktopConnection = null;
         desktopConnection = new DesktopConnection(DESKTOP_UUID);
+        desktopConnection.setAdditionalRuntimeArguments(" --v=1");  // enable additional logging from Runtime
         desktopConnection.connectToVersion(desktopVersion, new DesktopStateListener() {
             @Override
             public void onReady() {
@@ -511,9 +512,9 @@ public class JUnitDemo {
         options.setDefaultTop(top);
 
         final CountDownLatch onWindowCreatedLatch = new CountDownLatch(1);
-        application.addEventListener("window-created", new EventListener() {
+        application.addEventListener("window-end-load", new EventListener() {
             public void eventReceived(ActionEvent actionEvent) {
-                printf("eventReceived: %s for window %s", actionEvent.getType(), name);
+                printf("eventReceived: %s for window %s to listener %s", actionEvent.getType(), actionEvent.getEventObject().getString("name"), name);
                 if (actionEvent.getEventObject().has("name")) {
                     if (name.equals(actionEvent.getEventObject().getString("name"))) {
                         onWindowCreatedLatch.countDown();
