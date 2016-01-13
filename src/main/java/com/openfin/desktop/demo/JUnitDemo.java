@@ -80,10 +80,11 @@ public class JUnitDemo {
             public void onOutgoingMessage(String message) {
                 printf("openfin outgoing message: %s", message);
             }
-        }, 60000);//this timeout (in 4.40.2.9) is ignored
+        }, 60);//this timeout (in 4.40.2.9) is ignored
 
         printf("waiting for desktop to connect");
-        openFinConnectedLatch.await(20, TimeUnit.SECONDS);
+        // wait for 60 seconds here in case it takes time to download newer version of Runtime
+        openFinConnectedLatch.await(60, TimeUnit.SECONDS);
 
         if (desktopConnection.isConnected()) {
             printf("desktop connected");
@@ -95,6 +96,17 @@ public class JUnitDemo {
     private static void teardownDesktopConnection() throws Exception {
         new System(desktopConnection).exit();
         printf("desktop connection closed");
+    }
+
+    private Application openHelloOpenFin(String uuid, String url) throws Exception {
+        //default options for all test windows
+        int top = 50;
+        int left = 10;
+        int width = 395;
+        int height = 525;
+        boolean withFrame = false;
+        boolean resizable = false;
+        return openWindow(uuid, url, left, top, width, height, withFrame, resizable);
     }
 
     private Application openWindow(String uuid, String url) throws Exception {
@@ -430,7 +442,7 @@ public class JUnitDemo {
 
     @Test
     public void childWindow() throws Exception {
-        Application application = openWindow(nextTestUuid(), "http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/index.html");
+        Application application = openHelloOpenFin(nextTestUuid(), "http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/index.html");
         Window childWindow = this.createChildWindow(application, "ChildWindow1", "http://test.openf.in/bus/simple.html", 300, 300, 150, 150);
         Thread.sleep(SLEEP_FOR_HUMAN_OBSERVATION);
         WindowBounds bounds = getWindowBounds(childWindow);
@@ -442,7 +454,7 @@ public class JUnitDemo {
     @Test
     public void windowsOfSameAppInSameGroupMoveTogether() throws Exception {
         //place two windows next to each other
-        Application application = openWindow(nextTestUuid(), "http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/index.html");
+        Application application = openHelloOpenFin(nextTestUuid(), "http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/index.html");
         Window childWindowA = this.createChildWindow(application, "ChildWindowA", "http://test.openf.in/bus/simple.html", 300, 300, 150, 150);
         Window childWindowB = this.createChildWindow(application, "ChildWindowB", "http://test.openf.in/bus/simple.html", 300, 300, 450, 150);
 
