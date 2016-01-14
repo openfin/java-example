@@ -120,6 +120,19 @@ public class JUnitDemo {
         return openWindow(uuid, url, left, top, width, height, withFrame, resizable);
     }
 
+    /**
+     * Create an OpenFin Application
+     * @param uuid uuid of the app
+     * @param url  url of the app
+     * @param left
+     * @param top
+     * @param width
+     * @param height
+     * @param withFrame
+     * @param resizable
+     * @return
+     * @throws Exception
+     */
     private Application openWindow(final String uuid, final String url, final int left, final int top, final int width, final int height, boolean withFrame, boolean resizable) throws Exception {
         final WindowOptions windowOptions = new WindowOptions();
         windowOptions.setAutoShow(true);
@@ -147,7 +160,7 @@ public class JUnitDemo {
             public void onSuccess(Ack ack) {
                 try {
                     Application application = (Application) ack.getSource();
-
+                    // use app-connected event to wait for the app to be connected to OpenFin Runtime
                     application.getWindow().addEventListener("app-connected", new EventListener() {
                         public void eventReceived(ActionEvent actionEvent) {
                             printf("eventReceived: %s", actionEvent.getType());
@@ -513,6 +526,19 @@ public class JUnitDemo {
         return windowBounds;
     }
 
+    /**
+     * Create a child window for an Application
+     *
+     * @param application owner application
+     * @param name name of the child window
+     * @param url  url of the child window
+     * @param width
+     * @param height
+     * @param left
+     * @param top
+     * @return
+     * @throws Exception
+     */
     private Window createChildWindow(Application application, final String name, String url, int width, int height, int left, int top) throws Exception {
 
         WindowOptions options = new WindowOptions(name, url);
@@ -524,6 +550,7 @@ public class JUnitDemo {
         options.setDefaultTop(top);
 
         final CountDownLatch onWindowCreatedLatch = new CountDownLatch(1);
+        // use window-end-load event to wait for the window to finish loading
         application.addEventListener("window-end-load", new EventListener() {
             public void eventReceived(ActionEvent actionEvent) {
                 printf("eventReceived: %s for window %s to listener %s", actionEvent.getType(), actionEvent.getEventObject().getString("name"), name);
