@@ -2,6 +2,7 @@ package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
 import com.openfin.desktop.ActionEvent;
+import com.openfin.desktop.EventListener;
 import com.openfin.desktop.System;
 import com.openfin.desktop.Window;
 import com.openfin.desktop.win32.ExternalWindowObserver;
@@ -13,10 +14,8 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 /**
  * Example of docking Java window with OpenFin html5 window
@@ -35,7 +34,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     protected JButton launch;
     protected JButton close;
 
-    protected JButton dockButtom, undockButton;
+    protected JButton undockButton;
 
     protected ExternalWindowObserver externalWindowObserver;
     protected String javaWindowName = "Java Dock Window";
@@ -93,19 +92,13 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         topPanel.add(launch, "1,0,1,0");
         topPanel.add(close, "3,0,3,0");
 
-        dockButtom = new JButton("Dock to HTML5 app");
-        dockButtom.setActionCommand("dock-window");
-        dockButtom.setEnabled(false);
-        topPanel.add(dockButtom, "1,2,1,2");
-
         undockButton = new JButton("Undock from HTML5 app");
         undockButton.setActionCommand("undock-window");
         undockButton.setEnabled(false);
-        topPanel.add(undockButton, "3,2,3,2");
+        topPanel.add(undockButton, "1,2,1,2");
 
         close.addActionListener(this);
         launch.addActionListener(this);
-        dockButtom.addActionListener(this);
         undockButton.addActionListener(this);
 
         buttonPanel.add(topPanel, "0,0");
@@ -220,18 +213,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         }
     }
 
-    private void dockToStartupApp() {
-        try {
-            createNotification("Docking Java and HTML5");
-            Window w = Window.wrap(startupUuid, javaWindowName, desktopConnection);
-            w.joinGroup(Window.wrap(startupUuid, startupUuid, desktopConnection));
-            dockButtom.setEnabled(false);
-            undockButton.setEnabled(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private void createNotification(String text) throws Exception {
         NotificationOptions options = new NotificationOptions("http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/views/notification.html");
         options.setTimeout(5000);
@@ -277,7 +258,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         } catch (Exception e) {
             e.printStackTrace();
         }
-        dockButtom.setEnabled(true);
         undockButton.setEnabled(false);
     }
 
@@ -321,8 +301,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             runStartAction();
         } else if ("close".equals(e.getActionCommand())) {
             closeDesktop();
-        } else if ("dock-window".equals(e.getActionCommand())) {
-            dockToStartupApp();
         } else if ("undock-window".equals(e.getActionCommand())) {
             undockFromStartupApp();
         }
@@ -345,8 +323,8 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                         public void onSuccess(Ack ack) {
                             if (ack.isSuccessful()) {
                                 try {
-                                    dockButtom.setEnabled(true);
                                     undockButton.setEnabled(false);
+                                    simpleDockingManager.registerWindow(Window.wrap(startupUuid, javaWindowName, desktopConnection));
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -382,10 +360,13 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             public void onSuccess(Ack ack) {
                 Application application = (Application) ack.getSource();
                 try {
-                    application.run();
-
-                    simpleDockingManager.registerWindow(Window.wrap(startupUuid, javaWindowName, desktopConnection));
-                    simpleDockingManager.registerWindow(Window.wrap(startupUuid, startupUuid, desktopConnection));
+                    application.run(new AckListener() {
+                        public void onSuccess(Ack ack) {
+                            simpleDockingManager.registerWindow(Window.wrap(startupUuid, startupUuid, desktopConnection));
+                        }
+                        public void onError(Ack ack) {
+                        }
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -397,10 +378,12 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     }
 
     private void showReadyToDockMessage(Window anchorWindow) {
+        this.dockStatus.setForeground(Color.red);
         this.dockStatus.setText(String.format("Close to %s, release mouse to dock", anchorWindow.getName()));
     }
     private void clearReadyToDockMessage() {
-        this.dockStatus.setText("");
+        this.dockStatus.setForeground(Color.black);
+        this.dockStatus.setText("Move windows close to each other to dock");
     }
     private void updateUndockButton(boolean enabled) {
         this.undockButton.setEnabled(enabled);
@@ -448,7 +431,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         private DesktopConnection desktopConnection;
         private Map<String, WindowInfo> infoMap = new HashMap<String, WindowInfo>();  // stores bounds for all windows
         private boolean movingDuringDocking = false;
-        private boolean delaySnap = false;   // if true, snap the windows on bounce-changed event (mouse release).
         private java.util.List<WindowInfo> dockCandidates = new ArrayList<WindowInfo>();  // stores 2 windows that are close enough to dock. Used when delaySnap is true
         private static final int DOCKING_DISTANCE = 20; // defines what's "close enough"
 
@@ -469,7 +451,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                     public void onSuccess(WindowBounds result) {
                         WindowInfo info = infoMap.get(key);
                         info.bounds = result;
-                        logger.debug("Got initial bounds for " + window.getName());
+                        logger.debug(String.format("Got initial bounds for %s %d %d %d %d", window.getName(), result.getTop(), result.getLeft(), result.getHeight(), result.getWidth()));
                     }
                 }, null);
                 window.addEventListener("bounds-changing", new EventListener() {
@@ -532,7 +514,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             logger.debug("Bounds changing " + windowKey);
             WindowInfo windowInfo = this.infoMap.get(windowKey);
             windowInfo.bounds = bounds;
-            if (windowInfo.anchorWindow == null) {
+            if (!windowInfo.isDocked) {
                 if (!movingDuringDocking) {
                     this.dockCandidates.clear();
                     clearReadyToDockMessage();
@@ -542,20 +524,16 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                         if (!another.equals(windowInfo)) {
                             WindowBounds movingBounds = shouldDock(windowInfo, another);
                             if (movingBounds != null) {
-                                if (delaySnap) {
-                                    this.dockCandidates.add(windowInfo);  // actual docking happens in boundsChanged
-                                    this.dockCandidates.add(another);
-                                    showReadyToDockMessage(another.window);
-                                } else {
-                                    dock(windowInfo, another, movingBounds);
-                                }
+                                this.dockCandidates.add(windowInfo);  // actual docking happens in boundsChanged
+                                this.dockCandidates.add(another);
+                                showReadyToDockMessage(another.window);
                                 break;
                             }
                         }
                     }
                 }
             } else {
-                // already docked
+                logger.debug("Bounds changing already docked " + windowKey);
             }
         }
 
@@ -586,39 +564,39 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
          */
         private WindowBounds shouldDock(WindowInfo movingInfo, WindowInfo anchorInfo) {
             logger.debug(String.format("Checking shouldDock %s to %s", movingInfo.window.getName(), anchorInfo.window.getName()));
-            WindowBounds movingBounds = null;
-            if (movingInfo.anchorWindow == null || anchorInfo.anchorWindow == null) {
-                WindowBounds bounds1 = movingInfo.bounds;
-                WindowBounds bounds2 = anchorInfo.bounds;
-                if (bounds1 != null && bounds2 != null) {
-                    int bottom1 = bounds1.getTop() + bounds1.getHeight();
-                    int bottom2 = bounds2.getTop() + bounds2.getHeight();
-                    int right1 = bounds1.getLeft() + bounds1.getWidth();
-                    int right2 = bounds2.getLeft() + bounds2.getWidth();
-                    if (bounds1.getLeft() < right2 && bounds2.getLeft() < right1) {
-                        // two are in top-bottom relationship
-                        if (Math.abs(bounds1.getTop() - bottom2) < DOCKING_DISTANCE) {
-                            movingBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
-                            movingBounds.setTop(bottom2);
+            WindowBounds newBounds = null;
+            if (!movingInfo.isDocked || !anchorInfo.isDocked) {
+                WindowBounds movingBounds = movingInfo.bounds;
+                WindowBounds anchorBounds = anchorInfo.bounds;
+                if (movingBounds != null && anchorBounds != null) {
+                    int bottom1 = movingBounds.getTop() + movingBounds.getHeight();
+                    int bottom2 = anchorBounds.getTop() + anchorBounds.getHeight();
+                    int right1 = movingBounds.getLeft() + movingBounds.getWidth();
+                    int right2 = anchorBounds.getLeft() + anchorBounds.getWidth();
+                    if (movingBounds.getLeft() < right2 && anchorBounds.getLeft() < right1) {
+                        // vertical docking
+                        if (Math.abs(movingBounds.getTop() - bottom2) < DOCKING_DISTANCE) {
+                            newBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
+                            newBounds.setTop(bottom2);
                             logger.debug(String.format("Detecting bottom-top docking %s to %s", movingInfo.window.getName(), anchorInfo.window.getName()));
                         }
-                        else if (Math.abs(bounds2.getTop() - bottom1) < DOCKING_DISTANCE) {
-                            movingBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
-                            movingBounds.setTop(bounds2.getTop() - bounds1.getHeight());
+                        else if (Math.abs(anchorBounds.getTop() - bottom1) < DOCKING_DISTANCE) {
+                            newBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
+                            newBounds.setTop(anchorBounds.getTop() - movingBounds.getHeight());
                             logger.debug(String.format("Detecting top-bottom docking %s to %s", movingInfo.window.getName(), anchorInfo.window.getName()));
                         } else {
                             logger.debug(String.format("shouldDock %s to %s too far top-bottom", movingInfo.window.getName(), anchorInfo.window.getName()));
                         }
-                    } else if (bounds1.getTop() < bottom2 && bounds2.getTop() < bottom1) {
-                        // two are in side-by-side relationship
-                        if (Math.abs(bounds1.getLeft() - right2) < DOCKING_DISTANCE) {
-                            movingBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
-                            movingBounds.setLeft(right2);
+                    } else if (movingBounds.getTop() < bottom2 && anchorBounds.getTop() < bottom1) {
+                        // horizontal docking
+                        if (Math.abs(movingBounds.getLeft() - right2) < DOCKING_DISTANCE) {
+                            newBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
+                            newBounds.setLeft(right2);
                             logger.debug(String.format("Detecting right-left docking %s to %s", movingInfo.window.getName(), anchorInfo.window.getName()));
                         }
-                        else if (Math.abs(bounds2.getLeft() - right1) < DOCKING_DISTANCE) {
-                            movingBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
-                            movingBounds.setLeft(bounds2.getLeft() - bounds1.getWidth());
+                        else if (Math.abs(right1 - anchorBounds.getLeft()) < DOCKING_DISTANCE) {
+                            newBounds = new WindowBounds(movingInfo.bounds.getTop(), movingInfo.bounds.getLeft(), 0, 0);
+                            newBounds.setLeft(anchorBounds.getLeft() - movingBounds.getWidth());
                             logger.debug(String.format("Detecting left-right docking %s to %s", movingInfo.window.getName(), anchorInfo.window.getName()));
                         }
                     } else {
@@ -626,22 +604,21 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                     }
                 }
             }
-            return movingBounds;
+            return newBounds;
         }
 
         /**
-         * Dock 2 windows. Snap moving window to still window first
+         * Dock 2 windows. Snap moving window to anchor window first
+         *
          * @param movingInfo moving window
-         * @param anchorInfo  still window
-         * @param newBounds  new bounds for moving window
+         * @param anchorInfo  anchor window
+         * @param newBounds  new bounds for moving window to be moved to for docking
          */
         private void dock(final WindowInfo movingInfo, final WindowInfo anchorInfo, WindowBounds newBounds) {
             logger.debug(String.format("Docking %s to %s", movingInfo.window.getName(), anchorInfo.window.getName()));
             // snap moving window
-            if (anchorInfo.anchorWindow == null) {
-                anchorInfo.anchorWindow = anchorInfo.window;
-            }
-            movingInfo.anchorWindow = anchorInfo.window;
+            anchorInfo.isDocked = true;
+            movingInfo.isDocked = true;
             try {
                 movingDuringDocking = true;
                 logger.debug(String.format("Moving %s to %d %d", movingInfo.window.getName(), newBounds.getTop(), newBounds.getLeft()));
@@ -652,6 +629,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                             movingInfo.window.joinGroup(anchorInfo.window, new AckListener() {
                                 public void onSuccess(Ack ack) {
                                     updateUndockButton(true);
+                                    refreshWindowGroupInfo();
                                 }
                                 public void onError(Ack ack) {
                                 }
@@ -659,7 +637,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                         }
                     }
                     public void onError(Ack ack) {
-
                     }
                 });
             } catch (Exception e) {
@@ -671,13 +648,14 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             WindowInfo windowInfo = this.infoMap.get(WindowInfo.getInfoKey(window));
             if (windowInfo != null) {
                 try {
-                    if (windowInfo.anchorWindow != null) {
-                        window.leaveGroup();
-                        if (windowInfo.anchorWindow != null) {
-                            WindowInfo anchorInfo = this.infoMap.get(WindowInfo.getInfoKey(windowInfo.anchorWindow));
-                            anchorInfo.anchorWindow = null;
-                        }
-                        windowInfo.anchorWindow = null;
+                    if (windowInfo.isDocked) {
+                        window.leaveGroup(new AckListener() {
+                            public void onSuccess(Ack ack) {
+                                refreshWindowGroupInfo();
+                            }
+                            public void onError(Ack ack) {
+                            }
+                        });
                         updateUndockButton(false);
                     }
                 } catch (Exception ex) {
@@ -687,21 +665,37 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         }
 
         /**
-         * Dock 2 windows with moving them together
          *
-         * @param window
-         * @param anchorWindow
+         * Refresh info on isDocked on all windows.  Called whenever a window is docked or undocked
+         *
          */
-        public void dock(Window window, Window anchorWindow) {
-            registerWindow(window);
-            registerWindow(anchorWindow);
-            dock(this.infoMap.get(WindowInfo.getInfoKey(window)), this.infoMap.get(WindowInfo.getInfoKey(anchorWindow)), null);
+        private void refreshWindowGroupInfo() {
+            java.util.List<WindowInfo> dockedWindows = new LinkedList<WindowInfo>();
+            for (WindowInfo info : this.infoMap.values()) {
+                if (info.isDocked) {
+                    dockedWindows.add(info);
+                }
+            }
+            for (WindowInfo info : dockedWindows) {
+                final WindowInfo windowInfo = info;
+                windowInfo.window.getGroup(new AsyncCallback<List<Window>>() {
+                    public void onSuccess(List<Window> result) {
+                        windowInfo.isDocked = result.size() > 0;
+                    }
+                }, new AckListener() {
+                    public void onSuccess(Ack ack) {
+                    }
+                    public void onError(Ack ack) {
+                        logger.error(String.format("Error getGroup %s", ack.getReason()));
+                    }
+                });
+            }
         }
     }
 
     private static class WindowInfo {
         public Window window;
-        public Window anchorWindow;  // group leader if this.window is docked
+        public boolean isDocked;
         public WindowBounds bounds;
 
         public WindowInfo(Window window) {
