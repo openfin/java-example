@@ -54,6 +54,12 @@ public class OpenFinWindowTest {
 
     private static void setupDesktopConnection() throws Exception {
         CountDownLatch openFinConnectedLatch = new CountDownLatch(1);
+        // if RVM needs to download the version of Runtime specified, waitTime may need to be increased for slow download
+        int waitTime = 60;
+        String swaiTime = java.lang.System.getProperty("com.openfin.demo.runtime.connect.wait.time");
+        if (swaiTime != null) {
+            waitTime = Integer.parseInt(swaiTime);
+        }
 
         desktopConnection = null;
         desktopConnection = new DesktopConnection(DESKTOP_UUID);
@@ -85,10 +91,10 @@ public class OpenFinWindowTest {
             public void onOutgoingMessage(String message) {
                 printf("openfin outgoing message: %s", message);
             }
-        }, 60000);//this timeout (in 4.40.2.9) is ignored
+        }, waitTime);//this timeout (in 4.40.2.9) is ignored
 
         printf("waiting for desktop to connect");
-        openFinConnectedLatch.await(20, TimeUnit.SECONDS);
+        openFinConnectedLatch.await(waitTime, TimeUnit.SECONDS);
 
         if (desktopConnection.isConnected()) {
             printf("desktop connected");
