@@ -20,7 +20,7 @@ public class TestUtils {
     private static boolean connectionClosing;
     private static String runtimeVersion;
     private static CountDownLatch disconnectedLatch;
-    private static final String openfin_app_url = "http://test.openf.in/test.html";  // simple test app
+    public static final String openfin_app_url = "http://test.openf.in/test.html";  // simple test app
 
     public static DesktopConnection setupConnection(String connectionUuid) throws Exception {
         logger.debug("starting");
@@ -200,5 +200,33 @@ public class TestUtils {
         assertEquals("Close application timeout " + application.getUuid(), stoppedLatch.getCount(), 0);
     }
 
+    public static WindowOptions getWindowOptions(String name, String url) throws Exception {
+        WindowOptions options = new WindowOptions(name, url);
+        options.setDefaultWidth(200);
+        options.setDefaultHeight(200);
+        options.setDefaultTop(200);
+        options.setDefaultLeft(200);
+        options.setSaveWindowState(false);  // so the window opens with the same default bounds every time
+        options.setAutoShow(true);
+        options.setFrame(true);
+        options.setResizable(true);
+        return options;
+    }
 
+    public static Window createChildWindow(Application application, WindowOptions childOptions, DesktopConnection desktopConnection) throws Exception {
+
+        final CountDownLatch windowCreatedLatch = new CountDownLatch(1);
+        // use window-end-load event to wait for the window to finish loading
+        application.addEventListener("window-end-load", actionEvent ->  {
+                if (actionEvent.getEventObject().has("name")) {
+                    if (childOptions.getName().equals(actionEvent.getEventObject().getString("name"))) {
+                        windowCreatedLatch.countDown();
+                    }
+            }
+        }, null);
+        application.createChildWindow(childOptions, null);
+        windowCreatedLatch.await(10, TimeUnit.SECONDS);
+        assertEquals("createChildWindow timeout", windowCreatedLatch.getCount(), 0);
+        return Window.wrap(application.getOptions().getUUID(), childOptions.getName(), desktopConnection);
+    }
 }

@@ -130,16 +130,23 @@ public class ApplicationTest {
         CountDownLatch latch = new CountDownLatch(1);
         TestUtils.addEventListener(application, "run-requested", actionEvent -> {
             if (actionEvent.getType().equals("run-requested")) {
-                logger.info(String.format("%s", actionEvent.getEventObject().toString()));
+                logger.debug(String.format("%s", actionEvent.getEventObject().toString()));
                 latch.countDown();
             }
         });
-
         TestUtils.runApplication(application);
         // run-requested is generated when Application.run is called on an active application
         application.run();
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("run-requested timeout " + options.getUUID(), latch.getCount(), 0);
+        TestUtils.closeApplication(application);
+    }
+
+    @Test
+    public void createChildWindow() throws Exception {
+        Application application = TestUtils.runApplication(TestUtils.getAppOptions(), desktopConnection);
+        WindowOptions childOptions = TestUtils.getWindowOptions("child1", TestUtils.openfin_app_url); // use same URL as main app
+        Window childWindow = TestUtils.createChildWindow(application, childOptions, desktopConnection);
         TestUtils.closeApplication(application);
     }
 }

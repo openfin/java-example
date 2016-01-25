@@ -28,7 +28,7 @@ import static junit.framework.Assert.fail;
 public class SystemTest {
     private static Logger logger = LoggerFactory.getLogger(SystemTest.class.getName());
 
-    private static final String DESKTOP_UUID = ApplicationTest.class.getName();
+    private static final String DESKTOP_UUID = SystemTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static System runtimeSystem;
     private static final String openfin_app_url = "http://test.openf.in/test.html";
