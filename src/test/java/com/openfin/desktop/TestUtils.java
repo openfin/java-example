@@ -94,8 +94,10 @@ public class TestUtils {
         return runtimeVersion;
     }
 
-    public static synchronized ApplicationOptions getAppOptions() {
-        String uuid = UUID.randomUUID().toString();
+    public static ApplicationOptions getAppOptions() {
+        return getAppOptions(UUID.randomUUID().toString());
+    }
+    public static ApplicationOptions getAppOptions(String uuid) {
         ApplicationOptions options = new ApplicationOptions(uuid, uuid, openfin_app_url);
         WindowOptions windowOptions = new WindowOptions();
         windowOptions.setAutoShow(true);

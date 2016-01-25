@@ -36,14 +36,29 @@ public class ApplicationTest {
         TestUtils.teardownDesktopConnection(desktopConnection);
     }
 
-
-
-
     @Test
     public void runAndClose() throws Exception {
         logger.debug("runAndClose");
         ApplicationOptions options = TestUtils.getAppOptions();
         Application application = TestUtils.runApplication(options, desktopConnection);
+
+        // duplciate UUID is not allowed
+        ApplicationOptions options2 = TestUtils.getAppOptions(options.getUUID());
+        CountDownLatch dupLatch = new CountDownLatch(1);
+        Application application2 = new Application(options2, desktopConnection, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+            }
+            @Override
+            public void onError(Ack ack) {
+                if (ack.getReason().contains("Application with specified UUID already exists")) {
+                    dupLatch.countDown();
+                }
+            }
+        });
+        dupLatch.await(5, TimeUnit.SECONDS);
+        assertEquals("Duplicate app UUID validation timeout " + options.getUUID(), dupLatch.getCount(), 0);
+
         TestUtils.closeApplication(application);
     }
 
@@ -92,7 +107,7 @@ public class ApplicationTest {
         TestUtils.closeApplication(application);
     }
 
-    @Ignore("restart does not fire started event")
+    @Ignore("restart does not fire started event.  need to take a look later")
     @Test
     public void restartApplication() throws Exception {
         ApplicationOptions options = TestUtils.getAppOptions();
