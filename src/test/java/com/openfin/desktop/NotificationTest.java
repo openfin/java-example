@@ -34,7 +34,7 @@ public class NotificationTest {
 
         logger.info("Waiting for notification center to be ready");
         // @TODO currently there is no way to know Notification center is ready, so we just sleep here
-        // @TODO we will fix notification center to generate an event when it finishes initialization and ready to process requests
+        // @TODO we will fix notification center to generate an event when it finishes initialization and is ready to process requests
         Thread.sleep(8000);
     }
 
