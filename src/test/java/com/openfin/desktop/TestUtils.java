@@ -87,7 +87,7 @@ public class TestUtils {
             assertFalse(desktopConnection.isConnected());
             logger.debug("desktop connection closed");
         } else {
-            logger.info("Not connected, no need to teardown");
+            logger.debug("Not connected, no need to teardown");
         }
     }
 
@@ -237,7 +237,7 @@ public class TestUtils {
         final CountDownLatch windowCreatedLatch = new CountDownLatch(1);
         // use window-end-load event to wait for the window to finish loading
         addEventListener(application, "window-end-load", actionEvent -> {
-            logger.info(actionEvent.getEventObject().toString());
+            logger.debug(actionEvent.getEventObject().toString());
             if (actionEvent.getEventObject().has("name")) {
                 if (childOptions.getName().equals(actionEvent.getEventObject().getString("name"))) {
                     windowCreatedLatch.countDown();
