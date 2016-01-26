@@ -22,10 +22,10 @@ import static junit.framework.Assert.fail;
  *
  * Created by wche on 1/23/16.
  */
-public class SystemTest {
-    private static Logger logger = LoggerFactory.getLogger(SystemTest.class.getName());
+public class OpenFinRuntimeTest {
+    private static Logger logger = LoggerFactory.getLogger(OpenFinRuntimeTest.class.getName());
 
-    private static final String DESKTOP_UUID = SystemTest.class.getName();
+    private static final String DESKTOP_UUID = OpenFinRuntimeTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static OpenFinRuntime runtime;
     private static final String openfin_app_url = "http://test.openf.in/test.html";
