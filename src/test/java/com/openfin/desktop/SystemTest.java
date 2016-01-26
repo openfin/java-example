@@ -378,7 +378,7 @@ public class SystemTest {
         AtomicReference<String> processUuid = new AtomicReference<>();
         runtimeSystem.launchExternalProcess("notepad.exe", "", result ->  {
             processUuid.set(result.getProcessUuid());
-            logger.info(String.format("launch process %s", processUuid.get()));
+            logger.debug(String.format("launch process %s", processUuid.get()));
             startLatch.countDown();
         }, new AckListener() {
             @Override
@@ -393,11 +393,11 @@ public class SystemTest {
         assertEquals("launchExternalProcess timeout", startLatch.getCount(), 0);
         CountDownLatch terminateLatch = new CountDownLatch(1);
         runtimeSystem.terminateExternalProcess(processUuid.get(), 2000, false, result ->  {
-            logger.info(String.format("terminate process %s %s", processUuid.get(), result.getProcessUuid()));
+            logger.debug(String.format("terminate process %s %s", processUuid.get(), result.getProcessUuid()));
             if (result.getProcessUuid().equals(processUuid.get())) {
-                logger.info(String.format("External process exit code %s", result.getResult()));
+                logger.debug(String.format("External process exit code %s", result.getResult()));
                 terminateLatch.countDown();
-                logger.info(String.format("countdown terminateLatch %d", terminateLatch.getCount()));
+                logger.debug(String.format("countdown terminateLatch %d", terminateLatch.getCount()));
             }
         }, new AckListener() {
             @Override
@@ -408,7 +408,7 @@ public class SystemTest {
                 logger.error(String.format("onError %s", ack.getReason()));
             }
         });
-        logger.info("waiting on terminateLatch");
+        logger.debug("waiting on terminateLatch");
         terminateLatch.await(10, TimeUnit.SECONDS);
         assertEquals("terminateExternalProcess timeout", terminateLatch.getCount(), 0);
     }
