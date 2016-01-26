@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -130,21 +131,35 @@ public class TestUtils {
 
     public static Application runApplication(ApplicationOptions options, DesktopConnection desktopConnection) throws Exception {
         Application application = createApplication(options, desktopConnection);
-        runApplication(application);
+        runApplication(application, true);
         return application;
     }
 
-    public static void runApplication(Application application) throws Exception {
-        CountDownLatch startedLatch = new CountDownLatch(1);
+    /**
+     * Run an application.
+     *
+     * @param application
+     * @param checkAppConnected true if it needs to wait for app-connected event
+     * @throws Exception
+     */
+    public static void runApplication(Application application, boolean checkAppConnected) throws Exception {
+        CountDownLatch startedLatch  = new CountDownLatch(1);
+        CountDownLatch connectedLatch = new CountDownLatch(1);
         EventListener listener = new EventListener() {
             @Override
             public void eventReceived(ActionEvent actionEvent) {
                 if (actionEvent.getType().equals("started")) {
                     startedLatch.countDown();
                 }
+                else if (actionEvent.getType().equals("app-connected")) {
+                    connectedLatch.countDown();
+                }
             }
         };
         addEventListener(application, "started", listener);
+        if (checkAppConnected) {
+            addEventListener(application.getWindow(), "app-connected", listener);
+        }
 
         CountDownLatch runLatch = new CountDownLatch(1);
         application.run(new AckListener() {
@@ -161,6 +176,10 @@ public class TestUtils {
         runLatch.await(5, TimeUnit.SECONDS);
         assertEquals("Run application timeout " + application.getUuid(), runLatch.getCount(), 0);
         assertEquals("Start application timeout " + application.getUuid(), startedLatch.getCount(), 0);
+        if (checkAppConnected) {
+            connectedLatch.await(5, TimeUnit.SECONDS);
+            assertEquals(connectedLatch.getCount(), 0);
+        }
     }
 
     public static void addEventListener(Application application, String evenType, EventListener eventListener) throws Exception {
@@ -217,16 +236,48 @@ public class TestUtils {
 
         final CountDownLatch windowCreatedLatch = new CountDownLatch(1);
         // use window-end-load event to wait for the window to finish loading
-        application.addEventListener("window-end-load", actionEvent ->  {
-                if (actionEvent.getEventObject().has("name")) {
-                    if (childOptions.getName().equals(actionEvent.getEventObject().getString("name"))) {
-                        windowCreatedLatch.countDown();
-                    }
+        addEventListener(application, "window-end-load", actionEvent -> {
+            logger.info(actionEvent.getEventObject().toString());
+            if (actionEvent.getEventObject().has("name")) {
+                if (childOptions.getName().equals(actionEvent.getEventObject().getString("name"))) {
+                    windowCreatedLatch.countDown();
+                }
             }
-        }, null);
+        });
         application.createChildWindow(childOptions, null);
         windowCreatedLatch.await(10, TimeUnit.SECONDS);
         assertEquals("createChildWindow timeout", windowCreatedLatch.getCount(), 0);
         return Window.wrap(application.getOptions().getUUID(), childOptions.getName(), desktopConnection);
     }
+
+    public static void addEventListener(Window window, String evenType, EventListener eventListener) throws Exception {
+        logger.debug("addEventListener " + evenType);
+        CountDownLatch latch = new CountDownLatch(1);
+        window.addEventListener(evenType, eventListener, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                latch.countDown();
+                logger.debug("addEventListener ack " + ack.isSuccessful());
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(String.format("Error adding event listener %s %s", evenType, ack.getReason()));
+            }
+        });
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("addEventListener timeout " + evenType, latch.getCount(), 0);
+    }
+
+    public static WindowBounds getBounds(Window window) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<WindowBounds> windowBoundsAtomicReference = new AtomicReference<>();
+        window.getBounds(result -> {
+            windowBoundsAtomicReference.set(result);
+            latch.countDown();
+        }, null);
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("getBounds timeout", latch.getCount(), 0);
+        return windowBoundsAtomicReference.get();
+    }
+
 }

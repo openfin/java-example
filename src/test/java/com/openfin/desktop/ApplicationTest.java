@@ -78,7 +78,7 @@ public class ApplicationTest {
             }
         };
         TestUtils.addEventListener(application, "closed", listener);
-        TestUtils.runApplication(application);
+        TestUtils.runApplication(application, true);
         application.terminate();
         stoppedLatch.await(5, TimeUnit.SECONDS);
         assertEquals("Terminate application timeout  " + options.getUUID(), stoppedLatch.getCount(), 0);
@@ -134,7 +134,7 @@ public class ApplicationTest {
                 latch.countDown();
             }
         });
-        TestUtils.runApplication(application);
+        TestUtils.runApplication(application, true);
         // run-requested is generated when Application.run is called on an active application
         application.run();
         latch.await(5, TimeUnit.SECONDS);
