@@ -67,15 +67,16 @@ public class SystemTest {
         assertEquals("geDeviceId timeout", latch.getCount(), 0);
     }
 
-    @Test
-    public void getRuntimeVersion() throws Exception {
+    private String getRuntimeVersion() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<String> atomicReference = new AtomicReference<>();
         runtimeSystem.getVersion(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
                     String version = ack.getData().toString();
                     logger.debug(String.format("Runtime version %s", version));
+                    atomicReference.set(version);
                     latch.countDown();
                 }
             }
@@ -85,6 +86,7 @@ public class SystemTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("getRuntimeVersion timeout", latch.getCount(), 0);
+        return atomicReference.get();
     }
 
     @Test
@@ -139,6 +141,7 @@ public class SystemTest {
             }
             @Override
             public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
             }
         });
         latch.await(5, TimeUnit.SECONDS);
@@ -158,6 +161,7 @@ public class SystemTest {
             }
             @Override
             public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
             }
         });
         writeLatch.await(5, TimeUnit.SECONDS);
@@ -176,6 +180,7 @@ public class SystemTest {
             }
             @Override
             public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
             }
         });
         latch.await(10, TimeUnit.SECONDS);  // longer wait time since debug.log can be big
@@ -198,6 +203,7 @@ public class SystemTest {
             }
             @Override
             public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
             }
         });
         latch.await(5, TimeUnit.SECONDS);
@@ -225,6 +231,7 @@ public class SystemTest {
             }
             @Override
             public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
             }
         });
         latch.await(5, TimeUnit.SECONDS);
@@ -252,6 +259,7 @@ public class SystemTest {
             }
             @Override
             public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
             }
         });
         latch.await(5, TimeUnit.SECONDS);
@@ -276,6 +284,7 @@ public class SystemTest {
             }
             @Override
             public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
             }
         });
         latch.await(5, TimeUnit.SECONDS);
@@ -478,4 +487,13 @@ public class SystemTest {
         // @TODO need to create an OpenFin app that verify these caches are actually being cleared
     }
 
+    @Test
+    public void restartRuntime() throws Exception {
+        String version1 = getRuntimeVersion();
+        TestUtils.teardownDesktopConnection(desktopConnection);
+        desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
+        runtimeSystem = new System(desktopConnection);
+        String version2 = getRuntimeVersion();
+        assertEquals(version1, version2);
+    }
 }
