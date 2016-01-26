@@ -1,6 +1,5 @@
 package com.openfin.desktop;
 
-import com.sun.javafx.binding.StringFormatter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.AfterClass;
@@ -9,8 +8,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.print.attribute.standard.ReferenceUriSchemesSupported;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +27,7 @@ public class SystemTest {
 
     private static final String DESKTOP_UUID = SystemTest.class.getName();
     private static DesktopConnection desktopConnection;
-    private static System runtimeSystem;
+    private static OpenFinRuntime runtime;
     private static final String openfin_app_url = "http://test.openf.in/test.html";
 
     @BeforeClass
@@ -38,7 +35,7 @@ public class SystemTest {
         logger.debug("starting");
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
         if (desktopConnection != null) {
-            runtimeSystem = new System(desktopConnection);
+            runtime = new OpenFinRuntime(desktopConnection);
         }
     }
 
@@ -50,7 +47,7 @@ public class SystemTest {
     @Test
     public void getDeviceId() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getDeviceId(new AckListener() {
+        runtime.getDeviceId(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -70,7 +67,7 @@ public class SystemTest {
     private String getRuntimeVersion() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<String> atomicReference = new AtomicReference<>();
-        runtimeSystem.getVersion(new AckListener() {
+        runtime.getVersion(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -92,7 +89,7 @@ public class SystemTest {
     @Test
     public void getProcessList() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getProcessList(new AckListener() {
+        runtime.getProcessList(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -122,7 +119,7 @@ public class SystemTest {
     @Test
     public void getLogList() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getLogList(new AckListener() {
+        runtime.getLogList(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -152,7 +149,7 @@ public class SystemTest {
     public void wrietAndReadLog() throws Exception {
         CountDownLatch writeLatch = new CountDownLatch(1);
         String text = UUID.randomUUID().toString();  // text to write
-        runtimeSystem.log("info", text, new AckListener() {
+        runtime.log("info", text, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -168,7 +165,7 @@ public class SystemTest {
         assertEquals("writing log timeout", writeLatch.getCount(), 0);
         // text should be written to debug.log
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getLog("debug.log", new AckListener() {
+        runtime.getLog("debug.log", new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -190,7 +187,7 @@ public class SystemTest {
     @Test
     public void getMonitorInfo() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getMonitorInfo(new AckListener() {
+        runtime.getMonitorInfo(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -215,7 +212,7 @@ public class SystemTest {
         ApplicationOptions options = TestUtils.getAppOptions();
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getAllWindows(new AckListener() {
+        runtime.getAllWindows(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -243,7 +240,7 @@ public class SystemTest {
         ApplicationOptions options = TestUtils.getAppOptions();
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getAllApplications(new AckListener() {
+        runtime.getAllApplications(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -269,7 +266,7 @@ public class SystemTest {
     @Test
     public void getMousePosition() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getMousePosition(new AckListener() {
+        runtime.getMousePosition(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -294,7 +291,7 @@ public class SystemTest {
     @Test
     public void getConfig() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getConfig(null, new AckListener() {
+        runtime.getConfig(null, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -325,7 +322,7 @@ public class SystemTest {
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
         // show dev tool for main window of the app.  Name of the main window is same as UUID
-        runtimeSystem.showDeveloperTools(options.getUUID(), options.getUUID(), new AckListener() {
+        runtime.showDeveloperTools(options.getUUID(), options.getUUID(), new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -347,7 +344,7 @@ public class SystemTest {
         EventListener listener = (actionEvent -> {});
         for (String eventType : events) {
             CountDownLatch latch = new CountDownLatch(1);
-            runtimeSystem.addEventListener(eventType, listener, new AckListener() {
+            runtime.addEventListener(eventType, listener, new AckListener() {
                 @Override
                 public void onSuccess(Ack ack) {
                     if (ack.isSuccessful()) {
@@ -364,7 +361,7 @@ public class SystemTest {
         }
         for (String eventType : events) {
             CountDownLatch latch = new CountDownLatch(1);
-            runtimeSystem.removeEventListener(eventType, listener, new AckListener() {
+            runtime.removeEventListener(eventType, listener, new AckListener() {
                 @Override
                 public void onSuccess(Ack ack) {
                     if (ack.isSuccessful()) {
@@ -385,7 +382,7 @@ public class SystemTest {
     public void startAndTerminateExternalProcess() throws Exception {
         CountDownLatch startLatch = new CountDownLatch(1);
         AtomicReference<String> processUuid = new AtomicReference<>();
-        runtimeSystem.launchExternalProcess("notepad.exe", "", result ->  {
+        runtime.launchExternalProcess("notepad.exe", "", result ->  {
             processUuid.set(result.getProcessUuid());
             logger.debug(String.format("launch process %s", processUuid.get()));
             startLatch.countDown();
@@ -401,7 +398,7 @@ public class SystemTest {
         startLatch.await(10, TimeUnit.SECONDS);
         assertEquals("launchExternalProcess timeout", startLatch.getCount(), 0);
         CountDownLatch terminateLatch = new CountDownLatch(1);
-        runtimeSystem.terminateExternalProcess(processUuid.get(), 2000, false, result ->  {
+        runtime.terminateExternalProcess(processUuid.get(), 2000, false, result ->  {
             logger.debug(String.format("terminate process %s %s", processUuid.get(), result.getProcessUuid()));
             if (result.getProcessUuid().equals(processUuid.get())) {
                 logger.debug(String.format("External process exit code %s", result.getResult()));
@@ -426,7 +423,7 @@ public class SystemTest {
     public void getEnvironmentVariables() throws Exception {
         String[] envVarNames = {"LOCALAPPDATA", "USERNAME"};
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.getEnvironmentVariables(envVarNames, new AckListener() {
+        runtime.getEnvironmentVariables(envVarNames, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -451,7 +448,7 @@ public class SystemTest {
     @Test
     public void deleteCacheOnRestart() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.deleteCacheOnRestart(new AckListener() {
+        runtime.deleteCacheOnRestart(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -470,7 +467,7 @@ public class SystemTest {
     @Test
     public void clearCache() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        runtimeSystem.clearCache(true, true, true, true, true, new AckListener() {
+        runtime.clearCache(true, true, true, true, true, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -492,7 +489,7 @@ public class SystemTest {
         String version1 = getRuntimeVersion();
         TestUtils.teardownDesktopConnection(desktopConnection);
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
-        runtimeSystem = new System(desktopConnection);
+        runtime = new OpenFinRuntime(desktopConnection);
         String version2 = getRuntimeVersion();
         assertEquals(version1, version2);
     }

@@ -3,7 +3,7 @@ package com.openfin.desktop.demo;
 import com.openfin.desktop.*;
 import com.openfin.desktop.ActionEvent;
 import com.openfin.desktop.EventListener;
-import com.openfin.desktop.System;
+import com.openfin.desktop.OpenFinRuntime;
 import com.openfin.desktop.Window;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 import info.clearthought.layout.TableLayout;
@@ -192,7 +192,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             try {
                 externalWindowObserver.dispose();
                 Thread.sleep(2000);
-                new System(desktopConnection).exit();
+                new OpenFinRuntime(desktopConnection).exit();
             } catch (Exception e) {
                 e.printStackTrace();
             }
