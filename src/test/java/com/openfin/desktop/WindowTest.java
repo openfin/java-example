@@ -216,7 +216,7 @@ public class WindowTest {
         String childName = "docking test";
         Application application = TestUtils.runApplication(TestUtils.getAppOptions(), desktopConnection);
         Window mainWindow = application.getWindow();
-        WindowOptions childOptions = TestUtils.getWindowOptions(childName, TestUtils.openfin_app_url); // use same URL as main app
+        WindowOptions childOptions = TestUtils.getWindowOptions(childName, child_window_url);
         Window childWindow = TestUtils.createChildWindow(application, childOptions, desktopConnection);
         WindowBounds beforeMoveBounds = TestUtils.getBounds(childWindow);
         CountDownLatch joinLatch = new CountDownLatch(1);

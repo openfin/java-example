@@ -14,7 +14,7 @@ import static junit.framework.Assert.assertEquals;
 
 /**
  *
- * JUnit tests for Application class
+ * JUnit tests for com.openfin.desktop.Application class
  *
  * Created by wche on 1/22/16.
  *

@@ -60,12 +60,12 @@ public class TestUtils {
 
             @Override
             public void onMessage(String message) {
-                logger.debug("openfin message: %s", message);
+                logger.debug(String.format("Runtime incoming message: %s", message));
             }
 
             @Override
             public void onOutgoingMessage(String message) {
-                logger.debug("openfin outgoing message: %s", message);
+                logger.debug(String.format("Runtime outgoing message: %s", message));
             }
         }, waitTime);//this timeout (in 4.40.2.9) is ignored
 
