@@ -106,6 +106,7 @@ public class OpenFinWindowTest {
     private static void teardownDesktopConnection() throws Exception {
         printf("teardownDesktopConnection");
         new System(desktopConnection).exit();
+        // OpenFin update: wait for websocket to be disconnected so re-launch of OpenFin Runtime will work
         openFinDisconnectedLatch.await(20, TimeUnit.SECONDS);
         assertFalse(desktopConnection.isConnected());
         printf("desktop connection closed");
@@ -235,6 +236,7 @@ public class OpenFinWindowTest {
 
         //set the initial position of the window and check
         CountDownLatch moveLatch = new CountDownLatch(1);
+        // OpenFin update: need to pass AckListener to make sure moveTo operations is completed before checking bounds
         application.getWindow().moveTo(10, 20, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
@@ -252,7 +254,18 @@ public class OpenFinWindowTest {
         Thread.sleep(SLEEP_FOR_HUMAN_OBSERVATION);
 
         //move the window and check again
-        application.getWindow().moveTo(100, 200);
+        // OpenFin update: need to pass AckListener to make sure moveTo operations is completed before checking bounds
+        CountDownLatch moveLatch2 = new CountDownLatch(1);
+        application.getWindow().moveTo(100, 200, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                moveLatch2.countDown();
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+        moveLatch2.await(5, TimeUnit.SECONDS);
         WindowBounds movedBounds = getWindowBounds(application.getWindow());
         printf("moved bounds top:%s left:%s", movedBounds.getTop(), movedBounds.getLeft());
 
