@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.System;
 import java.util.*;
 import java.util.List;
 
@@ -207,7 +208,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         });
         try {
             Thread.sleep(1000);
-            java.lang.System.exit(0);
+            System.exit(0);
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }

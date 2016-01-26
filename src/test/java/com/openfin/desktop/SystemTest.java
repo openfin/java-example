@@ -17,25 +17,27 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /**
+ * JUnit tests for com.openfin.desktop.System class
  *
- * JUnit tests for com.openfin.desktop.OpenFinRuntime class
+ * Since System is replaced by OpenFinRuntime, this class is testing backward compatibilities
  *
- * Created by wche on 1/23/16.
+ * Created by wche on 1/26/16.
+ *
  */
-public class OpenFinRuntimeTest {
-    private static Logger logger = LoggerFactory.getLogger(OpenFinRuntimeTest.class.getName());
+public class SystemTest {
 
-    private static final String DESKTOP_UUID = OpenFinRuntimeTest.class.getName();
+    private static Logger logger = LoggerFactory.getLogger(SystemTest.class.getName());
+
+    private static final String DESKTOP_UUID = SystemTest.class.getName();
     private static DesktopConnection desktopConnection;
-    private static OpenFinRuntime runtime;
-    private static final String openfin_app_url = "http://test.openf.in/test.html";
+    private static System runtime;
 
     @BeforeClass
     public static void setup() throws Exception {
         logger.debug("starting");
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
         if (desktopConnection != null) {
-            runtime = new OpenFinRuntime(desktopConnection);
+            runtime = new System(desktopConnection);
         }
     }
 
@@ -56,6 +58,7 @@ public class OpenFinRuntimeTest {
                     latch.countDown();
                 }
             }
+
             @Override
             public void onError(Ack ack) {
             }
@@ -77,6 +80,7 @@ public class OpenFinRuntimeTest {
                     latch.countDown();
                 }
             }
+
             @Override
             public void onError(Ack ack) {
             }
@@ -94,9 +98,9 @@ public class OpenFinRuntimeTest {
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
                     // [{"cpuUsage":0,"workingSetSize":27725824,"processId":10292,"name":"Notifications Service","type":"application","uuid":"service:notifications"},{"cpuUsage":0,"workingSetSize":1486848,"processId":9116,"name":"Startup App","type":"application","uuid":"startup"}]
-                    JSONArray data = (JSONArray)ack.getData();
+                    JSONArray data = (JSONArray) ack.getData();
                     int validCount = 0;
-                    for (int i = 0; i < data.length(); i ++) {
+                    for (int i = 0; i < data.length(); i++) {
                         JSONObject item = data.getJSONObject(i);
                         if (item.has("processId") && item.has("name")) {
                             validCount++;
@@ -107,6 +111,7 @@ public class OpenFinRuntimeTest {
                     }
                 }
             }
+
             @Override
             public void onError(Ack ack) {
             }
@@ -123,9 +128,9 @@ public class OpenFinRuntimeTest {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
-                    JSONArray data = (JSONArray)ack.getData();
+                    JSONArray data = (JSONArray) ack.getData();
                     int validCount = 0;
-                    for (int i = 0; i < data.length(); i ++) {
+                    for (int i = 0; i < data.length(); i++) {
                         JSONObject item = data.getJSONObject(i);
                         if (item.has("date") && item.has("name") && item.has("size")) {
                             validCount++;
@@ -136,6 +141,7 @@ public class OpenFinRuntimeTest {
                     }
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error("Error creating application", ack.getReason());
@@ -156,6 +162,7 @@ public class OpenFinRuntimeTest {
                     writeLatch.countDown();
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error("Error creating application", ack.getReason());
@@ -175,6 +182,7 @@ public class OpenFinRuntimeTest {
                     }
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error("Error creating application", ack.getReason());
@@ -192,12 +200,13 @@ public class OpenFinRuntimeTest {
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
                     JSONObject data = (JSONObject) ack.getData();
-                    logger.debug(String.format("Monitor info %s", data.toString() ));
+                    logger.debug(String.format("Monitor info %s", data.toString()));
                     if (data.has("deviceScaleFactor") && data.has("primaryMonitor")) {
                         latch.countDown();
                     }
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error("Error creating application", ack.getReason());
@@ -226,6 +235,7 @@ public class OpenFinRuntimeTest {
                     }
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error("Error creating application", ack.getReason());
@@ -254,6 +264,7 @@ public class OpenFinRuntimeTest {
                     }
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error("Error creating application", ack.getReason());
@@ -279,6 +290,7 @@ public class OpenFinRuntimeTest {
                     }
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error("Error creating application", ack.getReason());
@@ -329,6 +341,7 @@ public class OpenFinRuntimeTest {
                     latch.countDown();
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error(String.format("onError %s", ack.getReason()));
@@ -351,6 +364,7 @@ public class OpenFinRuntimeTest {
                         latch.countDown();
                     }
                 }
+
                 @Override
                 public void onError(Ack ack) {
                     logger.error(String.format("onError %s", ack.getReason()));
@@ -368,6 +382,7 @@ public class OpenFinRuntimeTest {
                         latch.countDown();
                     }
                 }
+
                 @Override
                 public void onError(Ack ack) {
                     logger.error(String.format("onError %s", ack.getReason()));
@@ -382,7 +397,7 @@ public class OpenFinRuntimeTest {
     public void startAndTerminateExternalProcess() throws Exception {
         CountDownLatch startLatch = new CountDownLatch(1);
         AtomicReference<String> processUuid = new AtomicReference<>();
-        runtime.launchExternalProcess("notepad.exe", "", result ->  {
+        runtime.launchExternalProcess("notepad.exe", "", result -> {
             processUuid.set(result.getProcessUuid());
             logger.debug(String.format("launch process %s", processUuid.get()));
             startLatch.countDown();
@@ -390,6 +405,7 @@ public class OpenFinRuntimeTest {
             @Override
             public void onSuccess(Ack ack) {
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error(String.format("onError %s", ack.getReason()));
@@ -398,7 +414,7 @@ public class OpenFinRuntimeTest {
         startLatch.await(10, TimeUnit.SECONDS);
         assertEquals("launchExternalProcess timeout", startLatch.getCount(), 0);
         CountDownLatch terminateLatch = new CountDownLatch(1);
-        runtime.terminateExternalProcess(processUuid.get(), 2000, false, result ->  {
+        runtime.terminateExternalProcess(processUuid.get(), 2000, false, result -> {
             logger.debug(String.format("terminate process %s %s", processUuid.get(), result.getProcessUuid()));
             if (result.getProcessUuid().equals(processUuid.get())) {
                 logger.debug(String.format("External process exit code %s", result.getResult()));
@@ -409,6 +425,7 @@ public class OpenFinRuntimeTest {
             @Override
             public void onSuccess(Ack ack) {
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error(String.format("onError %s", ack.getReason()));
@@ -427,8 +444,8 @@ public class OpenFinRuntimeTest {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
-                    JSONObject data = (JSONObject)ack.getData();
-                    for (String name: envVarNames) {
+                    JSONObject data = (JSONObject) ack.getData();
+                    for (String name : envVarNames) {
                         if (!data.has(name)) {
                             fail(String.format("Missing env variable %s", name));
                         }
@@ -436,6 +453,7 @@ public class OpenFinRuntimeTest {
                     latch.countDown();
                 }
             }
+
             @Override
             public void onError(Ack ack) {
                 logger.error(String.format("onError %s", ack.getReason()));
@@ -455,6 +473,7 @@ public class OpenFinRuntimeTest {
                     latch.countDown();
                 }
             }
+
             @Override
             public void onError(Ack ack) {
             }
@@ -489,8 +508,9 @@ public class OpenFinRuntimeTest {
         String version1 = getRuntimeVersion();
         TestUtils.teardownDesktopConnection(desktopConnection);
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
-        runtime = new OpenFinRuntime(desktopConnection);
+        runtime = new System(desktopConnection);
         String version2 = getRuntimeVersion();
         assertEquals(version1, version2);
     }
+
 }
