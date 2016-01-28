@@ -165,10 +165,6 @@ public class InterApplicationBusTest {
             JSONObject receivedMsg = (JSONObject) payload;
             logger.debug(String.format("Receiving %s", payload.toString()));
             // PubSubExample.html sends response back
-            if (receivedMsg.has("response")) {
-                logger.info(receivedMsg.getString("response"));
-                logger.info(text + " received");
-            }
             if (receivedMsg.has("response") && receivedMsg.getString("response").equals(text + " received")) {
                 latch.countDown();
             }
@@ -208,10 +204,6 @@ public class InterApplicationBusTest {
             JSONObject receivedMsg = (JSONObject) payload;
             logger.debug(String.format("Receiving %s", payload.toString()));
             // PubSubExample.html sends response back
-            if (receivedMsg.has("response")) {
-                logger.info(receivedMsg.getString("response"));
-                logger.info(text + " received");
-            }
             if (receivedMsg.has("response") && receivedMsg.getString("response").equals(text + " received")) {
                 latch.countDown();
             }
