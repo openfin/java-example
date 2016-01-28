@@ -16,6 +16,9 @@ import static junit.framework.Assert.assertEquals;
 /**
  * JUnit tests for com.openfin.desktop.InterApplicationBus class
  *
+ * Test cases in this class need to have access to an OpenFin HTML5 app to verify sub/pub workflow.  Sources for the app can be found in release
+ * directory: PubSubExample.html.  It is hosted by OpenFin at https://cdn.openfin.co/examples/junit/PubSubExample.html
+ *
  * Created by wche on 1/27/16.
  *
  */
@@ -25,7 +28,7 @@ public class InterApplicationBusTest {
     private static final String DESKTOP_UUID = InterApplicationBusTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static OpenFinRuntime runtime;
-    private static final String openfin_app_url = "http://test.openf.in/junit/PubSubExample.html";  // source for PubSubExample.html is in release directory
+    private static final String openfin_app_url = "https://cdn.openfin.co/examples/junit/PubSubExample.html";  // source for PubSubExample.html is in release directory
     private static final String check_in_topic = "check-in";
 
     @BeforeClass

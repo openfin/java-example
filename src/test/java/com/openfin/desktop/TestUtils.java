@@ -12,6 +12,10 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 
 /**
+ * Utitlites for Junit test code
+ *
+ * Test cases in this class need to have access to an OpenFin HTML5 app to verify sub/pub workflow.  Sources for the app can be found in release
+ * directory: SimpleOpenFinApp.html.  It is hosted by OpenFin at https://cdn.openfin.co/examples/junit/SimpleOpenFinApp.html
  *
  * Created by wche on 1/23/16.
  *
@@ -21,7 +25,7 @@ public class TestUtils {
     private static boolean connectionClosing;
     private static String runtimeVersion;
     private static CountDownLatch disconnectedLatch;
-    public static final String openfin_app_url = "http://test.openf.in/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
+    public static final String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
 
     public static DesktopConnection setupConnection(String connectionUuid) throws Exception {
         logger.debug("starting");
