@@ -10,6 +10,6 @@ import org.junit.runners.Suite;
  */
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ ApplicationTest.class, OpenFinRuntimeTest.class, WindowTest.class, SystemTest.class})
+@Suite.SuiteClasses({ ApplicationTest.class, OpenFinRuntimeTest.class, WindowTest.class, SystemTest.class, InterApplicationBusTest.class})
 public class AllTests {
 }

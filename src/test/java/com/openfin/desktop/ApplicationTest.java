@@ -39,11 +39,11 @@ public class ApplicationTest {
     @Test
     public void runAndClose() throws Exception {
         logger.debug("runAndClose");
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
 
-        // duplciate UUID is not allowed
-        ApplicationOptions options2 = TestUtils.getAppOptions(options.getUUID());
+        // duplicate UUID is not allowed
+        ApplicationOptions options2 = TestUtils.getAppOptions(options.getUUID(), null);
         CountDownLatch dupLatch = new CountDownLatch(1);
         Application application2 = new Application(options2, desktopConnection, new AckListener() {
             @Override
@@ -65,7 +65,7 @@ public class ApplicationTest {
     @Test
     public void runAndTerminate() throws Exception {
         logger.debug("runAndTerminate");
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.createApplication(options, desktopConnection);
 
         CountDownLatch stoppedLatch = new CountDownLatch(1);
@@ -87,7 +87,7 @@ public class ApplicationTest {
     @Test
     public void getApplicationManifest() throws Exception {
         logger.debug("getApplicationManifest");
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
         application.getManifest(new AckListener() {
@@ -110,7 +110,7 @@ public class ApplicationTest {
     @Ignore("restart does not fire started event.  need to take a look later")
     @Test
     public void restartApplication() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
         TestUtils.addEventListener(application, "started", actionEvent -> {
@@ -125,7 +125,7 @@ public class ApplicationTest {
 
     @Test
     public void runReqestedEventListeners() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.createApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
         TestUtils.addEventListener(application, "run-requested", actionEvent -> {
@@ -144,7 +144,7 @@ public class ApplicationTest {
 
     @Test
     public void createChildWindow() throws Exception {
-        Application application = TestUtils.runApplication(TestUtils.getAppOptions(), desktopConnection);
+        Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
         WindowOptions childOptions = TestUtils.getWindowOptions("child1", TestUtils.openfin_app_url); // use same URL as main app
         Window childWindow = TestUtils.createChildWindow(application, childOptions, desktopConnection);
         TestUtils.closeApplication(application);

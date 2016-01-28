@@ -218,7 +218,7 @@ public class SystemTest {
 
     @Test
     public void getAllWindows() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getAllWindows(new AckListener() {
@@ -247,7 +247,7 @@ public class SystemTest {
 
     @Test
     public void getAllApplications() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getAllApplications(new AckListener() {
@@ -330,7 +330,7 @@ public class SystemTest {
 
     @Test
     public void showDeveloperTools() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
         // show dev tool for main window of the app.  Name of the main window is same as UUID

@@ -21,7 +21,7 @@ public class TestUtils {
     private static boolean connectionClosing;
     private static String runtimeVersion;
     private static CountDownLatch disconnectedLatch;
-    public static final String openfin_app_url = "http://test.openf.in/test.html";  // simple test app
+    public static final String openfin_app_url = "http://test.openf.in/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
 
     public static DesktopConnection setupConnection(String connectionUuid) throws Exception {
         logger.debug("starting");
@@ -95,11 +95,11 @@ public class TestUtils {
         return runtimeVersion;
     }
 
-    public static ApplicationOptions getAppOptions() {
-        return getAppOptions(UUID.randomUUID().toString());
+    public static ApplicationOptions getAppOptions(String url) {
+        return getAppOptions(UUID.randomUUID().toString(), url);
     }
-    public static ApplicationOptions getAppOptions(String uuid) {
-        ApplicationOptions options = new ApplicationOptions(uuid, uuid, openfin_app_url);
+    public static ApplicationOptions getAppOptions(String uuid, String url) {
+        ApplicationOptions options = new ApplicationOptions(uuid, uuid, url == null?openfin_app_url:url);
         WindowOptions windowOptions = new WindowOptions();
         windowOptions.setAutoShow(true);
         windowOptions.setSaveWindowState(false);
@@ -201,7 +201,7 @@ public class TestUtils {
     }
 
     public static void closeApplication(Application application) throws Exception {
-        logger.debug("getApplicationManifest");
+        logger.debug("closeApplication");
         CountDownLatch stoppedLatch = new CountDownLatch(1);
         EventListener listener = new EventListener() {
             @Override
@@ -213,7 +213,6 @@ public class TestUtils {
         };
         addEventListener(application, "closed", listener);
 
-        stoppedLatch.await(5, TimeUnit.SECONDS);
         application.close();
         stoppedLatch.await(5, TimeUnit.SECONDS);
         assertEquals("Close application timeout " + application.getUuid(), stoppedLatch.getCount(), 0);

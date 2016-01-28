@@ -44,7 +44,7 @@ public class WindowTest {
 
     @Test
     public void hideShowMinMax() throws Exception {
-        Application application = TestUtils.runApplication(TestUtils.getAppOptions(), desktopConnection);
+        Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
         Window window = application.getWindow();
         Map<String, CountDownLatch> map = new HashMap<>();
         map.put("shown", new CountDownLatch(1));
@@ -96,7 +96,7 @@ public class WindowTest {
 
     @Test
     public void move() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
         CountDownLatch boundsLatch = new CountDownLatch(2); // used for 2 tests: moveBy and moveTo
@@ -124,7 +124,7 @@ public class WindowTest {
 
     @Test
     public void resize() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
         CountDownLatch boundsLatch = new CountDownLatch(2); // used for 2 tests: moveBy and moveTo
@@ -154,7 +154,7 @@ public class WindowTest {
 
     @Test
     public void updateBounds() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
         int top = options.getMainWindowOptions().getDefaultTop() + 50, left = options.getMainWindowOptions().getDefaultLeft();
@@ -183,7 +183,7 @@ public class WindowTest {
 
     @Test
     public void updateAndCheckOptions() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         WindowOptions newOptions = new WindowOptions();
         boolean newFrame = !options.getMainWindowOptions().getFrame();
@@ -214,7 +214,7 @@ public class WindowTest {
     @Test
     public void dockAndUndock() throws Exception {
         String childName = "docking test";
-        Application application = TestUtils.runApplication(TestUtils.getAppOptions(), desktopConnection);
+        Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
         Window mainWindow = application.getWindow();
         WindowOptions childOptions = TestUtils.getWindowOptions(childName, child_window_url);
         Window childWindow = TestUtils.createChildWindow(application, childOptions, desktopConnection);
@@ -272,7 +272,7 @@ public class WindowTest {
 
     @Test
     public void animateMove() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
 
         AnimationTransitions transitions = new AnimationTransitions();
@@ -300,7 +300,7 @@ public class WindowTest {
 
     @Test
     public void animateSize() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
 
         AnimationTransitions transitions = new AnimationTransitions();
@@ -328,7 +328,7 @@ public class WindowTest {
 
     @Test
     public void animateOpacity() throws Exception {
-        ApplicationOptions options = TestUtils.getAppOptions();
+        ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
 
         AnimationTransitions transitions = new AnimationTransitions();
