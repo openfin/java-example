@@ -107,20 +107,21 @@ public class ApplicationTest {
         TestUtils.closeApplication(application);
     }
 
-    @Ignore("restart does not fire started event.  need to take a look later")
     @Test
     public void restartApplication() throws Exception {
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
+
         CountDownLatch latch = new CountDownLatch(1);
-        TestUtils.addEventListener(application, "started", actionEvent -> {
-            if (actionEvent.getType().equals("started")) {
+        TestUtils.addEventListener(application.getWindow(), "shown", actionEvent -> {
+            if (actionEvent.getType().equals("shown")) {
                 latch.countDown();
             }
         });
         application.restart();
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("restartApplication timeout " + options.getUUID(), latch.getCount(), 0);
+        TestUtils.closeApplication(application);
     }
 
     @Test

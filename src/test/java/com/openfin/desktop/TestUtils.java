@@ -217,7 +217,15 @@ public class TestUtils {
         };
         addEventListener(application, "closed", listener);
 
-        application.close();
+        application.close(new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(ack.getReason());
+            }
+        });
         stoppedLatch.await(5, TimeUnit.SECONDS);
         assertEquals("Close application timeout " + application.getUuid(), stoppedLatch.getCount(), 0);
     }
