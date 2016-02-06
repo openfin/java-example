@@ -204,6 +204,37 @@ public class OpenFinWindowTest {
     }
 
     @Test
+    public void throwingExceptionFromOpenFinThreadRecoversCleanly() throws Exception {
+
+        Application application = openWindow(nextTestUuid(), "http://www.google.com");
+        WindowBounds bounds1 = getWindowBounds(application.getWindow());
+
+        //throw an exception from the OpenFin event thread
+        final int delta = 10;
+        application.getWindow().moveBy(delta, delta, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                throw new RuntimeException("thrown intentionally - OpenFin should recover from this");
+            }
+            @Override
+            public void onError(Ack ack) {
+                fail("could not open a window to run test: " + ack.getReason());
+            }
+        });
+
+        try {
+            WindowBounds bounds2 = getWindowBounds(application.getWindow());
+            assertEquals("window was not moved", new Integer(bounds1.getLeft() + delta), bounds2.getLeft());
+        } catch (Throwable t) {
+            fail("OpenFin did not respond after an exception was thrown, caused by: " + t.getMessage());
+            t.printStackTrace();
+        }
+        application.close();
+    }
+
+
+
+    @Test
     public void canOpenAndCloseMultipleWindowsWithDifferentUUIDS() throws Exception {
         Application application1 = openWindow(nextTestUuid(), "http://www.google.com");
         Application application2 = openWindow(nextTestUuid(), "http://www.google.co.uk");
