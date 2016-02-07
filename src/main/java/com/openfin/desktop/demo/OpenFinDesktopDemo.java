@@ -2,6 +2,7 @@ package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
 import com.openfin.desktop.System;
+import com.openfin.desktop.Window;
 import com.openfin.desktop.animation.AnimationTransitions;
 import com.openfin.desktop.animation.OpacityTransition;
 import com.openfin.desktop.animation.PositionTransition;
@@ -653,6 +654,38 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                         public void onError(Ack ack) {
                         }
                     });
+
+                    // add a window event listener
+                    java.lang.System.out.println("Adding app-loaded event");
+                    Window w = Window.wrap(options.getUUID(), "child0", desktopConnection);
+                    w.addEventListener("app-loaded", new EventListener() {
+                        public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                            java.lang.System.out.println("Received " + actionEvent.getType());
+                        }
+                    }, new AckListener() {
+                        public void onSuccess(Ack ack) {
+                            java.lang.System.out.println("app-loaded added");
+                        }
+                        public void onError(Ack ack) {
+                            java.lang.System.out.println("failed to app-loaded");
+                        }
+                    });
+
+                    // add a window event listener
+                    java.lang.System.out.println("Adding app-connected event");
+                    w.addEventListener("app-connected", new EventListener() {
+                        public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                            java.lang.System.out.println("Received " + actionEvent.getType());
+                        }
+                    }, new AckListener() {
+                        public void onSuccess(Ack ack) {
+                            java.lang.System.out.println("app-connected added");
+                        }
+                        public void onError(Ack ack) {
+                            java.lang.System.out.println("failed to app-connected");
+                        }
+                    });
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
