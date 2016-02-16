@@ -48,6 +48,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     protected String javaWindowName = "Java Dock Window";
     protected String appUuid = "JavaDocking";
     protected String dockingManagerUuid = "DockingManager";  // Example HTML5 app for using snap and dock manager
+    protected String dockingManagerURL = "http://openfin.github.io/snap-and-dock/index.html";  // exmple HTML5 app that includes Docking Manager
 
     protected DesktopConnection desktopConnection;
 
@@ -368,8 +369,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             logger.error("Error subscribing ", ex);
         }
 
-        ApplicationOptions options = new ApplicationOptions(dockingManagerUuid, dockingManagerUuid,
-                "http://localhost:8080/index.html");
+        ApplicationOptions options = new ApplicationOptions(dockingManagerUuid, dockingManagerUuid, dockingManagerURL);
 
         options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
         WindowOptions mainWindowOptions = new WindowOptions();
