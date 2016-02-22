@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -235,9 +236,29 @@ public class WindowTest {
         joinLatch.await(3, TimeUnit.SECONDS);
         assertEquals(joinLatch.getCount(), 0);
 
-        CountDownLatch moveLatch = new CountDownLatch(1);
+        CountDownLatch groupInfoLatch = new CountDownLatch(2);
+        mainWindow.getGroup(result -> {
+            for (Window window : result) {
+                if (window.getUuid().equals(mainWindow.getUuid()) && window.getName().equals(mainWindow.getName())) {
+                    groupInfoLatch.countDown();
+                }
+                else if (window.getUuid().equals(childWindow.getUuid()) && window.getName().equals(childWindow.getName())) {
+                    groupInfoLatch.countDown();
+                }
+            }
+        }, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+        groupInfoLatch.await(3, TimeUnit.SECONDS);
+        assertEquals(groupInfoLatch.getCount(), 0);
+
         int leftBy = 20, topBy = 30;
-        moveWindowBy(mainWindow, leftBy, topBy);
+        TestUtils.moveWindowBy(mainWindow, leftBy, topBy);
         // child window sohuld move with main window since they are docked
         WindowBounds afterMoveBounds = TestUtils.getBounds(childWindow);
         int topAfterDockMove = afterMoveBounds.getTop(), leftAfterDockMove = afterMoveBounds.getLeft();
@@ -260,7 +281,7 @@ public class WindowTest {
         });
         undockLatch.await(5, TimeUnit.SECONDS);
         assertEquals(undockLatch.getCount(), 0);
-        moveWindowBy(mainWindow, leftBy, topBy);
+        TestUtils.moveWindowBy(mainWindow, leftBy, topBy);
         // child window should not move afer leaving group
         afterMoveBounds = TestUtils.getBounds(childWindow);
         assertEquals(afterMoveBounds.getLeft().intValue(), leftAfterDockMove);
@@ -407,22 +428,5 @@ public class WindowTest {
         return windowAtomicReference.get();
     }
 
-    private void moveWindowBy(Window window, int deltaLeft, int deltaTop) throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
-        window.moveBy(deltaLeft, deltaTop, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                if (ack.isSuccessful()) {
-                    latch.countDown();
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-                logger.error(String.format("onError %s", ack.getReason()));
-            }
-        });
-        latch.await(5, TimeUnit.SECONDS);
-        assertEquals(latch.getCount(), 0);
-    }
 
 }

@@ -150,4 +150,82 @@ public class ApplicationTest {
         Window childWindow = TestUtils.createChildWindow(application, childOptions, desktopConnection);
         TestUtils.closeApplication(application);
     }
+
+    @Test
+    public void crossAppDockAndUndock() throws Exception {
+        Application application1 = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+        Application application2 = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+
+        WindowBounds beforeMoveBounds = TestUtils.getBounds(application2.getWindow());
+        CountDownLatch joinLatch = new CountDownLatch(1);
+        application2.getWindow().joinGroup(application1.getWindow(), new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    joinLatch.countDown();
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(String.format("onError %s", ack.getReason()));
+            }
+        });
+        joinLatch.await(3, TimeUnit.SECONDS);
+        assertEquals(joinLatch.getCount(), 0);
+
+        CountDownLatch groupInfoLatch = new CountDownLatch(2);
+        application1.getWindow().getGroup(result -> {
+            for (Window window : result) {
+                if (window.getUuid().equals(application1.getWindow().getUuid()) && window.getName().equals(application1.getWindow().getName())) {
+                    groupInfoLatch.countDown();
+                } else if (window.getUuid().equals(application2.getWindow().getUuid()) && window.getName().equals(application2.getWindow().getName())) {
+                    groupInfoLatch.countDown();
+                }
+            }
+        }, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(String.format("onError %s", ack.getReason()));
+            }
+        });
+        groupInfoLatch.await(3, TimeUnit.SECONDS);
+        assertEquals(groupInfoLatch.getCount(), 0);
+
+        int leftBy = 20, topBy = 30;
+        TestUtils.moveWindowBy(application1.getWindow(), leftBy, topBy);
+        // child window sohuld move with main window since they are docked
+        WindowBounds afterMoveBounds = TestUtils.getBounds(application2.getWindow());
+        int topAfterDockMove = afterMoveBounds.getTop(), leftAfterDockMove = afterMoveBounds.getLeft();
+        assertEquals(afterMoveBounds.getTop() - beforeMoveBounds.getTop(), topBy);
+        assertEquals(afterMoveBounds.getLeft() - beforeMoveBounds.getLeft(), leftBy);
+
+        // undock by leaving the group
+        CountDownLatch undockLatch = new CountDownLatch(1);
+        application2.getWindow().leaveGroup(new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    undockLatch.countDown();
+                }
+            }
+
+            @Override
+            public void onError(Ack ack) {
+                logger.error(String.format("onError %s", ack.getReason()));
+            }
+        });
+        undockLatch.await(5, TimeUnit.SECONDS);
+        assertEquals(undockLatch.getCount(), 0);
+        TestUtils.moveWindowBy(application1.getWindow(), leftBy, topBy);
+        // child window should not move afer leaving group
+        afterMoveBounds = TestUtils.getBounds(application2.getWindow());
+        assertEquals(afterMoveBounds.getLeft().intValue(), leftAfterDockMove);
+        assertEquals(afterMoveBounds.getTop().intValue(), topAfterDockMove);
+
+        TestUtils.closeApplication(application1);
+        TestUtils.closeApplication(application2);
+    }
 }
