@@ -396,7 +396,6 @@ public class OpenFinWindowTest {
         assertEquals("minimized event not recieved", "minimized", eventTypeRecieved.get());
     }
 
-    @Ignore("Cross app docking not supported")
     @Test
     public void windowsInShameGroupMoveTogether() throws Exception {
         final int width = 600, height = 900;
