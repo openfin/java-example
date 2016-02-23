@@ -62,21 +62,6 @@ public class WindowPositionTest {
         }
     }
 
-
-    @Ignore("later")
-    @Test
-    public void saveWindowStateWithoutRuntimeRestart() throws Exception {
-        int repeat = 30;
-        String value = java.lang.System.getProperty("com.openfin.desktop.WindowPositionTest.repeat");
-        if (value != null) {
-            repeat = Integer.parseInt(value);
-        }
-        logger.debug(String.format("Running test %d times", repeat));
-        for (int i = 0; i < repeat; i++) {
-            runAndClose();
-        }
-    }
-
     @Test
     public void saveWindowStateWithRuntimeRestart() throws Exception {
         int repeat = 30;
