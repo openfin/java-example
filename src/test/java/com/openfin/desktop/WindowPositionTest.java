@@ -56,9 +56,7 @@ public class WindowPositionTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (successRun) {
-            TestUtils.teardownDesktopConnection(desktopConnection);
-        }
+        TestUtils.teardownDesktopConnection(desktopConnection);
     }
 
     @Test
