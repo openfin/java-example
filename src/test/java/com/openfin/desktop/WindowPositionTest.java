@@ -44,7 +44,6 @@ public class WindowPositionTest {
         defaultLeft   = getRandomNumber();
         defaultHeight = getRandomNumber() + 38;   // chromium enforces 140/38 as min height/width
         defaultWidth  = getRandomNumber() + 140;
-        logger.debug(String.format("default bounds %s %d %d %d %d", appUuid, defaultHeight, defaultWidth, defaultTop, defaultLeft));
     }
 
     /**
@@ -99,9 +98,10 @@ public class WindowPositionTest {
         assertEquals("shown timeout " + options.getUUID(), shownLatch.getCount(), 0);
 
         WindowBounds bounds = TestUtils.getBounds(application.getWindow());
-        logger.debug(String.format("shown bounds %d %d %d %d", bounds.getHeight(), bounds.getWidth(), bounds.getTop(), bounds.getLeft()));
         if (bounds.getHeight() != defaultHeight || bounds.getWidth() != defaultWidth || bounds.getTop() != defaultTop || bounds.getLeft() != defaultLeft) {
             successRun = false;
+            logger.info(String.format("default bounds %s %d %d %d %d", appUuid, defaultHeight, defaultWidth, defaultTop, defaultLeft));
+            logger.info(String.format("shown bounds %d %d %d %d", bounds.getHeight(), bounds.getWidth(), bounds.getTop(), bounds.getLeft()));
             fail("Window bounds do not match saved bounds");
         }
 
