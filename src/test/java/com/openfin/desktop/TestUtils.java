@@ -1,5 +1,6 @@
 package com.openfin.desktop;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -307,6 +308,62 @@ public class TestUtils {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals(latch.getCount(), 0);
+    }
+
+    /**
+     * Request Runtiem to clear all caches.  Runtime needs to be restarted in order for the caches to be actually cleared
+     *
+     * @param desktopConnection
+     * @throws Exception
+     */
+    public static void clearAllCaches(DesktopConnection desktopConnection) throws Exception {
+        OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
+        CountDownLatch latch = new CountDownLatch(1);
+        runtime.clearCache(true, true, true, true, true, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    latch.countDown();
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(ack.getReason());
+            }
+        });
+        latch.await(5, TimeUnit.SECONDS);
+    }
+
+
+    public static WindowBounds getAvailableRect(DesktopConnection desktopConnection) throws Exception {
+        AtomicReference<WindowBounds> windowBoundsAtomicReference = new AtomicReference<>();
+        OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
+        CountDownLatch latch = new CountDownLatch(1);
+        runtime.getMonitorInfo(new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    JSONObject data = (JSONObject) ack.getData();
+                    if (data.has("primaryMonitor")) {
+                        JSONObject primaryMonitor = data.getJSONObject("primaryMonitor");
+                        if (primaryMonitor.has("availableRect")) {
+                            JSONObject availableRect = primaryMonitor.getJSONObject("availableRect");
+                            WindowBounds bounds = new WindowBounds(availableRect.getInt("top"), availableRect.getInt("left"),
+                                                            availableRect.getInt("right"), availableRect.getInt("bottom"));
+                            windowBoundsAtomicReference.set(bounds);
+                        }
+                        latch.countDown();
+                    }
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error("Error creating application", ack.getReason());
+            }
+        });
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("getMonitorInfo timeout", latch.getCount(), 0);
+        return windowBoundsAtomicReference.get();
     }
 
 }
