@@ -59,6 +59,7 @@ public class WindowPositionTest {
         TestUtils.teardownDesktopConnection(desktopConnection);
     }
 
+    @Ignore("for now")
     @Test
     public void saveWindowStateWithRuntimeRestart() throws Exception {
         int repeat = 30;
@@ -74,9 +75,26 @@ public class WindowPositionTest {
         }
     }
 
+    @Test
+    public void defaultWindowPsition() throws Exception {
+        int repeat = 30;
+        String value = java.lang.System.getProperty("com.openfin.desktop.WindowPositionTest.repeat");
+        if (value != null) {
+            repeat = Integer.parseInt(value);
+        }
+        logger.debug(String.format("Running test %d times", repeat));
+        for (int i = 0; i < repeat; i++) {
+            appUuid       = UUID.randomUUID().toString();
+            defaultTop    = getRandomNumber();
+            defaultLeft   = getRandomNumber();
+            defaultHeight = getRandomNumber() + 38;   // chromium enforces 140/38 as min height/width
+            defaultWidth  = getRandomNumber() + 140;
+            runAndClose();
+        }
+    }
+
     private void runAndClose() throws Exception {
         ApplicationOptions options = TestUtils.getAppOptions(appUuid, null);
-        options.getMainWindowOptions().setSaveWindowState(true);
         options.getMainWindowOptions().setDefaultHeight(defaultHeight);
         options.getMainWindowOptions().setDefaultWidth(defaultWidth);
         options.getMainWindowOptions().setDefaultTop(defaultTop);
