@@ -114,6 +114,8 @@ public class WindowPositionTest {
         assertEquals("shown timeout " + options.getUUID(), shownLatch.getCount(), 0);
 
         WindowBounds bounds = TestUtils.getBounds(application.getWindow());
+        logger.debug(String.format("default bounds %s %d %d %d %d", appUuid, defaultHeight, defaultWidth, defaultTop, defaultLeft));
+        logger.debug(String.format("shown bounds %d %d %d %d", bounds.getHeight(), bounds.getWidth(), bounds.getTop(), bounds.getLeft()));
         if (bounds.getHeight() != defaultHeight || bounds.getWidth() != defaultWidth || bounds.getTop() != defaultTop || bounds.getLeft() != defaultLeft) {
             successRun = false;
             logger.info(String.format("default bounds %s %d %d %d %d", appUuid, defaultHeight, defaultWidth, defaultTop, defaultLeft));
