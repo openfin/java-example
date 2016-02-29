@@ -85,10 +85,10 @@ public class WindowPositionTest {
         logger.debug(String.format("Running test %d times", repeat));
         for (int i = 0; i < repeat; i++) {
             appUuid       = UUID.randomUUID().toString();
-            defaultTop    = getRandomNumber();
-            defaultLeft   = getRandomNumber();
-            defaultHeight = getRandomNumber() + 38;   // chromium enforces 140/38 as min height/width
-            defaultWidth  = getRandomNumber() + 140;
+            defaultTop    = 10;  //getRandomNumber();
+            defaultLeft   = 10;  //getRandomNumber();
+            defaultHeight = 500; //getRandomNumber() + 38;   // chromium enforces 140/38 as min height/width
+            defaultWidth  = 500; //getRandomNumber() + 140;
             runAndClose();
         }
     }
