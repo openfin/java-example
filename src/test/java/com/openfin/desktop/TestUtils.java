@@ -29,6 +29,9 @@ public class TestUtils {
     public static final String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
 
     public static DesktopConnection setupConnection(String connectionUuid) throws Exception {
+        return setupConnection(connectionUuid, null, null);
+    }
+    public static DesktopConnection setupConnection(String connectionUuid, String rdmUrl, String assetsUrl) throws Exception {
         logger.debug("starting");
         CountDownLatch connectedLatch = new CountDownLatch(1);
         disconnectedLatch = new CountDownLatch(1);
@@ -45,6 +48,8 @@ public class TestUtils {
         if (runtimeVersion == null) {
             runtimeVersion = "alpha";
         }
+        desktopConnection.setRdmUrl(rdmUrl);
+        desktopConnection.setRuntimeAssetsUrl(assetsUrl);
         desktopConnection.connectToVersion(runtimeVersion, new DesktopStateListener() {
             @Override
             public void onReady() {

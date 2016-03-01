@@ -30,7 +30,7 @@ public class SystemTest {
 
     private static final String DESKTOP_UUID = SystemTest.class.getName();
     private static DesktopConnection desktopConnection;
-    private static System runtime;
+    private static OpenFinRuntime runtime;
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -286,7 +286,6 @@ public class SystemTest {
                     JSONObject position = (JSONObject) ack.getData();
                     if (position.has("left") && position.has("top")) {
                         latch.countDown();
-
                     }
                 }
             }
@@ -493,7 +492,6 @@ public class SystemTest {
                     latch.countDown();
                 }
             }
-
             @Override
             public void onError(Ack ack) {
             }
@@ -508,9 +506,38 @@ public class SystemTest {
         String version1 = getRuntimeVersion();
         TestUtils.teardownDesktopConnection(desktopConnection);
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
-        runtime = new System(desktopConnection);
+        runtime = new OpenFinRuntime(desktopConnection);
         String version2 = getRuntimeVersion();
         assertEquals(version1, version2);
     }
+
+    @Test
+    public void customRdmAssetUrls() throws Exception {
+        TestUtils.teardownDesktopConnection(desktopConnection);
+        String rdmUrl    = "https://rdm.openfin.co/services";
+        String assetsUrl = "https://cdn.openfin.co/release";
+        desktopConnection = TestUtils.setupConnection(DESKTOP_UUID, rdmUrl, assetsUrl);
+        runtime = new OpenFinRuntime(desktopConnection);
+        CountDownLatch latch = new CountDownLatch(1);
+        runtime.getConfig(null, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    JSONObject data = (JSONObject) ack.getData();
+                    if (rdmUrl.equals(data.getString("rdmUrl")) && assetsUrl.equals(data.getString("assetsUrl"))) {
+                        latch.countDown();
+                    }
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(ack.getReason());
+            }
+        });
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("getConfig timeout", latch.getCount(), 0);
+
+    }
+
 
 }
