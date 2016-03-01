@@ -33,8 +33,11 @@ import org.slf4j.LoggerFactory;
  *  2. to specify version of OpenFin Runtime
  *      -Dcom.openfin.demo.version=5.44.8.56
  *
- *  3. to specify arguments to be passed to RVM installer
- *      -Dcom.openfin.demo.rvm.arguments="--assetsUrl=https://myServer/release --rvm-config=https://myServer/rvm.json"
+ *  3. to specify RDM URL
+ *      -Dcom.openfin.demo.rdmURL=rdm_url
+ *
+ *  4. to specify URL of RVM&Runtime URL
+ *      -Dcom.openfin.demo.assetsURL=assets_url
  *
  *  4. to connect to a port of a running instance of OpenFin Runtime (this is a deprecated use of OpenFin API
  *      -Dcom.openfin.demo.port=9000
@@ -107,6 +110,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         if (securityRealm != null) {
             this.desktopConnection.setRuntimeSecurityRealm(securityRealm);
         }
+        this.desktopConnection.setRdmUrl(java.lang.System.getProperty("com.openfin.demo.rdmURL"));
+        this.desktopConnection.setRuntimeAssetsUrl(java.lang.System.getProperty("com.openfin.demo.assetsURL"));
         this.desktopConnection.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
     }
 
