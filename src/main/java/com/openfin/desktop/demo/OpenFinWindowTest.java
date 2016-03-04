@@ -66,7 +66,7 @@ public class OpenFinWindowTest {
         desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // turn on Chromium debug log
         String desktopVersion = java.lang.System.getProperty("com.openfin.demo.runtime.version");
         if (desktopVersion == null) {
-            desktopVersion = "stable";
+            desktopVersion = "5.44.10.26";  // 5.44.10.26 has fix for cross-app docking, which is required for windowsInShameGroupMoveTogether
         }
         desktopConnection.connectToVersion(desktopVersion, new DesktopStateListener() {
             @Override
@@ -91,7 +91,7 @@ public class OpenFinWindowTest {
             public void onOutgoingMessage(String message) {
                 printf("openfin outgoing message: %s", message);
             }
-        }, waitTime);//this timeout (in 4.40.2.9) is ignored
+        }, waitTime);//this timeout (in 4.40.2.9) is ignored.  Not anymore in 5.44.2.2
 
         printf("waiting for desktop to connect");
         openFinConnectedLatch.await(waitTime, TimeUnit.SECONDS);
