@@ -66,7 +66,7 @@ public class OpenFinWindowTest {
         desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // turn on Chromium debug log
         String desktopVersion = java.lang.System.getProperty("com.openfin.demo.runtime.version");
         if (desktopVersion == null) {
-            desktopVersion = "alpha";
+            desktopVersion = "stable";
         }
         desktopConnection.connectToVersion(desktopVersion, new DesktopStateListener() {
             @Override
