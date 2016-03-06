@@ -11,9 +11,9 @@ Examples for OpenFin Java adapter
 
 4. You can use buttons in Window Control section to move and re-size HTML5 window of Hello OpenFin app.
 
-5. Click "Create Application" button, which should start a dialog with all the fields pre-populated for our FXLive demo HTML5 application.  Just click on "Create" button.
+5. Click "Create Application" button, which should start a dialog with all the fields pre-populated for our Hello OpenFin demo HTML5 application.  Just click on "Create" button.
 
-6. After FXLive starts, you can use the buttons under Window Control of Java app to control FXLive window.
+6. After FXLive starts, you can use the buttons under Window Control of Java app to control Hello OpenFin window.
 
 ## Source Code Review
 
