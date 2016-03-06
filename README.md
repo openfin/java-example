@@ -13,7 +13,7 @@ Examples for OpenFin Java adapter
 
 5. Click "Create Application" button, which should start a dialog with all the fields pre-populated for our Hello OpenFin demo HTML5 application.  Just click on "Create" button.
 
-6. After FXLive starts, you can use the buttons under Window Control of Java app to control Hello OpenFin window.
+6. After Hello OpenFin starts, you can use the buttons under Window Control of Java app to control Hello OpenFin window.
 
 ## Source Code Review
 
