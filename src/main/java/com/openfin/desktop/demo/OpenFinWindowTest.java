@@ -441,6 +441,17 @@ public class OpenFinWindowTest {
 
     @Test
     public void notificationEventListenersWork() throws Exception {
+        // wait for Notification service to start up
+        Window notificationService = Window.wrap("service:notifications", "queueCounter", desktopConnection);
+        CountDownLatch notificationLatch = new CountDownLatch(1);
+        notificationService.addEventListener("app-connected", actionEvent -> {
+            if (actionEvent.getType().equals("app-connected")) {
+                logger.info("notification center ready");
+                notificationLatch.countDown();
+            }
+        }, null);
+        notificationLatch.await(10, TimeUnit.SECONDS);
+
         //record/wait for event
         CountDownLatch onCloseEventLatch = new CountDownLatch(1);
         AtomicReference<String> eventTypeRecieved = new AtomicReference<>();
@@ -482,7 +493,7 @@ public class OpenFinWindowTest {
         }, this.desktopConnection, null);
 
         //wait for the onClose notification to arrive
-        onCloseEventLatch.await(20, TimeUnit.SECONDS);
+        onCloseEventLatch.await(20000, TimeUnit.SECONDS);
         assertEquals("onClose", eventTypeRecieved.get());
     }
 
