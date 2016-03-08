@@ -47,8 +47,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     protected String javaWindowName = "Java Dock Window";
     protected String javaParentAppUuid = "Java Parent App";
     protected String appUuid = "JavaDocking";  // UUID for desktopConnection
-//    protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
-    protected String openfin_app_url = "http://localhost:8080/SimpleDockingExample.html";
+    protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleDockingExample.html";  // source is in release/SimpleDockingExample.html
 
     protected DesktopConnection desktopConnection;
     protected DockingManager dockingManager;
