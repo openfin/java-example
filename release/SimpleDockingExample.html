@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple OpenFin app</title>
+    <script type="text/javascript" language="javascript">
+        function init() {
+            var undockButton = document.getElementById('undockButton');
+            undockButton.addEventListener('click', undock);
+            undockButton.style.display = 'none';
+
+            fin.desktop.main(function () {
+                var w = fin.desktop.Window.getCurrent();
+                document.getElementById("status").innerHTML = "Connected to OpenFin Runtime " + w.app_uuid + ":" + w.name;
+
+                fin.desktop.InterApplicationBus.subscribe("*", "window-docked", onWindowDocked);
+                fin.desktop.InterApplicationBus.subscribe('*', 'window-undocked', onWindowUnDocked);
+            });
+        }
+
+        function onWindowDocked(event) {
+            var w = fin.desktop.Window.getCurrent();
+            if (w.app_uuid == event.applicationUuid && w.name == event.windowName) {
+                document.getElementById('undockButton').style.display = 'block';
+            }
+        }
+
+        function onWindowUnDocked(event) {
+            var w = fin.desktop.Window.getCurrent();
+            if (w.app_uuid == event.applicationUuid && w.name == event.windowName) {
+                document.getElementById('undockButton').style.display = 'none';
+            }
+        }
+
+    function undock() {
+        var w = fin.desktop.Window.getCurrent();
+        fin.desktop.InterApplicationBus.publish('undock-window', {
+            applicationUuid: w.app_uuid,
+            windowName: w.name
+        });
+    }
+
+    </script>
+</head>
+<body onload='init();' >
+<div>Simple OpenFin app</div>
+<div id="status"></div>
+<button id="undockButton">Undock</button>
+</body>
+</html>

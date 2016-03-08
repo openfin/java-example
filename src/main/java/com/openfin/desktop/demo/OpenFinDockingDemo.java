@@ -1,8 +1,8 @@
 package com.openfin.desktop.demo;
 
-import com.openfin.desktop.*;
-import com.openfin.desktop.OpenFinRuntime;
 import com.openfin.desktop.win32.ExternalWindowObserver;
+import com.openfin.desktop.DockingManager;
+import com.openfin.desktop.*;
 import info.clearthought.layout.TableLayout;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ import java.lang.System;
  * Steps to implement snap&dock in this example
  *
  * 1. Launch OpenFin Runtime, as in startOpenFinRuntime
- * 2. Launch a HTML5 app that include DockingManager from snap&dock library, as in launchDockingManager
+ * 2. Launch a HTML5 app that include DockingManager from snap&dock library, as in launchHTMLApps
  * 3. Once Docking Manger is ready, register Java window with OpenFin Runtime, as in registerJavaWindowWithRuntime
  * 4. Register Java window with Docking Manager, as in registerJavaWindowWithDockingManager
  *
@@ -44,14 +44,14 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
 
     protected JButton undockButton;
 
-    protected ExternalWindowObserver externalWindowObserver;
     protected String javaWindowName = "Java Dock Window";
-    protected String appUuid = "JavaDocking";
-    protected String dockingManagerUuid = "DockingManager";  // Example HTML5 app for using snap and dock manager
-    protected String dockingManagerURL = "http://openfin.github.io/snap-and-dock/index.html";  // exmple HTML5 app that includes Docking Manager
+    protected String javaParentAppUuid = "Java Parent App";
+    protected String appUuid = "JavaDocking";  // UUID for desktopConnection
+//    protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
+    protected String openfin_app_url = "http://localhost:8080/SimpleDockingExample.html";
 
     protected DesktopConnection desktopConnection;
-
+    protected DockingManager dockingManager;
     protected JTextField dockStatus;  // show Ready to dock message
     protected JTextArea status;
 
@@ -177,7 +177,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         if (SwingUtilities.isEventDispatchThread()) {
             String t = "";
             if (status.getText().length() > 0) {
-
                 t = status.getText();
             }
             StringBuilder b = new StringBuilder();
@@ -198,7 +197,6 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     private void closeDesktop() {
         if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
-                externalWindowObserver.dispose();
                 Thread.sleep(2000);
                 new OpenFinRuntime(desktopConnection).exit();
             } catch (Exception e) {
@@ -225,6 +223,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         try {
             // send message to Docking Manager to undock me
             JSONObject msg = new JSONObject();
+            msg.put("applicationUuid", javaParentAppUuid);
             msg.put("windowName", javaWindowName);
             desktopConnection.getInterApplicationBus().publish("undock-window", msg);
 
@@ -244,32 +243,54 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             DesktopStateListener listener = new DesktopStateListener() {
                 @Override
                 public void onReady() {
-                    updateMessagePanel("Connection authorized.");
-                    setMainButtonsEnabled(true);
-                    launchDockingManager();
+                    onRuntimeReady();
                 }
-
                 @Override
                 public void onError(String reason) {
                     updateMessagePanel("Connection failed: " + reason);
                 }
-
                 @Override
                 public void onMessage(String message) {
-                    updateMessagePanel("-->FROM DESKTOP-" + message);
                 }
-
                 @Override
                 public void onOutgoingMessage(String message) {
-                    updateMessagePanel("<--TO DESKTOP-" + message);
                 }
-
             };
             desktopConnection.setAdditionalRuntimeArguments(" --v=1");  // enable additional logging from Runtime
-            desktopConnection.connectToVersion("stable", listener, 10000);
+            desktopConnection.connectToVersion("5.44.10.26", listener, 60); // 5.44.10.26 has fix for cross-app docking, which is required for windowsInShameGroupMoveTogether
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void onRuntimeReady() {
+        try {
+            updateMessagePanel("Connection authorized.");
+            setMainButtonsEnabled(true);
+            this.dockingManager = new DockingManager(this.desktopConnection, this.javaParentAppUuid);
+            this.desktopConnection.getInterApplicationBus().subscribe("*", "window-docked", (uuid, topic, data) -> {
+                JSONObject event = (JSONObject) data;
+                String appUuid = event.getString("applicationUuid");
+                String windowName = event.getString("windowName");
+                updateMessagePanel(String.format("Window docked %s %s", appUuid, windowName));
+                if (javaParentAppUuid.equals(appUuid) && javaWindowName.equals(windowName)) {
+                    updateUndockButton(true);
+                }
+            });
+            this.desktopConnection.getInterApplicationBus().subscribe("*", "window-undocked", (uuid, topic, data) -> {
+                JSONObject event = (JSONObject) data;
+                String appUuid = event.getString("applicationUuid");
+                String windowName = event.getString("windowName");
+                updateMessagePanel(String.format("Window undocked %s %s", appUuid, windowName));
+                if (javaParentAppUuid.equals(appUuid) && javaWindowName.equals(windowName)) {
+                    updateUndockButton(false);
+                }
+            });
+            registerJavaWindow();
+            launchHTMLApps();
+        } catch (Exception e) {
+            logger.error("Error creating DockingManager", e);
         }
     }
 
@@ -296,112 +317,96 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
      * Register Java window with OpenFin Runtime
      *
      */
-    private void registerJavaWindowWithRuntime() {
+    private void registerJavaWindow() {
         try {
-            this.externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), dockingManagerUuid, javaWindowName, jFrame,
-                    new AckListener() {
-                        @Override
-                        public void onSuccess(Ack ack) {
-                            if (ack.isSuccessful()) {
-                                undockButton.setEnabled(false);
-                                registerJavaWindowWithDockingManager();
+            // Java window needs to be assigned a HTML5 app as parent app in order for Runtime to control it.
+            // now we are creating a HTML5 app aith autoShow = false so it is hidden.
+            ApplicationOptions options = new ApplicationOptions(javaParentAppUuid, javaParentAppUuid, openfin_app_url);
+            options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
+            WindowOptions mainWindowOptions = new WindowOptions();
+            mainWindowOptions.setAutoShow(false);
+            mainWindowOptions.setDefaultHeight(50);
+            mainWindowOptions.setDefaultLeft(50);
+            mainWindowOptions.setDefaultTop(50);
+            mainWindowOptions.setDefaultWidth(50);
+            mainWindowOptions.setShowTaskbarIcon(false);
+            mainWindowOptions.setSaveWindowState(false);  // set to false so all windows start at same initial positions for each run
+            options.setMainWindowOptions(mainWindowOptions);
+            launchHTMLApp(options, new AckListener() {
+                @Override
+                public void onSuccess(Ack ack) {
+                    Application app = (Application) ack.getSource();
+                    logger.debug("Registering java window");
+                    dockingManager.registerJavaWindow(javaWindowName, jFrame,
+                        new AckListener() {
+                            @Override
+                            public void onSuccess(Ack ack) {
+                                if (ack.isSuccessful()) {
+                                    undockButton.setEnabled(false);
+                                }
                             }
-                        }
-                        @Override
-                        public void onError(Ack ack) {
-                            logger.error("Error starting " + dockingManagerUuid, ack.getReason());
-                        }
-                    });
+                            @Override
+                            public void onError(Ack ack) {
+                                logger.error("Error registering Java window " + ack.getReason());
+                            }
+                        });
+                }
+                @Override
+                public void onError(Ack ack) {
+                    logger.error("Error launching " + javaParentAppUuid);
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void registerJavaWindowWithDockingManager() {
-        try {
-            // get notified when being docked
-            desktopConnection.getInterApplicationBus().subscribe("*", "window-docked", (sourceUuid, topic, payload) -> {
-                JSONObject msg = (JSONObject) payload;
-                if (msg.has("windowName") && msg.getString("windowName").equals(javaWindowName)) {
-                    updateUndockButton(true);
-                }
-            }, null);
-
-            // get notified when being undocked
-            desktopConnection.getInterApplicationBus().subscribe("*", "window-undocked", (sourceUuid, topic, payload) -> {
-                JSONObject msg = (JSONObject) payload;
-                if (msg.has("windowName") && msg.getString("windowName").equals(javaWindowName)) {
-                    updateUndockButton(false);
-                }
-            });
-
-            JSONObject msg = new JSONObject();
-            msg.put("applicationUuid", dockingManagerUuid);
-            msg.put("windowName", javaWindowName);
-            desktopConnection.getInterApplicationBus().publish("register-docking-window", msg);
-
-        } catch (Exception ex) {
-            logger.error("Error registeting with docking manager", ex);
-        }
-
-    }
-
     /**
      *
-     * Launching a HTML5 app with docking manager
+     * Launching HTML5 apps and register docking manager
      *
      */
-    private void launchDockingManager() {
-
-        try {
-            // Listen to status update from Docking Manager
-            desktopConnection.getInterApplicationBus().subscribe(dockingManagerUuid, "status-update", new BusListener() {
-                @Override
-                public void onMessageReceived(String sourceUuid, String topic, Object payload) {
-                    JSONObject msg = (JSONObject) payload;
-                    if (msg.has("status") && msg.getString("status").equals("ready")) {
-                        // Docking Manager is ready
-                        registerJavaWindowWithRuntime();
+    private void launchHTMLApps() {
+        // launch 5 instances of same example app
+        int width = 300, height=200;
+        int gap = 50;  // gap between windows at initial positions
+        for (int i = 0; i < 2; i++) {
+            try {
+                String uuid = String.format("docking-html-%d", i);
+                ApplicationOptions options = new ApplicationOptions(uuid, uuid, openfin_app_url);
+                options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
+                WindowOptions mainWindowOptions = new WindowOptions();
+                mainWindowOptions.setAutoShow(true);
+                mainWindowOptions.setDefaultHeight(height);
+                mainWindowOptions.setDefaultLeft(10 + i * (width + gap));
+                mainWindowOptions.setDefaultTop(50);
+                mainWindowOptions.setDefaultWidth(width);
+                mainWindowOptions.setShowTaskbarIcon(true);
+                mainWindowOptions.setSaveWindowState(false);  // set to false so all windows start at same initial positions for each run
+                options.setMainWindowOptions(mainWindowOptions);
+                launchHTMLApp(options, new AckListener() {
+                    @Override
+                    public void onSuccess(Ack ack) {
+                        logger.debug(String.format("Successful launching %s", options.getUUID()));
+                        Application app = (Application) ack.getSource();
+                        dockingManager.registerWindow(app.getWindow());
                     }
-                }
-            }, null);
-        } catch (Exception ex) {
-            logger.error("Error subscribing ", ex);
+                    @Override
+                    public void onError(Ack ack) {
+                        logger.error(String.format("Error launching %s %s", options.getUUID(), ack.getReason()));
+                    }
+                });
+            } catch (Exception e) {
+                logger.error("Error launching app", e);
+            }
         }
-
-        ApplicationOptions options = new ApplicationOptions(dockingManagerUuid, dockingManagerUuid, dockingManagerURL);
-
-        options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
-        WindowOptions mainWindowOptions = new WindowOptions();
-        mainWindowOptions.setAutoShow(true);
-        mainWindowOptions.setDefaultHeight(150);
-        mainWindowOptions.setDefaultLeft(10);
-        mainWindowOptions.setDefaultTop(50);
-        mainWindowOptions.setDefaultWidth(250);
-        mainWindowOptions.setShowTaskbarIcon(true);
-        options.setMainWindowOptions(mainWindowOptions);
-
-        Application app = new Application(options, desktopConnection, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                Application application = (Application) ack.getSource();
-                try {
-                    application.run(new AckListener() {
-                        public void onSuccess(Ack ack) {
-                        }
-                        public void onError(Ack ack) {
-                            logger.error(String.format("Error running %s Reason %s", dockingManagerUuid, ack.getReason()));
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
-        });
     }
+
+    private void launchHTMLApp(ApplicationOptions options, AckListener ackListener) throws Exception {
+        logger.debug(String.format("Launching %s", options.getUUID()));
+        DemoUtils.runApplication(options, this.desktopConnection, ackListener);
+    }
+
 
     private void updateUndockButton(boolean enabled) {
         this.undockButton.setEnabled(enabled);
