@@ -1,6 +1,5 @@
 package com.openfin.desktop.demo;
 
-import com.openfin.desktop.win32.ExternalWindowObserver;
 import com.openfin.desktop.DockingManager;
 import com.openfin.desktop.*;
 import info.clearthought.layout.TableLayout;
@@ -11,23 +10,25 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.lang.System;
+import java.util.Arrays;
 
 /**
  * Example of snap&dock Java window with OpenFin html5 window
  *
  * Move windows close to each other so they snap, and release mouse to dock 2 windows.
  *
- * This example use snap and dock js library at https://github.com/openfin/snap-and-dock.
+ * This example use snap and dock library at https://github.com/openfin/java-snap-and-dock.
  *
  * Steps to implement snap&dock in this example
  *
  * 1. Launch OpenFin Runtime, as in startOpenFinRuntime
- * 2. Launch a HTML5 app that include DockingManager from snap&dock library, as in launchHTMLApps
- * 3. Once Docking Manger is ready, register Java window with OpenFin Runtime, as in registerJavaWindowWithRuntime
- * 4. Register Java window with Docking Manager, as in registerJavaWindowWithDockingManager
+ * 2. Create an instance of DockingManager
+ * 2. Launch a HTML5 app and register with DockingManager as in launchHTMLApps
+ * 3. Register Java window as in DockingManager registerJavaWindow
  *
- * Java window can receive notification when it is docked by subscribing to 'window-docked' topic.  It can also request to be undocked
+ * All windows can receive notification when it is docked by subscribing to 'window-docked' topic.  It can also request to be undocked
  * by sending a message to Docking Manager.   Please refer to document of Snap&Dock library for more into
  *
  * Created by wche on 2/28/15.
@@ -36,17 +37,18 @@ import java.lang.System;
 public class OpenFinDockingDemo extends JPanel implements ActionListener, WindowListener {
     private final static Logger logger = LoggerFactory.getLogger(OpenFinDockingDemo.class.getName());
 
-
     private static JFrame jFrame;
-
     protected JButton launch;
     protected JButton close;
 
     protected JButton undockButton;
 
-    protected String javaWindowName = "Java Dock Window";
+    // For a Java window to be dockable, it must be registered with Runtime as a child window of a HTML5 app.  We are going to create
+    // a hidden HTML5 app, with javaParentAppUuid as UUID, as the parent app of all Java windows
     protected String javaParentAppUuid = "Java Parent App";
+
     protected String appUuid = "JavaDocking";  // UUID for desktopConnection
+    protected String javaWindowName = "Java Dock Window";
     protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleDockingExample.html";  // source is in release/SimpleDockingExample.html
 
     protected DesktopConnection desktopConnection;
@@ -99,7 +101,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
         topPanel.add(launch, "1,0,1,0");
         topPanel.add(close, "3,0,3,0");
 
-        undockButton = new JButton("Undock from HTML5 app");
+        undockButton = new JButton("Undock");
         undockButton.setActionCommand("undock-window");
         undockButton.setEnabled(false);
         topPanel.add(undockButton, "1,2,1,2");
@@ -288,6 +290,7 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
             });
             registerJavaWindow();
             launchHTMLApps();
+            launchAnotherJavaApp();
         } catch (Exception e) {
             logger.error("Error creating DockingManager", e);
         }
@@ -407,6 +410,57 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     }
 
 
+    private void launchAnotherJavaApp() {
+        Thread launchThread = new Thread() {
+            public void run() {
+                logger.debug(String.format("Launching docking.bat %s", DockingDemo2.class.getName()));
+                String[] command = {"docking.bat", DockingDemo2.class.getName()};
+                ProcessBuilder probuilder = new ProcessBuilder( command );
+                //You can set up your work directory
+                probuilder.directory(new File("."));
+                try {
+//                    Process process = probuilder.start();
+//                    //Read out dir output
+//                    InputStream is = process.getInputStream();
+//                    InputStreamReader isr = new InputStreamReader(is);
+//                    BufferedReader br = new BufferedReader(isr);
+//                    String line;
+//                    while ((line = br.readLine()) != null) {
+//                        logger.debug(String.format("Java App output: %s", line));
+//                    }
+//                    int exitValue = process.waitFor();
+//                    logger.debug(String.format("Java app exit code %d", exitValue));
+
+                    Process process = Runtime.getRuntime().exec("cmd");
+                    OutputStream stdin = process.getOutputStream();
+                    InputStream stderr = process.getErrorStream();
+                    InputStream stdout = process.getInputStream();
+                    String line = "start docking.bat " + DockingDemo2.class.getName() + "\n";
+                    stdin.write(line.getBytes());
+                    stdin.flush();
+                    stdin.close();
+                    // clean up if any output in stdout
+                    BufferedReader brCleanUp =
+                            new BufferedReader(new InputStreamReader(stdout));
+                    while ((line = brCleanUp.readLine()) != null) {
+                        logger.debug("[Stdout] " + line);
+                    }
+                    brCleanUp.close();
+                    // clean up if any output in stderr
+                    brCleanUp =
+                            new BufferedReader(new InputStreamReader(stderr));
+                    while ((line = brCleanUp.readLine()) != null) {
+                        logger.info("[Stderr] " + line);
+                    }
+                    brCleanUp.close();
+                } catch (Exception ex) {
+                    logger.error("Error launch java app", ex);
+                }
+            }
+        };
+        launchThread.start();
+    }
+
     private void updateUndockButton(boolean enabled) {
         this.undockButton.setEnabled(enabled);
         if (enabled) {
@@ -430,8 +484,9 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
 
         //Display the window.
         jFrame.pack();
-        jFrame.setSize(470, 500);
-        jFrame.setLocationRelativeTo(null);
+        jFrame.setSize(470, 300);
+        jFrame.setLocation(100, 400);
+//        jFrame.setLocationRelativeTo(null);
         jFrame.setResizable(false);
         jFrame.setVisible(true);
     }
