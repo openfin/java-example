@@ -34,12 +34,11 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 3. Create new application when clicking on Create App:
 
-        Application app = new Application(options, controller, new AckListener() {
+        Application app = new Application(options, desktopConnection, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 Application application = (Application) ack.getSource();
                 application.run();   // run the app
-                addApplication(options);
             }
             @Override
             public void onError(Ack ack) {
