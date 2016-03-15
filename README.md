@@ -27,7 +27,7 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 2. Launch and connect to stable version of OpenFin runtime:
 
-            desktopConnection.connectToVersion("stable", listener, 10000);
+            desktopConnection.connectToVersion("stable", listener, 60);
 
    listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  desktopCommandLine is a string of arguments passed to OpenFinRVM.
    This example by default passes remote config file for Hello OpenFin app, which will be started as the first app in OpenFin Runtime.
