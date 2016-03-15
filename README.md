@@ -21,7 +21,7 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 1. Create connection object:
 
-            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemo", "localhost", port);
+            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemo");
 
     This code just creates an instance and it does not try to connect to runtime.
 
