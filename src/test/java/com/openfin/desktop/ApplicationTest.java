@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -173,6 +174,7 @@ public class ApplicationTest {
         joinLatch.await(3, TimeUnit.SECONDS);
         assertEquals(joinLatch.getCount(), 0);
 
+        // get group info for a window
         CountDownLatch groupInfoLatch = new CountDownLatch(2);
         application1.getWindow().getGroup(result -> {
             for (Window window : result) {
@@ -193,6 +195,31 @@ public class ApplicationTest {
         });
         groupInfoLatch.await(3, TimeUnit.SECONDS);
         assertEquals(groupInfoLatch.getCount(), 0);
+
+        // get group info for an application
+        CountDownLatch appGroupInfoLatch = new CountDownLatch(2);
+        application1.getGroups(result -> {
+                    for (List<Window> list: result) {
+                        for (Window window : list) {
+                            if (window.getUuid().equals(application1.getWindow().getUuid()) && window.getName().equals(application1.getWindow().getName())) {
+                                appGroupInfoLatch.countDown();
+                            } else if (window.getUuid().equals(application2.getWindow().getUuid()) && window.getName().equals(application2.getWindow().getName())) {
+                                appGroupInfoLatch.countDown();
+                            }
+                        }
+                    }
+                }, new AckListener() {
+                    @Override
+                    public void onSuccess(Ack ack) {
+                    }
+                    @Override
+                    public void onError(Ack ack) {
+                        logger.error(String.format("onError %s", ack.getReason()));
+                    }
+                }
+        );
+        appGroupInfoLatch.await(3, TimeUnit.SECONDS);
+        assertEquals(appGroupInfoLatch.getCount(), 0);
 
         int leftBy = 20, topBy = 30;
         TestUtils.moveWindowBy(application1.getWindow(), leftBy, topBy);
