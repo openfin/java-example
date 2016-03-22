@@ -204,6 +204,11 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 public void onReady() {
                     setMainButtonsEnabled(true);
                 }
+
+                @Override
+                public void onClose() {
+                }
+
                 @Override
                 public void onError(String reason) {
 

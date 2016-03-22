@@ -57,6 +57,11 @@ public class TestUtils {
                 connectionClosing = false;
                 connectedLatch.countDown();
             }
+            @Override
+            public void onClose() {
+                logger.debug("Connection closed");
+                disconnectedLatch.countDown();
+            }
 
             @Override
             public void onError(String reason) {
@@ -65,7 +70,6 @@ public class TestUtils {
                 } else {
                     logger.debug("Connection closed");
                 }
-                disconnectedLatch.countDown();
             }
 
             @Override

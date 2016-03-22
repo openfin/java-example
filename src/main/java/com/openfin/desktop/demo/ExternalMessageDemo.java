@@ -31,6 +31,11 @@ public class ExternalMessageDemo {
             }
 
             @Override
+            public void onClose() {
+                System.out.println("Connection closed");
+            }
+
+            @Override
             public void onError(String reason) {
                 System.out.println("Desktop onError " + reason);
             }

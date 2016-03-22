@@ -454,6 +454,12 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                     e.printStackTrace();
                 }
             }
+
+            @Override
+            public void onClose() {
+                updateMessagePanel("Connection closed");
+            }
+
             @Override
             public void onError(String reason) {
                 updateMessagePanel("Connection failed: " + reason);

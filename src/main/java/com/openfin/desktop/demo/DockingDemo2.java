@@ -104,6 +104,10 @@ public class DockingDemo2 extends JPanel implements ActionListener, WindowListen
                 public void onReady() {
                     onRuntimeReady();
                 }
+
+                @Override
+                public void onClose() {
+                }
                 @Override
                 public void onError(String reason) {
                     logger.error("Connection failed: " + reason);

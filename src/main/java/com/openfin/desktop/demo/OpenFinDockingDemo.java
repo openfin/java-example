@@ -246,6 +246,11 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                 public void onReady() {
                     onRuntimeReady();
                 }
+
+                @Override
+                public void onClose() {
+                    updateMessagePanel("Connection closed");
+                }
                 @Override
                 public void onError(String reason) {
                     updateMessagePanel("Connection failed: " + reason);

@@ -77,6 +77,11 @@ public class OpenFinWindowTest {
             }
 
             @Override
+            public void onClose() {
+                printf("Connection to Runtime is closed");
+            }
+
+            @Override
             public void onError(String reason) {
                 printf("Connection failed: %s", reason);
                 openFinDisconnectedLatch.countDown();
