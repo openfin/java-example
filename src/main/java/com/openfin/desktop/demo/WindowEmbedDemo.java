@@ -5,6 +5,8 @@ import com.openfin.desktop.Window;
 import com.openfin.desktop.win32.WinMessageHelper;
 import com.sun.jna.Native;
 import info.clearthought.layout.TableLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,12 +22,15 @@ import java.lang.System;
  *
  */
 public class WindowEmbedDemo extends JPanel implements ActionListener, WindowListener {
+    private final static Logger logger = LoggerFactory.getLogger(WindowEmbedDemo.class.getName());
 
     private static JFrame jFrame;
     protected String appUuid = "JavaEmbedding";
     protected String startupUuid = "OpenFinHelloWorld";
     protected String desktopOption;
     protected DesktopConnection controller;
+
+    protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleDockingExample.html";  // source is in release/SimpleDockingExample.html
 
     protected JButton launch, close, embed;
     protected java.awt.Canvas embedCanvas;
@@ -35,7 +40,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         this.startupUuid = startupUuid;
         this.desktopOption = desktopOption;
         try {
-            this.controller = new DesktopConnection(appUuid, "localhost", 9696);
+            this.controller = new DesktopConnection(appUuid);
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
@@ -203,6 +208,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 @Override
                 public void onReady() {
                     setMainButtonsEnabled(true);
+                    launchHtmlApp();
                 }
 
                 @Override
@@ -220,12 +226,42 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 public void onOutgoingMessage(String message) {
                 }
             };
-//            desktopConnection.launchAndConnect(null, desktopOption, listener, 10000);
-            controller.connect(listener);
+            controller.connectToVersion("alpha", listener, 60);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void launchHtmlApp() {
+            // launch 5 instances of same example app
+            int width = 300, height=200;
+            try {
+                ApplicationOptions options = new ApplicationOptions(startupUuid, startupUuid, openfin_app_url);
+                options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
+                WindowOptions mainWindowOptions = new WindowOptions();
+                mainWindowOptions.setAutoShow(true);
+                mainWindowOptions.setDefaultHeight(height);
+                mainWindowOptions.setDefaultLeft(10);
+                mainWindowOptions.setDefaultTop(50);
+                mainWindowOptions.setDefaultWidth(width);
+                mainWindowOptions.setShowTaskbarIcon(true);
+                mainWindowOptions.setSaveWindowState(false);  // set to false so all windows start at same initial positions for each run
+                mainWindowOptions.setFrame(false);
+                options.setMainWindowOptions(mainWindowOptions);
+                DemoUtils.runApplication(options, this.controller,  new AckListener() {
+                    @Override
+                    public void onSuccess(Ack ack) {
+                        Application app = (Application) ack.getSource();
+                    }
+                    @Override
+                    public void onError(Ack ack) {
+                        logger.error(String.format("Error launching %s %s", options.getUUID(), ack.getReason()));
+                    }
+                });
+            } catch (Exception e) {
+                logger.error("Error launching app", e);
+            }
     }
 
     private boolean trayIconAdded = false;
