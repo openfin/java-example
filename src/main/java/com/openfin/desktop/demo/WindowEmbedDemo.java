@@ -129,7 +129,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         jFrame.addWindowListener(newContentPane);
         //Display the window.
         jFrame.pack();
-        jFrame.setSize(600, 800);
+        jFrame.setSize(1920, 1200);
         jFrame.setLocationRelativeTo(null);
         jFrame.setResizable(true);
         jFrame.setVisible(true);
@@ -235,7 +235,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
 
     private void launchHtmlApp() {
             // launch 5 instances of same example app
-            int width = 300, height=200;
+            int width = 1920, height=1000;
             try {
                 ApplicationOptions options = new ApplicationOptions(startupUuid, startupUuid, openfin_app_url);
                 options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
@@ -253,6 +253,12 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                     @Override
                     public void onSuccess(Ack ack) {
                         Application app = (Application) ack.getSource();
+                        try {
+                            Thread.sleep(1000);
+                            embedStartupApp();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     }
                     @Override
                     public void onError(Ack ack) {
@@ -287,7 +293,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
             Window html5Wnd = Window.wrap(startupUuid, startupUuid, controller);
             long parentHWndId = Native.getComponentID(this.embedCanvas);
             System.out.println("Canvas HWND " + Long.toHexString(parentHWndId));
-            WinMessageHelper.embedInto(parentHWndId, html5Wnd, 395, 525, 0, 0, new AckListener() {
+            WinMessageHelper.embedInto(parentHWndId, html5Wnd, 1920, 1000, 0, 0, new AckListener() {
                 @Override
                 public void onSuccess(Ack ack) {
                     if (ack.isSuccessful()) {
@@ -309,7 +315,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     private void releaseStartupApp() {
         Window html5Wnd = Window.wrap(startupUuid, startupUuid, controller);
         if (this.previousPrarentHwndId != null) {
-            WinMessageHelper.embedInto(this.previousPrarentHwndId, html5Wnd, 395, 525, 0, 0, new AckListener() {
+            WinMessageHelper.embedInto(this.previousPrarentHwndId, html5Wnd, 1920, 1000, 0, 0, new AckListener() {
                 @Override
                 public void onSuccess(Ack ack) {
                     java.lang.System.out.println("embedding result: " + ack.getJsonObject().toString());
