@@ -1,5 +1,6 @@
 package com.openfin.desktop;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +28,75 @@ public class TestUtils {
     private static String runtimeVersion;
     private static CountDownLatch disconnectedLatch;
     public static final String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
+    public static final String icon_url = "http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/img/openfin.ico";
+
+    static  {
+        runtimeVersion = java.lang.System.getProperty("com.openfin.test.runtime.version");
+        if (runtimeVersion == null) {
+            runtimeVersion = "alpha";
+        }
+        logger.debug(String.format("Runtime version %s", runtimeVersion));
+    }
 
     public static DesktopConnection setupConnection(String connectionUuid) throws Exception {
         return setupConnection(connectionUuid, null, null);
     }
+    public static DesktopConnection setupConnection(String connectionUuid, RuntimeConfiguration configuration) throws Exception {
+        logger.debug("starting from Runtime configuration");
+        CountDownLatch connectedLatch = new CountDownLatch(1);
+        disconnectedLatch = new CountDownLatch(1);
+        // if RVM needs to download the version of Runtime specified, waitTime may need to be increased for slow download
+        int waitTime = 60;
+        String swaiTime = java.lang.System.getProperty("com.openfin.test.runtime.connect.wait.time");
+        if (swaiTime != null) {
+            waitTime = Integer.parseInt(swaiTime);
+        }
+
+        DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
+        desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // turn on Chromium debug log
+        desktopConnection.connect(configuration, new DesktopStateListener() {
+            @Override
+            public void onReady() {
+                logger.info("Connected to OpenFin runtime");
+                connectionClosing = false;
+                connectedLatch.countDown();
+            }
+            @Override
+            public void onClose() {
+                logger.debug("Connection closed");
+                disconnectedLatch.countDown();
+            }
+
+            @Override
+            public void onError(String reason) {
+                if (!connectionClosing) {
+                    logger.error("Connection failed: %s", reason);
+                } else {
+                    logger.debug("Connection closed");
+                }
+            }
+
+            @Override
+            public void onMessage(String message) {
+                logger.debug(String.format("Runtime incoming message: %s", message));
+            }
+
+            @Override
+            public void onOutgoingMessage(String message) {
+                logger.debug(String.format("Runtime outgoing message: %s", message));
+            }
+        }, waitTime);//this timeout (in 4.40.2.9) is ignored
+
+        logger.debug("waiting for desktop to connect");
+        connectedLatch.await(waitTime, TimeUnit.SECONDS);
+        if (desktopConnection.isConnected()) {
+            logger.debug("desktop connected");
+        } else {
+            throw new RuntimeException("failed to initialise desktop connection");
+        }
+        return desktopConnection;
+    }
+
     public static DesktopConnection setupConnection(String connectionUuid, String rdmUrl, String assetsUrl) throws Exception {
         logger.debug("starting");
         CountDownLatch connectedLatch = new CountDownLatch(1);
@@ -44,10 +110,6 @@ public class TestUtils {
 
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
         desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // turn on Chromium debug log
-        runtimeVersion = java.lang.System.getProperty("com.openfin.test.runtime.version");
-        if (runtimeVersion == null) {
-            runtimeVersion = "alpha";
-        }
         desktopConnection.setRdmUrl(rdmUrl);
         desktopConnection.setRuntimeAssetsUrl(assetsUrl);
         desktopConnection.connectToVersion(runtimeVersion, new DesktopStateListener() {
@@ -92,6 +154,7 @@ public class TestUtils {
         }
         return desktopConnection;
     }
+
 
     public static void teardownDesktopConnection(DesktopConnection desktopConnection) throws Exception {
         if (desktopConnection.isConnected()) {
@@ -374,5 +437,4 @@ public class TestUtils {
         assertEquals("getMonitorInfo timeout", latch.getCount(), 0);
         return windowBoundsAtomicReference.get();
     }
-
 }
