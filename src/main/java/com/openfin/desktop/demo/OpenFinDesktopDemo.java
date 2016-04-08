@@ -431,6 +431,16 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             }
         });
 
+        try {
+            bus.subscribe("*", "demo-topic", new BusListener() {
+                @Override
+                public void onMessageReceived(String sourceUuid, String topic, Object payload) {
+                    java.lang.System.out.println(String.format("Message from %s: %s ", sourceUuid, payload.toString()));
+                }
+            }, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void init() {
@@ -493,6 +503,11 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 if (rvmArgs != null) {
                     updateMessagePanel("Additional RVM arguments: " + rvmArgs);
                     desktopConnection.setAdditionalRvmArguments(rvmArgs);
+                }
+                String securityRealm = java.lang.System.getProperty("com.openfin.demo.securityRealm");
+                if (securityRealm != null) {
+                    java.lang.System.out.println(String.format("Using security realm %s", securityRealm));
+                    desktopConnection.setRuntimeSecurityRealm(securityRealm);
                 }
                 updateMessagePanel("Connecting to version " + desktopVersion);
                 desktopConnection.connectToVersion(desktopVersion, listener, 10000);
