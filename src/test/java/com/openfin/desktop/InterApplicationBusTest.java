@@ -294,5 +294,24 @@ public class InterApplicationBusTest {
         assertEquals(latch.getCount(), 0);
     }
 
+    @Test
+    public void wildCardTopicSelf() throws Exception {
+
+        CountDownLatch latch = new CountDownLatch(1);
+        BusListener busListener = (sourceUuid, receivingTopic, payload) -> {
+            logger.debug(String.format("Receiving %s", payload.toString()));
+            if (receivingTopic.equals("wildcard-self")) {
+                latch.countDown();
+            }
+        };
+        subscribeToTopic("*", "*", busListener);
+
+        JSONObject msg = new JSONObject();
+        msg.put("name", "wildCardTopicSelf");
+        desktopConnection.getInterApplicationBus().publish("wildcard-self", msg);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals(latch.getCount(), 0);
+    }
 
 }
