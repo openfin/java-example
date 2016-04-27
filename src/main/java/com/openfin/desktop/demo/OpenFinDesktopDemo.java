@@ -18,6 +18,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +74,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     InterApplicationBus bus;
 
     protected DesktopConnection desktopConnection;
+    protected RuntimeConfiguration runtimeConfiguration;
     protected int desktopPort = -1; // if set, assuming Runtime is already running on the port
     protected System openfinSystem;
     protected AppCreateDialog appCreateDialog;
@@ -95,6 +98,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void initDesktopConnection() throws DesktopException {
+        this.runtimeConfiguration = new RuntimeConfiguration();
         if (java.lang.System.getProperty("com.openfin.demo.port") != null) {
             this.desktopPort = Integer.parseInt(java.lang.System.getProperty("com.openfin.demo.port"));
         }
@@ -109,10 +113,26 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         }
         if (securityRealm != null) {
             this.desktopConnection.setRuntimeSecurityRealm(securityRealm);
+            this.runtimeConfiguration.setSecurityRealm(securityRealm);
         }
-        this.desktopConnection.setRdmUrl(java.lang.System.getProperty("com.openfin.demo.rdmURL"));
-        this.desktopConnection.setRuntimeAssetsUrl(java.lang.System.getProperty("com.openfin.demo.assetsURL"));
-        this.desktopConnection.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
+        String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
+        if (desktopVersion == null) {
+            desktopVersion = "stable";
+        }
+        this.runtimeConfiguration.setRuntimeVersion(desktopVersion);
+        String rvmArgs = java.lang.System.getProperty("com.openfin.demo.rvm.arguments");
+        if (rvmArgs != null) {
+            updateMessagePanel("Additional RVM arguments: " + rvmArgs);
+            this.runtimeConfiguration.setAdditionalRvmArguments(rvmArgs);
+        }
+        this.runtimeConfiguration.setRdmURL(java.lang.System.getProperty("com.openfin.demo.rdmURL"));
+        this.runtimeConfiguration.setRuntimeAssetURL(java.lang.System.getProperty("com.openfin.demo.assetsURL"));
+        this.runtimeConfiguration.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
+        this.runtimeConfiguration.setDevToolsPort(9090);
+        JSONObject myconfig = new JSONObject();
+        myconfig.put("key1", "value1");
+        myconfig.put("PI", 3.14);
+        this.runtimeConfiguration.addConfigurationItem("myconfig", myconfig);
     }
 
     private JPanel layoutLeftPanel() {
@@ -381,7 +401,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private void closeDesktop() {
         if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
-                new System(desktopConnection).exit();
+//                new System(desktopConnection).exit();
+                this.desktopConnection.disconnect();
 //                Application app = Application.wrap(this.startupUUID, this.desktopConnection);
 //                app.close();
                 setMainButtonsEnabled(false);
@@ -495,22 +516,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 updateMessagePanel("Connecting to Runtime already running at port " + this.desktopPort);
                 desktopConnection.connect(listener);
             } else {
-                String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
-                if (desktopVersion == null) {
-                    desktopVersion = "stable";
-                }
-                String rvmArgs = java.lang.System.getProperty("com.openfin.demo.rvm.arguments");
-                if (rvmArgs != null) {
-                    updateMessagePanel("Additional RVM arguments: " + rvmArgs);
-                    desktopConnection.setAdditionalRvmArguments(rvmArgs);
-                }
-                String securityRealm = java.lang.System.getProperty("com.openfin.demo.securityRealm");
-                if (securityRealm != null) {
-                    java.lang.System.out.println(String.format("Using security realm %s", securityRealm));
-                    desktopConnection.setRuntimeSecurityRealm(securityRealm);
-                }
-                updateMessagePanel("Connecting to version " + desktopVersion);
-                desktopConnection.connectToVersion(desktopVersion, listener, 10000);
+                updateMessagePanel("Connecting to version " + this.runtimeConfiguration.getRuntimeVersion());
+                desktopConnection.connect(this.runtimeConfiguration, listener, 10000);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -720,6 +727,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
             @Override
             public void onError(Ack ack) {
+                java.lang.System.out.println(String.format("Error creating application: %s", ack.getReason()));
             }
         });
         this.applicationList.put(options.getUUID(), app);

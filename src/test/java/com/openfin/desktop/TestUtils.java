@@ -110,6 +110,7 @@ public class TestUtils {
 
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
         desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // turn on Chromium debug log
+        desktopConnection.setDevToolsPort(9090);
         desktopConnection.setRdmUrl(rdmUrl);
         desktopConnection.setRuntimeAssetsUrl(assetsUrl);
         desktopConnection.connectToVersion(runtimeVersion, new DesktopStateListener() {

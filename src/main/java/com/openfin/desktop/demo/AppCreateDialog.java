@@ -124,35 +124,40 @@ public class AppCreateDialog extends JDialog {
     public ApplicationOptions getApplicatonOptions() {
         ApplicationOptions options = null;
         if (createClicked) {
-            String uuid = uuidText.getText();
-            String name = nameText.getText();
-            String url = urlText.getText();
-            String applicationIcon = applicationIconText.getText();
-            int defaultLeft = Integer.parseInt(defaultLeftText.getText());
-            int defaultTop = Integer.parseInt(defaultTopText.getText());
-            int defaultWidth = Integer.parseInt(defaultWidthText.getText());
-            int defaultHeight = Integer.parseInt(defaultHeightText.getText());
-            boolean resize = resizeCheck.isSelected();
-            boolean frame = frameCheck.isSelected();
-            boolean showTaskbarIcon = showTaskbarIconCheck.isSelected();
-            boolean autoShow = autoShowCheck.isSelected();
-
-            options = new ApplicationOptions(name, uuid, url);
-            options.setApplicationIcon(applicationIcon);
-
-            WindowOptions mainWindowOptions = new WindowOptions();
-
-            mainWindowOptions.setAutoShow(autoShow);
-            mainWindowOptions.setDefaultHeight(defaultHeight);
-            mainWindowOptions.setDefaultLeft(defaultLeft);
-            mainWindowOptions.setDefaultTop(defaultTop);
-            mainWindowOptions.setDefaultWidth(defaultWidth);
-            mainWindowOptions.setResizable(resize);
-            mainWindowOptions.setFrame(frame);
-            mainWindowOptions.setShowTaskbarIcon(showTaskbarIcon);
-
-            options.setMainWindowOptions(mainWindowOptions);
+            options = getApplicationOptionsFromUI();
         }
+        return options;
+    }
+
+    public ApplicationOptions getApplicationOptionsFromUI() {
+        String uuid = uuidText.getText();
+        String name = nameText.getText();
+        String url = urlText.getText();
+        String applicationIcon = applicationIconText.getText();
+        int defaultLeft = Integer.parseInt(defaultLeftText.getText());
+        int defaultTop = Integer.parseInt(defaultTopText.getText());
+        int defaultWidth = Integer.parseInt(defaultWidthText.getText());
+        int defaultHeight = Integer.parseInt(defaultHeightText.getText());
+        boolean resize = resizeCheck.isSelected();
+        boolean frame = frameCheck.isSelected();
+        boolean showTaskbarIcon = showTaskbarIconCheck.isSelected();
+        boolean autoShow = autoShowCheck.isSelected();
+
+        ApplicationOptions options = new ApplicationOptions(name, uuid, url);
+        options.setApplicationIcon(applicationIcon);
+
+        WindowOptions mainWindowOptions = new WindowOptions();
+
+        mainWindowOptions.setAutoShow(autoShow);
+        mainWindowOptions.setDefaultHeight(defaultHeight);
+        mainWindowOptions.setDefaultLeft(defaultLeft);
+        mainWindowOptions.setDefaultTop(defaultTop);
+        mainWindowOptions.setDefaultWidth(defaultWidth);
+        mainWindowOptions.setResizable(resize);
+        mainWindowOptions.setFrame(frame);
+        mainWindowOptions.setShowTaskbarIcon(showTaskbarIcon);
+
+        options.setMainWindowOptions(mainWindowOptions);
         return options;
     }
 

@@ -4,7 +4,7 @@
 
 * Added RuntimeConfiguration class to improve configurability of Runtime from Java programs.
 * Added DesktopConnection.connect(RuntimeConfiguration)
-* Added add DesktopStateListener.onClose to notify connection to Runtime is closed.
+* Added DesktopStateListener.onClose to notify connection to Runtime is closed.
 * Added Application.getGroups
 
 ## Bug Fixes
