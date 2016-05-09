@@ -10,6 +10,7 @@
 ## Bug Fixes
 * Fixed API doc for WindowOptions.setTaskbarIcon
 * Updated OpenFinInstaller.exe to handle client certificate
+* Fixed an issue with duplicate UUIDs for DesktopConnection
 
 # Version 5.44.2.3
 ## New Features
