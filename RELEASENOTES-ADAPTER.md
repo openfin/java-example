@@ -12,11 +12,14 @@
 * Updated OpenFinInstaller.exe to handle client certificate
 * Fixed an issue with duplicate UUIDs for DesktopConnection
 
+# Version 5.44.2.4
+## New Features
+* Added setRdmUrl and setRuntimeAssetesUrl in DesktopConnect
+* Use proper names for threads created by DesktopConnection during launching Runtime
+
 # Version 5.44.2.3
 ## New Features
 * Cross-app docking: Windows from different HTML5 applications now can join the same group and dock to each other.  Runtime 5.44.11.10 is required.
-* Added setRdmUrl and setRuntimeAssetesUrl in DesktopConnect
-* Use proper names for threads created by DesktopConnection during launching Runtime
 * DesktopConnection catches exceptions from onSuccess and onError in AckListener
 
 ## Bug Fixes
