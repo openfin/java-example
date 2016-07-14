@@ -121,7 +121,12 @@ public class DockingDemo2 extends JPanel implements ActionListener, WindowListen
                 }
             };
             desktopConnection.setAdditionalRuntimeArguments(" --v=1");  // enable additional logging from Runtime
-            desktopConnection.connectToVersion("5.44.10.26", listener, 60); // 5.44.10.26 has fix for cross-app docking, which is required for windowsInShameGroupMoveTogether
+
+            String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
+            if (desktopVersion == null) {
+                desktopVersion = "stable";
+            }
+            desktopConnection.connectToVersion(desktopVersion, listener, 60); // 5.44.10.26 has fix for cross-app docking, which is required for windowsInShameGroupMoveTogether
 
         } catch (Exception e) {
             e.printStackTrace();
