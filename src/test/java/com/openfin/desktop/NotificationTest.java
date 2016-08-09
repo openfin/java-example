@@ -59,7 +59,7 @@ public class NotificationTest {
 
             @Override
             public void onClose(Ack ack) {
-                logger.debug("onClick for notification");
+                logger.debug("onClose for notification");
                 onCloseLatch.countDown();
             }
 
@@ -71,7 +71,7 @@ public class NotificationTest {
 
             @Override
             public void onError(Ack ack) {
-                logger.error("onClick for notification");
+                logger.error("onError for notification");
             }
 
             @Override
