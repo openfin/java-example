@@ -1,0 +1,1 @@
+java -cp openfin-desktop-java-example-6.0.0.1.jar;openfin-desktop-java-adapter-6.0.0.1-SNAPSHOT.jar;TableLayout-20050920.jar;jna-4.1.0.jar;jna-platform-4.1.0.jar;json-20140107.jar;slf4j-api-1.7.5.jar;slf4j-jdk14-1.6.1.jar -Dcom.openfin.demo.embedWaitTime=1000 com.openfin.desktop.demo.WindowEmbedDemo

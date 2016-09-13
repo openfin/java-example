@@ -327,47 +327,22 @@ public class TVBEmbedDemo extends JPanel implements ActionListener, WindowListen
                 startupHtml5app = Application.wrap(this.startupUuid, this.desktopConnection);
             }
 
-            com.openfin.desktop.Window html5Wnd = com.openfin.desktop.Window.wrap(startupUuid, startupUuid, desktopConnection);
+            com.openfin.desktop.Window html5Wnd = startupHtml5app.getWindow();
             long parentHWndId = Native.getComponentID(this.embedCanvas);
             System.out.println("Canvas HWND " + Long.toHexString(parentHWndId));
-            WinMessageHelper.embedInto(parentHWndId, html5Wnd, appWidth, appHeigth, 0, 0, new AckListener() {
+            html5Wnd.embedInto(parentHWndId, appWidth, appHeigth, new AckListener() {
                 @Override
                 public void onSuccess(Ack ack) {
-                    if (ack.isSuccessful()) {
-                        previousPrarentHwndId = ack.getJsonObject().getLong("hWndPreviousParent");
-                        try {
-                            html5Wnd.show();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
+                    if (!ack.isSuccessful()) {
                         java.lang.System.out.println("embedding failed: " + ack.getJsonObject().toString());
                     }
                 }
                 @Override
                 public void onError(Ack ack) {
-                    java.lang.System.out.println("embedding failed: " + ack.getJsonObject().toString());
                 }
             });
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void releaseStartupApp() {
-        com.openfin.desktop.Window html5Wnd = com.openfin.desktop.Window.wrap(startupUuid, startupUuid, desktopConnection);
-        if (this.previousPrarentHwndId != null) {
-            WinMessageHelper.embedInto(this.previousPrarentHwndId, html5Wnd, 395, 525, 0, 0, new AckListener() {
-                @Override
-                public void onSuccess(Ack ack) {
-                    java.lang.System.out.println("embedding result: " + ack.getJsonObject().toString());
-                }
-                @Override
-                public void onError(Ack ack) {
-                    java.lang.System.out.println("embedding failed: " + ack.getJsonObject().toString());
-                }
-            });
-            this.previousPrarentHwndId = null;
         }
     }
 

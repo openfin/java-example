@@ -1,6 +1,7 @@
 package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
+import com.openfin.desktop.ActionEvent;
 import com.openfin.desktop.Window;
 import com.openfin.desktop.win32.WinMessageHelper;
 import com.sun.jna.Native;
@@ -10,9 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 import java.lang.System;
 
 /**
@@ -32,7 +31,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
 
     protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleDockingExample.html";  // source is in release/SimpleDockingExample.html
 
-    protected JButton launch, close, embed;
+    protected JButton launch, close;
     protected java.awt.Canvas embedCanvas;
     protected Long previousPrarentHwndId;
 
@@ -74,14 +73,9 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         topPanel.add(launch, "1,0,1,0");
         topPanel.add(close, "3,0,3,0");
 
-        embed = new JButton("Embed HTML5 app");
-        embed.setActionCommand("embed-window");
-        embed.setEnabled(false);
-        topPanel.add(embed, "1,2,1,2");
 
         close.addActionListener(this);
         launch.addActionListener(this);
-        embed.addActionListener(this);
 
         buttonPanel.add(topPanel, "0,0");
         return buttonPanel;
@@ -95,13 +89,28 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         embedCanvas = new java.awt.Canvas();
         panel.add(embedCanvas, BorderLayout.CENTER);
 
+        panel.add(embedCanvas, BorderLayout.CENTER);
+        panel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent event) {
+                super.componentResized(event);
+                Dimension newSize = event.getComponent().getSize();
+                try {
+                    if (startupHtml5app != null) {
+                        startupHtml5app.getWindow().embedComponentSizeChange((int)newSize.getWidth(), (int)newSize.getHeight());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
 
         return panel;
     }
 
     private void setMainButtonsEnabled(boolean enabled) {
         launch.setEnabled(!enabled);
-        embed.setEnabled(enabled);
         close.setEnabled(enabled);
 
         if (enabled) {
@@ -129,7 +138,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         jFrame.addWindowListener(newContentPane);
         //Display the window.
         jFrame.pack();
-        jFrame.setSize(1920, 1200);
+        jFrame.setSize(800, 800);
         jFrame.setLocationRelativeTo(null);
         jFrame.setResizable(true);
         jFrame.setVisible(true);
@@ -197,8 +206,6 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
             closeDesktop();
         } else if ("embed-window".equals(e.getActionCommand())) {
             embedStartupApp();
-        } else if ("release-window".equals(e.getActionCommand())) {
-            releaseStartupApp();
         }
     }
 
@@ -226,7 +233,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 public void onOutgoingMessage(String message) {
                 }
             };
-            controller.connectToVersion("alpha", listener, 60);
+            controller.connectToVersion("stable", listener, 60);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -235,12 +242,12 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
 
     private void launchHtmlApp() {
             // launch 5 instances of same example app
-            int width = 1920, height=1000;
+            int width = 500, height=500;
             try {
                 ApplicationOptions options = new ApplicationOptions(startupUuid, startupUuid, openfin_app_url);
                 options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
                 WindowOptions mainWindowOptions = new WindowOptions();
-                mainWindowOptions.setAutoShow(true);
+                mainWindowOptions.setAutoShow(false);
                 mainWindowOptions.setDefaultHeight(height);
                 mainWindowOptions.setDefaultLeft(10);
                 mainWindowOptions.setDefaultTop(50);
@@ -290,10 +297,10 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 trayIconAdded = false;
             }
 
-            Window html5Wnd = Window.wrap(startupUuid, startupUuid, controller);
+            Window html5Wnd = startupHtml5app.getWindow();
             long parentHWndId = Native.getComponentID(this.embedCanvas);
             System.out.println("Canvas HWND " + Long.toHexString(parentHWndId));
-            WinMessageHelper.embedInto(parentHWndId, html5Wnd, 1920, 1000, 0, 0, new AckListener() {
+            html5Wnd.embedInto(parentHWndId, 1920, 1000, new AckListener() {
                 @Override
                 public void onSuccess(Ack ack) {
                     if (ack.isSuccessful()) {
@@ -304,28 +311,10 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 }
                 @Override
                 public void onError(Ack ack) {
-                    java.lang.System.out.println("embedding failed: " + ack.getJsonObject().toString());
                 }
             });
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void releaseStartupApp() {
-        Window html5Wnd = Window.wrap(startupUuid, startupUuid, controller);
-        if (this.previousPrarentHwndId != null) {
-            WinMessageHelper.embedInto(this.previousPrarentHwndId, html5Wnd, 1920, 1000, 0, 0, new AckListener() {
-                @Override
-                public void onSuccess(Ack ack) {
-                    java.lang.System.out.println("embedding result: " + ack.getJsonObject().toString());
-                }
-                @Override
-                public void onError(Ack ack) {
-                    java.lang.System.out.println("embedding failed: " + ack.getJsonObject().toString());
-                }
-            });
-            this.previousPrarentHwndId = null;
         }
     }
 

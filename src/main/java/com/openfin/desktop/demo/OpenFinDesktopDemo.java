@@ -129,6 +129,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         this.runtimeConfiguration.setRuntimeAssetURL(java.lang.System.getProperty("com.openfin.demo.assetsURL"));
         this.runtimeConfiguration.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
         this.runtimeConfiguration.setDevToolsPort(9090);
+        this.runtimeConfiguration.setLicenseKey("my-license-key");
         JSONObject myconfig = new JSONObject();
         myconfig.put("key1", "value1");
         myconfig.put("PI", 3.14);

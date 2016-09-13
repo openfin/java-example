@@ -76,7 +76,7 @@ public class WindowPositionTest {
     }
 
     @Test
-    public void defaultWindowPsition() throws Exception {
+    public void defaultWindowPosition() throws Exception {
         int repeat = 100;
         String value = java.lang.System.getProperty("com.openfin.desktop.WindowPositionTest.repeat");
         if (value != null) {

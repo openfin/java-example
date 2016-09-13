@@ -3,6 +3,7 @@ package com.openfin.desktop;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,6 +273,7 @@ public class InterApplicationBusTest {
         TestUtils.closeApplication(application);
     }
 
+    @Ignore
     @Test
     public void wildCardTopic() throws Exception {
 
@@ -294,6 +296,7 @@ public class InterApplicationBusTest {
         assertEquals(latch.getCount(), 0);
     }
 
+    @Ignore
     @Test
     public void wildCardTopicSelf() throws Exception {
 

@@ -1,3 +1,9 @@
+# Version 6.0.0.1
+
+## New Features
+* Requires Version 6.0+ version of OpenFin Runtime.
+* Improve support for window embedding
+
 # Version 5.44.3.1
 
 ## New Features

@@ -146,7 +146,7 @@ public class OpenFinRuntimeTest {
     }
 
     @Test
-    public void wrietAndReadLog() throws Exception {
+    public void writeAndReadLog() throws Exception {
         CountDownLatch writeLatch = new CountDownLatch(1);
         String text = UUID.randomUUID().toString();  // text to write
         runtime.log("info", text, new AckListener() {
@@ -492,5 +492,17 @@ public class OpenFinRuntimeTest {
         runtime = new OpenFinRuntime(desktopConnection);
         String version2 = getRuntimeVersion();
         assertEquals(version1, version2);
+    }
+
+    @Test
+    public void duplicateConnectionUuid() throws Exception {
+        boolean setupFailed = false;
+        try {
+            DesktopConnection desktopConnection2 = TestUtils.setupConnection(DESKTOP_UUID);
+        } catch (RuntimeException ex) {
+            setupFailed = true;
+        }
+        getDeviceId(); // make sure the existing connection still works
+        assertEquals("Duplicate connection UUID should not be allowed", setupFailed, true);
     }
 }

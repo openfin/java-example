@@ -98,7 +98,7 @@ public class ApplicationTest {
             @Override
             public void onError(Ack ack) {
                 logger.debug(ack.getJsonObject().toString());
-                if (ack.getReason().contains(" was not created from a manifest")) {
+                if (ack.getReason().contains("App not started from manifest")) {
                     latch.countDown();
                 }
             }
