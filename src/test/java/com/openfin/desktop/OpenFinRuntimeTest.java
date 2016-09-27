@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,7 @@ public class OpenFinRuntimeTest {
 
     @Test
     public void getDeviceId() throws Exception {
+        logger.debug("start getDeviceId");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getDeviceId(new AckListener() {
             @Override
@@ -62,6 +64,7 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("geDeviceId timeout", latch.getCount(), 0);
+        logger.debug("end getDeviceId");
     }
 
     private String getRuntimeVersion() throws Exception {
@@ -88,6 +91,7 @@ public class OpenFinRuntimeTest {
 
     @Test
     public void getProcessList() throws Exception {
+        logger.debug("start getProcessList");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getProcessList(new AckListener() {
             @Override
@@ -113,11 +117,13 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("getRuntimeVersion timeout", latch.getCount(), 0);
+        logger.debug("end getProcessList");
     }
 
 
     @Test
     public void getLogList() throws Exception {
+        logger.debug("start getLogList");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getLogList(new AckListener() {
             @Override
@@ -143,10 +149,12 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("getLogList timeout", latch.getCount(), 0);
+        logger.debug("end getLogList");
     }
 
     @Test
     public void writeAndReadLog() throws Exception {
+        logger.debug("start writeAndReadLog");
         CountDownLatch writeLatch = new CountDownLatch(1);
         String text = UUID.randomUUID().toString();  // text to write
         runtime.log("info", text, new AckListener() {
@@ -182,10 +190,12 @@ public class OpenFinRuntimeTest {
         });
         latch.await(10, TimeUnit.SECONDS);  // longer wait time since debug.log can be big
         assertEquals("getLog timeout", latch.getCount(), 0);
+        logger.debug("end writeAndReadLog");
     }
 
     @Test
     public void getMonitorInfo() throws Exception {
+        logger.debug("start getMonitorInfo");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getMonitorInfo(new AckListener() {
             @Override
@@ -205,10 +215,12 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("getMonitorInfo timeout", latch.getCount(), 0);
+        logger.debug("end geMonitorInfo");
     }
 
     @Test
     public void getAllWindows() throws Exception {
+        logger.debug("start getAllWindows");
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
@@ -231,12 +243,14 @@ public class OpenFinRuntimeTest {
                 logger.error("Error creating application", ack.getReason());
             }
         });
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(10, TimeUnit.SECONDS);
         assertEquals("getAllWindows timeout", latch.getCount(), 0);
+        logger.debug("end getAllWindows");
     }
 
     @Test
     public void getAllApplications() throws Exception {
+        logger.debug("start getAllApps");
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
@@ -261,10 +275,12 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("getAllApplications timeout", latch.getCount(), 0);
+        logger.debug("end getAllApps");
     }
 
     @Test
     public void getMousePosition() throws Exception {
+        logger.debug("start getMousePos");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getMousePosition(new AckListener() {
             @Override
@@ -286,10 +302,12 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("getMousePosition timeout", latch.getCount(), 0);
+        logger.debug("end getMousePos");
     }
 
     @Test
     public void getConfig() throws Exception {
+        logger.debug("start getConfig");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getConfig(null, new AckListener() {
             @Override
@@ -314,10 +332,12 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("getConfig timeout", latch.getCount(), 0);
+        logger.debug("end getConfig");
     }
 
     @Test
     public void showDeveloperTools() throws Exception {
+        logger.debug("start getDevTools");
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         CountDownLatch latch = new CountDownLatch(1);
@@ -336,6 +356,7 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("showDeveloperTools timeout", latch.getCount(), 0);
+        logger.debug("end getDevTools");
     }
 
     @Test
@@ -447,6 +468,7 @@ public class OpenFinRuntimeTest {
 
     @Test
     public void deleteCacheOnRestart() throws Exception {
+        logger.debug("start deleteCache");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.deleteCacheOnRestart(new AckListener() {
             @Override
@@ -461,11 +483,13 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("deleteCacheOnRestart timeout", latch.getCount(), 0);
+        logger.debug("end deleteCache");
         // @TODO need to create some windows and move them around, the restart OpenFin Runtime to verify windows are open at default bounds
     }
 
     @Test
     public void clearCache() throws Exception {
+        logger.debug("start clearCache");
         CountDownLatch latch = new CountDownLatch(1);
         runtime.clearCache(true, true, true, true, true, new AckListener() {
             @Override
@@ -481,21 +505,25 @@ public class OpenFinRuntimeTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("clearCache timeout", latch.getCount(), 0);
+        logger.debug("end clearCache");
         // @TODO need to create an OpenFin app that verify these caches are actually being cleared
     }
 
     @Test
     public void restartRuntime() throws Exception {
+        logger.debug("start restartRuntime");
         String version1 = getRuntimeVersion();
         TestUtils.teardownDesktopConnection(desktopConnection);
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
         runtime = new OpenFinRuntime(desktopConnection);
         String version2 = getRuntimeVersion();
         assertEquals(version1, version2);
+        logger.debug("end restartRuntime");
     }
 
     @Test
     public void duplicateConnectionUuid() throws Exception {
+        logger.debug("start duplicateUUID");
         boolean setupFailed = false;
         try {
             DesktopConnection desktopConnection2 = TestUtils.setupConnection(DESKTOP_UUID);
@@ -503,6 +531,8 @@ public class OpenFinRuntimeTest {
             setupFailed = true;
         }
         getDeviceId(); // make sure the existing connection still works
+        logger.debug("end duplicateUUID");
+        Thread.sleep(5000);
         assertEquals("Duplicate connection UUID should not be allowed", setupFailed, true);
     }
 }

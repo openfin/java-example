@@ -99,13 +99,17 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
     private void initDesktopConnection() throws DesktopException {
         this.runtimeConfiguration = new RuntimeConfiguration();
+        String connectionUuid = "OpenFinDesktopDemoJava";
+        if (java.lang.System.getProperty("com.openfin.demo.connectionUuid") != null) {
+            connectionUuid = java.lang.System.getProperty("com.openfin.demo.connectionUuid");
+        }
         if (java.lang.System.getProperty("com.openfin.demo.port") != null) {
             this.desktopPort = Integer.parseInt(java.lang.System.getProperty("com.openfin.demo.port"));
         }
         if (this.desktopPort > 0) {
             this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava", "localhost", this.desktopPort);
         } else {
-            this.desktopConnection = new DesktopConnection("OpenFinDesktopDemoJava");
+            this.desktopConnection = new DesktopConnection(connectionUuid);
         }
         String securityRealm = null;
         if (java.lang.System.getProperty("com.openfin.demo.security.realm") != null) {

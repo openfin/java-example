@@ -53,7 +53,7 @@ public class TestUtils {
         }
 
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
-        desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // turn on Chromium debug log
+        desktopConnection.setAdditionalRuntimeArguments(" --v=1 --no-sandbox ");  // turn on Chromium debug log
         desktopConnection.connect(configuration, new DesktopStateListener() {
             @Override
             public void onReady() {
@@ -70,7 +70,7 @@ public class TestUtils {
             @Override
             public void onError(String reason) {
                 if (!connectionClosing) {
-                    logger.error("Connection failed: %s", reason);
+                    logger.error(String.format("Connection failed: %s", reason));
                 } else {
                     logger.debug("Connection closed");
                 }
@@ -109,7 +109,7 @@ public class TestUtils {
         }
 
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
-        desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // turn on Chromium debug log
+        desktopConnection.setAdditionalRuntimeArguments(" --v=1 --no-sandbox ");  // turn on Chromium debug log
         desktopConnection.setDevToolsPort(9090);
         desktopConnection.setRdmUrl(rdmUrl);
         desktopConnection.setRuntimeAssetsUrl(assetsUrl);
@@ -124,12 +124,13 @@ public class TestUtils {
             public void onClose() {
                 logger.debug("Connection closed");
                 disconnectedLatch.countDown();
+                connectedLatch.countDown();  // interrupt connectedLatch.await
             }
 
             @Override
             public void onError(String reason) {
                 if (!connectionClosing) {
-                    logger.error("Connection failed: %s", reason);
+                    logger.error(String.format("Connection failed: %s", reason));
                 } else {
                     logger.debug("Connection closed");
                 }
@@ -160,9 +161,12 @@ public class TestUtils {
     public static void teardownDesktopConnection(DesktopConnection desktopConnection) throws Exception {
         if (desktopConnection.isConnected()) {
             connectionClosing = true;
-            new com.openfin.desktop.System(desktopConnection).exit();
+            disconnectedLatch = new CountDownLatch(1);
+            new OpenFinRuntime(desktopConnection).exit();
+            logger.debug("waiting for desktop connection teardown");
             disconnectedLatch.await(20, TimeUnit.SECONDS);
             assertFalse(desktopConnection.isConnected());
+            Thread.sleep(5000); //"Workaround for a RVM issue with creating Window class");
             logger.debug("desktop connection closed");
         } else {
             logger.debug("Not connected, no need to teardown");
