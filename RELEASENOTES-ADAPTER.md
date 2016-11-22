@@ -2,7 +2,8 @@
 
 ## New Features
 * Requires Version 6.0+ version of OpenFin Runtime.
-* Improve support for window embedding
+* Improved support for window embedding
+* Replaced WebSocket library with org.eclipse.jetty.websocket
 
 # Version 5.44.3.1
 
