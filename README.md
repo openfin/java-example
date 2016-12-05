@@ -7,13 +7,15 @@ Examples for OpenFin Java adapter
 
 2. Go to release directory and start run.bat
 
-3. Once the java app starts, click on Start button, which should start OpenFin Runtime and "Hello OpenFin" HTML5 demo app.  The java app will wait and try to connect to OpenFin Runtime.
+3. Once the java app starts, click on Start button, which should start OpenFin Runtime.  The java app will wait and try to connect to OpenFin Runtime.
 
-4. You can use buttons in Window Control section to move and re-size HTML5 window of Hello OpenFin app.
+4. Once OpenFin Runtime is started and Java app connects successfully,  "Create Application" button is enabled.  You can click on the button to bring up a dialog for entering configuration of any HTML5 app.  By default, the dialog is pre-populate with configuration for Hello OpenFin demo app.
 
-5. Click "Create Application" button, which should start a dialog with all the fields pre-populated for our Hello OpenFin demo HTML5 application.  Just click on "Create" button.
+5. You can use buttons in Window Control section to move and re-size HTML5 window of Hello OpenFin app.
 
-6. After Hello OpenFin starts, you can use the buttons under Window Control of Java app to control Hello OpenFin window.
+6. Click "Create Application" button, which should start a dialog with all the fields pre-populated for our Hello OpenFin demo HTML5 application.  Just click on "Create" button.
+
+7. After Hello OpenFin starts, you can use the buttons under Window Control of Java app to control Hello OpenFin window.
 
 ## Source Code Review
 
@@ -127,28 +129,6 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 
 Once the demo is running, Windows snap while being draggted close to other windows.  Snapped windows dock on mounse release. 
-
-
-## Source Code Review for JNLP Example
-
-Source code for the example is located in /src/main/java/com/openfin/desktop/demo/JNLPExample.java.  The followings overview of how it communicates with OpenFin Runtime with API calls supported by the Java adapter:
-
-1. Create connection object:
-
-        this.desktopConnection = new DesktopConnection("WebStartExample");
-
-    This code just creates an instance and it does not try to connect to runtime.
-
-2. Launch and connect to OpenFin runtime:
-
-        desktopConnection.connectToVersion("stable", listener, 100000);
-
-   listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  connectToVersion connects to "stable" version of Runtime.  If "stable" version is not running, this method will try to start it.
-
-3. Once the Runtime is running, launchHTML5App method is called to start Hello OpenFin demo app.
-
-4. To run the demo, please import webstart/OpenFinSigner.csr into Java Webstart as Signer CA first, and then load 
-[Demo JNLP](http://openfin.github.io/java-example/webstart/JNLPExample.jnlp) to start the demo.
 
 ## More Info
 
