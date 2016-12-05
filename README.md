@@ -25,14 +25,16 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
             this.desktopConnection = new DesktopConnection("OpenFinDesktopDemo");
 
-    This code just creates an instance and it does not try to connect to runtime.
+    This code just creates an instance of DesktopConnection and it does not try to connect to runtime.
 
 2. Launch and connect to stable version of OpenFin runtime:
 
-            desktopConnection.connectToVersion("stable", listener, 60);
+            // create an instance of RuntimeConfiguration and configure Runtime by setting properties in RuntimeConfiguration
+            this.runtimeConfiguration = new RuntimeConfiguration();
+            // launch and connect to OpenFin Runtime
+            desktopConnection.connect(this.runtimeConfiguration, listener, 10000);
 
-   listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.  desktopCommandLine is a string of arguments passed to OpenFinRVM.
-   This example by default passes remote config file for Hello OpenFin app, which will be started as the first app in OpenFin Runtime.
+   listener is an instance of DesktopStateListener which provides callback on status of connections to runtime.
 
 3. Create new application when clicking on Create App:
 
