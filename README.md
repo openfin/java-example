@@ -9,7 +9,7 @@ Examples for OpenFin Java adapter
 
 3. Once the java app starts, click on Start button, which should start OpenFin Runtime.  The java app will wait and try to connect to OpenFin Runtime.
 
-4. Once OpenFin Runtime is started and Java app connects successfully,  "Create Application" button is enabled.  You can click on the button to bring up a dialog for entering configuration of any HTML5 app.  By default, the dialog is pre-populate with configuration for Hello OpenFin demo app.
+4. Once OpenFin Runtime is started and Java app connects successfully,  "Create Application" button is enabled.  You can click on the button to bring up a dialog for entering configuration of any HTML5 app.  By default, the dialog is pre-populated with configuration for Hello OpenFin demo app.
 
 5. You can use buttons in Window Control section to move and re-size HTML5 window of Hello OpenFin app.
 
