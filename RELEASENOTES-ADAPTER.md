@@ -1,3 +1,10 @@
+# Version 6.0.0.2
+## New Features
+* added ApplicationOptions.put method.
+
+## Bug Fixes
+* Fixed an issue with websocket timeout
+
 # Version 6.0.0.1
 
 ## New Features
