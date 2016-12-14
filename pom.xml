@@ -6,7 +6,7 @@
 
     <groupId>co.openfin</groupId>
     <artifactId>openfin-desktop-java-example</artifactId>
-    <version>6.0.0.1</version>
+    <version>6.0.0.2</version>
     <packaging>jar</packaging>
 
     <name>openfin-desktop-java-example</name>
@@ -37,11 +37,17 @@
         </developer>
     </developers>
 
+    <scm>
+        <connection>scm:hg:https://github.com/openfin/java-example.git</connection>
+        <developerConnection>scm:hg:https://github.com/openfin/java-example.git</developerConnection>
+        <url>https://github.com/openfin/java-example.git</url>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-            <version>6.0.0.1</version>
+            <version>6.0.0.2</version>
         </dependency>
         <dependency>
             <groupId>co.openfin</groupId>
