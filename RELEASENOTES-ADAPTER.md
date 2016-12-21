@@ -12,6 +12,12 @@
 * Improved support for window embedding
 * Replaced WebSocket library with org.eclipse.jetty.websocket
 
+# Version 5.44.3.2
+
+## New Features
+
+* Users ProcessBuilder to launch OpenFinLauncher.
+
 # Version 5.44.3.1
 
 ## New Features
