@@ -1,3 +1,12 @@
+# Version 6.0.0.3.SNAPSHOT
+## New Features
+
+* Support for launching Runtime from a remote manifest.
+
+## Bug Fixes
+
+* Use ProcessBuilder to launch OpenFin to solve an issue with security on Citrix server.
+
 # Version 6.0.0.2
 ## New Features
 * added ApplicationOptions.put method.
