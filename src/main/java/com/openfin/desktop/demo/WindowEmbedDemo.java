@@ -3,7 +3,6 @@ package com.openfin.desktop.demo;
 import com.openfin.desktop.*;
 import com.openfin.desktop.ActionEvent;
 import com.openfin.desktop.Window;
-import com.openfin.desktop.win32.WinMessageHelper;
 import com.sun.jna.Native;
 import info.clearthought.layout.TableLayout;
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     protected String appUuid = "JavaEmbedding";
     protected String startupUuid = "OpenFinHelloWorld";
     protected String desktopOption;
-    protected DesktopConnection controller;
+    protected DesktopConnection desktopConnection;
 
     protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleDockingExample.html";  // source is in release/SimpleDockingExample.html
 
@@ -39,7 +38,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         this.startupUuid = startupUuid;
         this.desktopOption = desktopOption;
         try {
-            this.controller = new DesktopConnection(appUuid);
+            this.desktopConnection = new DesktopConnection(appUuid);
         } catch (DesktopException desktopError) {
             desktopError.printStackTrace();
         }
@@ -114,7 +113,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         close.setEnabled(enabled);
 
         if (enabled) {
-            this.controller.getInterApplicationBus().addSubscribeListener(new SubscriptionListener() {
+            this.desktopConnection.getInterApplicationBus().addSubscribeListener(new SubscriptionListener() {
                 public void subscribed(String uuid, String topic) {
                     System.out.println("subscribed " + uuid + " on topic " + topic);
                 }
@@ -145,11 +144,11 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     }
 
     private void closeDesktop() {
-        if (controller != null && controller.isConnected()) {
+        if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
 //                new com.openfin.desktop.System(desktopConnection).exit();
                 System.out.println("disconnecting ");
-                controller.disconnect();
+                desktopConnection.disconnect();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -233,7 +232,14 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 public void onOutgoingMessage(String message) {
                 }
             };
-            controller.connectToVersion("stable", listener, 60);
+            RuntimeConfiguration configuration = new RuntimeConfiguration();
+            desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // enable additional logging from Runtime
+            String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
+            if (desktopVersion == null) {
+                desktopVersion = "stable";
+            }
+            configuration.setRuntimeVersion(desktopVersion);
+            desktopConnection.connect(configuration, listener, 60);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -255,8 +261,9 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 mainWindowOptions.setShowTaskbarIcon(true);
                 mainWindowOptions.setSaveWindowState(false);  // set to false so all windows start at same initial positions for each run
                 mainWindowOptions.setFrame(false);
+                mainWindowOptions.setContextMenu(true);
                 options.setMainWindowOptions(mainWindowOptions);
-                DemoUtils.runApplication(options, this.controller,  new AckListener() {
+                DemoUtils.runApplication(options, this.desktopConnection,  new AckListener() {
                     @Override
                     public void onSuccess(Ack ack) {
                         Application app = (Application) ack.getSource();
@@ -283,7 +290,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     private void embedStartupApp() {
         try {
             if (startupHtml5app == null) {
-                startupHtml5app = Application.wrap(this.startupUuid, this.controller);
+                startupHtml5app = Application.wrap(this.startupUuid, this.desktopConnection);
             }
             if (!trayIconAdded) {
                 startupHtml5app.setTrayIcon("http://icons.iconarchive.com/icons/marcus-roberto/google-play/512/Google-Search-icon.png", new EventListener() {

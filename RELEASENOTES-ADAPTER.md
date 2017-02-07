@@ -6,6 +6,7 @@
 ## Bug Fixes
 
 * Use ProcessBuilder to launch OpenFin to solve an issue with security on Citrix server.
+* Added proper clean-up for ExternalWindowObserver
 
 # Version 6.0.0.2
 ## New Features

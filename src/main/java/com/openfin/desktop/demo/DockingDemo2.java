@@ -151,6 +151,8 @@ public class DockingDemo2 extends JPanel implements ActionListener, WindowListen
                 }
             });
             registerJavaWindow();
+            Application javaParentApp = Application.wrap(javaParentAppUuid, desktopConnection);
+            javaParentApp.addEventListener("closed", actionEvent -> { shutdown(); }, null);
         } catch (Exception e) {
             logger.error("Error creating DockingManager", e);
         }
@@ -217,6 +219,25 @@ public class DockingDemo2 extends JPanel implements ActionListener, WindowListen
         jFrame.setVisible(true);
     }
 
+    private void shutdown() {
+        logger.debug("shutting down");
+        if (externalWindowObserver != null) {
+            logger.debug("Closing");
+            try {
+                JSONObject request = new JSONObject();
+                request.put("applicationUuid", javaParentAppUuid);
+                request.put("windowName", javaWindowName);
+                desktopConnection.getInterApplicationBus().publish("unregister-docking-window", request);
+                Thread.sleep(2000);  // give time to flush messages to Runtime
+                externalWindowObserver.dispose();
+                desktopConnection.disconnect();
+                Thread.sleep(1000);  // give time to flush messages to Runtime
+            } catch (Exception ex) {
+                logger.error("Error existing", ex);
+            }
+        }
+    }
+
     /**
      *
      * @param args
@@ -236,21 +257,7 @@ public class DockingDemo2 extends JPanel implements ActionListener, WindowListen
 
     @Override
     public void windowClosing(WindowEvent e) {
-        if (externalWindowObserver != null) {
-            logger.debug("Closing");
-            try {
-                JSONObject request = new JSONObject();
-                request.put("applicationUuid", javaParentAppUuid);
-                request.put("windowName", javaWindowName);
-                desktopConnection.getInterApplicationBus().publish("unregister-docking-window", request);
-                Thread.sleep(2000);  // give time to flush messages to Runtime
-                externalWindowObserver.dispose();
-                desktopConnection.disconnect();
-                Thread.sleep(1000);  // give time to flush messages to Runtime
-            } catch (Exception ex) {
-                logger.error("Error existing", ex);
-            }
-        }
+        shutdown();
     }
 
     @Override

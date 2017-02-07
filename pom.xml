@@ -6,7 +6,7 @@
 
     <groupId>co.openfin</groupId>
     <artifactId>openfin-desktop-java-example</artifactId>
-    <version>6.0.0.2</version>
+    <version>6.0.0.3</version>
     <packaging>jar</packaging>
 
     <name>openfin-desktop-java-example</name>
@@ -47,12 +47,12 @@
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-            <version>6.0.0.2</version>
+            <version>6.0.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-snap-dock</artifactId>
-            <version>1.0.0.0</version>
+            <version>1.0.0.1</version>
         </dependency>
         <dependency>
             <groupId>tablelayout</groupId>

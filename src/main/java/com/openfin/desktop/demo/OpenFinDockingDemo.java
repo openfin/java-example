@@ -198,22 +198,19 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
     private void closeDesktop() {
         if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
+                Application javaParentApp = Application.wrap(javaParentAppUuid, desktopConnection);
+                javaParentApp.close();
+                dockingManager.dispose();
                 Thread.sleep(2000);
-                new OpenFinRuntime(desktopConnection).exit();
+                desktopConnection.exit();
+                desktopConnection = null;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        //closeWebSocket();
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                jFrame.dispose();
-            }
-        });
         try {
-            Thread.sleep(1000);
+            Thread.sleep(2000);
             System.exit(0);
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -262,12 +259,15 @@ public class OpenFinDockingDemo extends JPanel implements ActionListener, Window
                 public void onOutgoingMessage(String message) {
                 }
             };
-            desktopConnection.setAdditionalRuntimeArguments(" --v=1");  // enable additional logging from Runtime
+            RuntimeConfiguration configuration = new RuntimeConfiguration();
+            configuration.setDevToolsPort(9090);
+            configuration.setAdditionalRuntimeArguments(" --v=1 "); // enable additional logging from Runtime
             String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
             if (desktopVersion == null) {
                 desktopVersion = "stable";
             }
-            desktopConnection.connectToVersion(desktopVersion, listener, 60);
+            configuration.setRuntimeVersion(desktopVersion);
+            desktopConnection.connect(configuration, listener, 60);
 
         } catch (Exception e) {
             e.printStackTrace();

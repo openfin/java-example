@@ -131,7 +131,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         }
         this.runtimeConfiguration.setRdmURL(java.lang.System.getProperty("com.openfin.demo.rdmURL"));
         this.runtimeConfiguration.setRuntimeAssetURL(java.lang.System.getProperty("com.openfin.demo.assetsURL"));
-        this.runtimeConfiguration.setAdditionalRuntimeArguments("--v=1");  // enable additional logging
+        this.runtimeConfiguration.setAdditionalRuntimeArguments("--v=1 --no-sandbox ");  // enable additional logging
         this.runtimeConfiguration.setDevToolsPort(9090);
         this.runtimeConfiguration.setLicenseKey("my-license-key");
         JSONObject myconfig = new JSONObject();
@@ -406,8 +406,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private void closeDesktop() {
         if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
-//                new System(desktopConnection).exit();
-                this.desktopConnection.disconnect();
+                desktopConnection.exit();
+//                this.desktopConnection.disconnect();
 //                Application app = Application.wrap(this.startupUUID, this.desktopConnection);
 //                app.close();
                 setMainButtonsEnabled(false);
@@ -429,7 +429,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         try {
             Thread.sleep(1000);
 //            java.lang.System.exit(0);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
