@@ -2,6 +2,10 @@
 ## New Features
 
 * Support for launching Runtime from a remote manifest.
+* Added Window.executeJavaScript
+* Added Window.showDeveloperTools
+* Added Window.navigate
+* Added Application.wrapWindow
 
 ## Bug Fixes
 

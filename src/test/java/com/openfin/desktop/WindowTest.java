@@ -4,6 +4,7 @@ import com.openfin.desktop.animation.AnimationTransitions;
 import com.openfin.desktop.animation.OpacityTransition;
 import com.openfin.desktop.animation.PositionTransition;
 import com.openfin.desktop.animation.SizeTransition;
+import com.openfin.desktop.demo.WindowEmbedDemo;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -428,5 +429,53 @@ public class WindowTest {
         return windowAtomicReference.get();
     }
 
+    @Test
+    public void executeJavaScript() throws Exception {
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        Application application = TestUtils.runApplication(options, desktopConnection);
+        Window window = application.getWindow();
+        CountDownLatch latch = new CountDownLatch(1);
+        window.executeJavaScript("var w = fin.desktop.Window.getCurrent(); w.name;", result -> {
+            if (result != null && result.toString().equals(window.getName())) {
+                latch.countDown();
+            }
+        }, null);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.executeJavaScript timeout", latch.getCount(), 0);
+        TestUtils.closeApplication(application);
+    }
+
+    @Test
+    public void navigate() throws Exception {
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        Application application = TestUtils.runApplication(options, desktopConnection);
+        Window window = application.getWindow();
+        CountDownLatch latch = new CountDownLatch(1);
+        window.navigate("https://openfin.co", new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    latch.countDown();
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.navigate timeout", latch.getCount(), 0);
+        Thread.sleep(1000); // give time for https://openfin.co to load
+        window.executeJavaScript("location.href", result -> {
+            if (result != null && result.toString().equals("https://openfin.co")) {
+                latch.countDown();
+            }
+        }, null);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.executeJavaScript timeout", latch.getCount(), 0);
+        TestUtils.closeApplication(application);
+    }
 
 }
