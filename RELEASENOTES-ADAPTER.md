@@ -6,6 +6,7 @@
 * Added Window.showDeveloperTools
 * Added Window.navigate
 * Added Application.wrapWindow
+* Support for port discovery of Runtime process at different integrity levels
 
 ## Bug Fixes
 
@@ -26,6 +27,12 @@
 * Improved support for window embedding
 * Replaced WebSocket library with org.eclipse.jetty.websocket
 
+
+# Version 5.44.3.3
+
+## New Features
+* Support for port discovery of Runtime process at different integrity levels
+
 # Version 5.44.3.2
 
 ## New Features
@@ -45,6 +52,11 @@
 * Fixed API doc for WindowOptions.setTaskbarIcon
 * Updated OpenFinInstaller.exe to handle client certificate
 * Fixed an issue with duplicate UUIDs for DesktopConnection in version 5.44.11.10 of Runtime 
+
+# Version 5.44.2.5
+
+## New Features
+* Support for port discovery of Runtime process at different integrity levels
 
 # Version 5.44.2.4
 ## New Features
