@@ -6,6 +6,7 @@
 * Added Window.showDeveloperTools
 * Added Window.navigate
 * Added Application.wrapWindow
+* Added OpenFinRuntime.getHostSpecs
 * Support for port discovery of Runtime process at different integrity levels
 
 ## Bug Fixes
