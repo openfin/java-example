@@ -13,6 +13,7 @@
 
 * Use ProcessBuilder to launch OpenFin to solve an issue with security on Citrix server.
 * Added proper clean-up for ExternalWindowObserver
+* Fixed an issue with retrying connection to Runtime
 
 # Version 6.0.0.2
 ## New Features
@@ -28,6 +29,9 @@
 * Improved support for window embedding
 * Replaced WebSocket library with org.eclipse.jetty.websocket
 
+# Version 5.44.3.4
+
+* Fixed an issue with retrying connection to Runtime
 
 # Version 5.44.3.3
 
