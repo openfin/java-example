@@ -1,4 +1,4 @@
-# Version 6.0.0.3.SNAPSHOT
+# Version 6.0.1.0
 ## New Features
 
 * Support for launching Runtime from a remote manifest.
