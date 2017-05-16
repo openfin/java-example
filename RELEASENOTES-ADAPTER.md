@@ -1,3 +1,10 @@
+
+# Version 6.0.1.1-SNAPSHOT
+
+## Bug Fixes
+* Fixed an issue with loop of re-connecting to Runtime
+* Fixed an issue with Window.close defaulting 'force' to true
+
 # Version 6.0.1.0
 ## New Features
 
@@ -28,6 +35,14 @@
 * Requires Version 6.0+ version of OpenFin Runtime.
 * Improved support for window embedding
 * Replaced WebSocket library with org.eclipse.jetty.websocket
+
+# Version 5.44.3.6
+
+* Fixed an issue with loop of re-connecting to Runtime
+
+# Version 5.44.3.5
+
+* Fixed an issue with Window.close defaulting 'force' to true
 
 # Version 5.44.3.4
 
