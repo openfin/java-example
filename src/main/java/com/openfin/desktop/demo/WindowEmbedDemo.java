@@ -25,7 +25,6 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     private static JFrame jFrame;
     protected String appUuid = "JavaEmbedding";
     protected String startupUuid = "OpenFinHelloWorld";
-    protected String desktopOption;
     protected DesktopConnection desktopConnection;
 
     protected String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleDockingExample.html";  // source is in release/SimpleDockingExample.html
@@ -34,9 +33,8 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     protected java.awt.Canvas embedCanvas;
     protected Long previousPrarentHwndId;
 
-    public WindowEmbedDemo(final String desktopOption, final String startupUuid) {
+    public WindowEmbedDemo(final String startupUuid) {
         this.startupUuid = startupUuid;
-        this.desktopOption = desktopOption;
         try {
             this.desktopConnection = new DesktopConnection(appUuid);
         } catch (DesktopException desktopError) {
@@ -126,12 +124,12 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         }
     }
 
-    private static void createAndShowGUI(final String desktopOption, final String startupUuid) {
+    private static void createAndShowGUI(final String startupUuid) {
         //Create and set up the window.
-        jFrame = new JFrame("Java Docking Demo");
-        jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        jFrame = new JFrame("Java Embedding Demo");
+//        jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         //Create and set up the content pane.
-        WindowEmbedDemo newContentPane = new WindowEmbedDemo(desktopOption, startupUuid);
+        WindowEmbedDemo newContentPane = new WindowEmbedDemo(startupUuid);
         newContentPane.setOpaque(true); //content panes must be opaque
         jFrame.setContentPane(newContentPane);
         jFrame.addWindowListener(newContentPane);
@@ -233,7 +231,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 }
             };
             RuntimeConfiguration configuration = new RuntimeConfiguration();
-            desktopConnection.setAdditionalRuntimeArguments(" --v=1 ");  // enable additional logging from Runtime
+            configuration.setAdditionalRuntimeArguments(" --v=1 ");  // enable additional logging from Runtime
             String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
             if (desktopVersion == null) {
                 desktopVersion = "stable";
@@ -250,6 +248,10 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
             // launch 5 instances of same example app
             int width = 500, height=500;
             try {
+                String url = java.lang.System.getProperty("com.openfin.demo.embed.URL");
+                if (url != null) {
+                    openfin_app_url = url;
+                }
                 ApplicationOptions options = new ApplicationOptions(startupUuid, startupUuid, openfin_app_url);
                 options.setApplicationIcon("http://openfin.github.io/snap-and-dock/openfin.ico");
                 WindowOptions mainWindowOptions = new WindowOptions();
@@ -307,7 +309,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
             Window html5Wnd = startupHtml5app.getWindow();
             long parentHWndId = Native.getComponentID(this.embedCanvas);
             System.out.println("Canvas HWND " + Long.toHexString(parentHWndId));
-            html5Wnd.embedInto(parentHWndId, 1920, 1000, new AckListener() {
+            html5Wnd.embedInto(parentHWndId, this.embedCanvas.getWidth(), this.embedCanvas.getHeight(), new AckListener() {
                 @Override
                 public void onSuccess(Ack ack) {
                     if (ack.isSuccessful()) {
@@ -326,26 +328,14 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
     }
 
     /**
-     * To start OpenFin Desktop and Connect, pass full path of OpenFin with*
-     *    -DOpenFinOption=--config=\"RemoteConfigUrl\"
-     *
-     * Set UUID of startup HTML5 app to dock to
-     *    -DStartupUUID="550e8400-e29b-41d4-a716-4466333333000"
      *
      * @param args
      */
     public static void main(String[] args) {
-        final String desktop_option = java.lang.System.getProperty("OpenFinOption");
-        final String startupUUID;
-        if (java.lang.System.getProperty("StartupUUID") != null) {
-            startupUUID = java.lang.System.getProperty("StartupUUID");
-        } else {
-            startupUUID = "OpenFinHelloWorld";
-        }
         java.lang.System.out.println("starting: ");
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI(desktop_option, startupUUID);
+                createAndShowGUI("OpenFin Embed Example");
             }
         });
     }
