@@ -478,4 +478,164 @@ public class WindowTest {
         TestUtils.closeApplication(application);
     }
 
+    @Test
+    public void navigateBack() throws Exception {
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        Application application = TestUtils.runApplication(options, desktopConnection);
+        Window window = application.getWindow();
+        CountDownLatch latch = new CountDownLatch(1);
+        window.navigate("https://openfin.co", new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                	window.navigate("https://www.google.com", new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            if (ack.isSuccessful()) {
+                            	window.navigateBack(new AckListener() {
+                                    @Override
+                                    public void onSuccess(Ack ack) {
+                                        if (ack.isSuccessful()) {
+                                            if (ack.isSuccessful()) {
+                                                latch.countDown();
+                                            }
+                                        }
+                                    }
+                                    @Override
+                                    public void onError(Ack ack) {
+                                    }
+                                });
+                            }
+                        }
+                        @Override
+                        public void onError(Ack ack) {
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.navigate timeout", latch.getCount(), 0);
+        Thread.sleep(1000); // give time for https://openfin.co to load
+        window.executeJavaScript("location.href", result -> {
+            if (result != null && result.toString().equals("https://openfin.co")) {
+                latch.countDown();
+            }
+        }, null);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.executeJavaScript timeout", latch.getCount(), 0);
+        TestUtils.closeApplication(application);
+    }
+
+    @Test
+    public void navigateForward() throws Exception {
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        Application application = TestUtils.runApplication(options, desktopConnection);
+        Window window = application.getWindow();
+        CountDownLatch latch = new CountDownLatch(1);
+        window.navigate("https://www.google.com", new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                	window.navigate("https://openfin.co", new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            if (ack.isSuccessful()) {
+                            	window.navigateBack(new AckListener() {
+                                    @Override
+                                    public void onSuccess(Ack ack) {
+                                        if (ack.isSuccessful()) {
+                                        	window.navigateForward(new AckListener() {
+                                                @Override
+                                                public void onSuccess(Ack ack) {
+                                                    if (ack.isSuccessful()) {
+                                                        latch.countDown();
+                                                    }
+                                                }
+                                                @Override
+                                                public void onError(Ack ack) {
+                                                }
+                                            });
+                                        }
+                                    }
+                                    @Override
+                                    public void onError(Ack ack) {
+                                    }
+                                });
+                            }
+                        }
+                        @Override
+                        public void onError(Ack ack) {
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.navigate timeout", latch.getCount(), 0);
+        Thread.sleep(1000); // give time for https://openfin.co to load
+        window.executeJavaScript("location.href", result -> {
+            if (result != null && result.toString().equals("https://openfin.co")) {
+                latch.countDown();
+            }
+        }, null);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.executeJavaScript timeout", latch.getCount(), 0);
+        TestUtils.closeApplication(application);
+    }
+
+    @Test
+    public void stopNavigate() throws Exception {
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        Application application = TestUtils.runApplication(options, desktopConnection);
+        Window window = application.getWindow();
+        CountDownLatch latch = new CountDownLatch(1);
+        window.navigate("https://openfin.co", new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                	window.navigate("https://www.cnn.com", null);
+                	window.stopWindowNavigation(new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            if (ack.isSuccessful()) {
+                                latch.countDown();
+                            }
+                        }
+                        @Override
+                        public void onError(Ack ack) {
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+        
+        
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.navigate timeout", latch.getCount(), 0);
+        Thread.sleep(1000);
+        window.executeJavaScript("location.href", result -> {
+            if (result != null && result.toString().equals("https://openfin.co")) {
+                latch.countDown();
+            }
+        }, null);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("Window.executeJavaScript timeout", latch.getCount(), 0);
+        TestUtils.closeApplication(application);
+    }
+
 }
