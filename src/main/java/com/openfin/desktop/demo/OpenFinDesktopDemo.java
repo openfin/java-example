@@ -406,7 +406,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private void closeDesktop() {
         if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
-                desktopConnection.exit();
+                desktopConnection.disconnect();
 //                this.desktopConnection.disconnect();
 //                Application app = Application.wrap(this.startupUUID, this.desktopConnection);
 //                app.close();
@@ -423,7 +423,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-//                jFrame.dispose();
+                jFrame.dispose();
             }
         });
         try {
@@ -772,8 +772,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     private static void createAndShowGUI() {
 
         //Create and set up the window.
-        jFrame = new JFrame("Java Login Demo");
-        jFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        jFrame = new JFrame("Java OpenFin Demo");
+//        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Create and set up the content pane.
         OpenFinDesktopDemo newContentPane = new OpenFinDesktopDemo();

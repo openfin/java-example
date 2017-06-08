@@ -1,5 +1,7 @@
 
 # Version 6.0.1.1-SNAPSHOT
+## New Features
+* Add browser-style navigation to Window class
 
 ## Bug Fixes
 * Fixed an issue with loop of re-connecting to Runtime
