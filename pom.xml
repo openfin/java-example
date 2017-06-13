@@ -30,7 +30,7 @@
 
     <developers>
         <developer>
-            <email>support@gmail.com</email>
+            <email>support@openfin.co</email>
             <name>OpenFin</name>
             <url>https://openfin.co</url>
             <id>openfin</id>
@@ -42,6 +42,17 @@
         <developerConnection>scm:hg:https://github.com/openfin/java-example.git</developerConnection>
         <url>https://github.com/openfin/java-example.git</url>
     </scm>
+
+    <repositories>
+        <repository>
+            <id>oss-sonatype</id>
+            <name>oss-sonatype</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
