@@ -1,26 +1,28 @@
 package com.openfin.desktop;
 
-import com.openfin.desktop.animation.AnimationTransitions;
-import com.openfin.desktop.animation.OpacityTransition;
-import com.openfin.desktop.animation.PositionTransition;
-import com.openfin.desktop.animation.SizeTransition;
-import com.openfin.desktop.demo.WindowEmbedDemo;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import com.openfin.desktop.animation.AnimationTransitions;
+import com.openfin.desktop.animation.OpacityTransition;
+import com.openfin.desktop.animation.PositionTransition;
+import com.openfin.desktop.animation.SizeTransition;
 
 /**
  * Created by wche on 1/25/16.
@@ -635,6 +637,35 @@ public class WindowTest {
 
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("Window.executeJavaScript timeout", latch.getCount(), 0);
+        TestUtils.closeApplication(application);
+    }
+    
+    @Test
+    public void preload() throws Exception {
+    	URL preloadHtml = WindowTest.class.getClassLoader().getResource("preload.html");
+    	URL preloadJs = WindowTest.class.getClassLoader().getResource("preload.js");
+    	    	
+    	Path preloadHtmlPath = Paths.get(preloadHtml.toURI());
+    	Path preloadJsPath = Paths.get(preloadJs.toURI());
+    	
+        ApplicationOptions options = TestUtils.getAppOptions(preloadHtmlPath.toUri().toString());
+        options.getMainWindowOptions().setPreload(preloadJsPath.toUri().toString());
+        
+        Application application = TestUtils.runApplication(options, desktopConnection);
+        
+        Window mainWindow = application.getWindow();
+        
+        Thread.sleep(1000);
+        CountDownLatch latch = new CountDownLatch(1);
+        mainWindow.executeJavaScript("_preload", result -> {
+            if (result != null && result.toString().equals("12345")) {
+                latch.countDown();
+            }
+        }, null);
+        
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("execute java script timeout: " + options.getUUID(), 0, latch.getCount());
+
         TestUtils.closeApplication(application);
     }
 
