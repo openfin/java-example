@@ -642,14 +642,9 @@ public class WindowTest {
     
     @Test
     public void preload() throws Exception {
-    	URL preloadHtml = WindowTest.class.getClassLoader().getResource("preload.html");
-    	URL preloadJs = WindowTest.class.getClassLoader().getResource("preload.js");
-    	    	
-    	Path preloadHtmlPath = Paths.get(preloadHtml.toURI());
-    	Path preloadJsPath = Paths.get(preloadJs.toURI());
     	
-        ApplicationOptions options = TestUtils.getAppOptions(preloadHtmlPath.toUri().toString());
-        options.getMainWindowOptions().setPreload(preloadJsPath.toUri().toString());
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        options.getMainWindowOptions().setPreload("https://cdn.openfin.co/examples/junit/preload.js");
         
         Application application = TestUtils.runApplication(options, desktopConnection);
         
