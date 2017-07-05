@@ -38,6 +38,10 @@
 * Improved support for window embedding
 * Replaced WebSocket library with org.eclipse.jetty.websocket
 
+# Version 5.44.5.1
+## New Features
+* Branch from Version 6.0.1.1 to support Java 1.6
+
 # Version 5.44.3.6
 
 * Fixed an issue with loop of re-connecting to Runtime

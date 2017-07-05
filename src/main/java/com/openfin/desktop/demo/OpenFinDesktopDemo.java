@@ -124,6 +124,11 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             desktopVersion = "stable";
         }
         this.runtimeConfiguration.setRuntimeVersion(desktopVersion);
+
+        String fallBackVersion = java.lang.System.getProperty("com.openfin.demo.fallBackVersion");
+        if (fallBackVersion != null) {
+            this.runtimeConfiguration.setRuntimeFallbackVersion(fallBackVersion);
+        }
         String rvmArgs = java.lang.System.getProperty("com.openfin.demo.rvm.arguments");
         if (rvmArgs != null) {
             updateMessagePanel("Additional RVM arguments: " + rvmArgs);
@@ -522,7 +527,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 desktopConnection.connect(listener);
             } else {
                 updateMessagePanel("Connecting to version " + this.runtimeConfiguration.getRuntimeVersion());
-                desktopConnection.connect(this.runtimeConfiguration, listener, 10000);
+                desktopConnection.connect(this.runtimeConfiguration, listener, 10);
             }
         } catch (Exception ex) {
             ex.printStackTrace();

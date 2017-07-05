@@ -58,7 +58,7 @@
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-            <version>6.0.1.1-SNAPSHOT</version>
+            <version>5.44.5.2</version>
         </dependency>
         <dependency>
             <groupId>co.openfin</groupId>
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
+            <version>1.7.21</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -135,6 +135,10 @@
                 <configuration>
                     <archive>
                         <manifestFile>${basedir}/target/classes/META-INF/MANIFEST.MF</manifestFile>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.openfin.desktop.demo.OpenFinDesktopDemo</mainClass>
+                        </manifest>
                     </archive>
                 </configuration>
                 <executions>
@@ -142,6 +146,25 @@
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>
+                                ${project.build.directory}/
+                            </outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
