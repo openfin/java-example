@@ -2,6 +2,7 @@
 # Version 6.0.1.1-SNAPSHOT
 ## New Features
 * Add browser-style navigation to Window class
+* Add support for fallbackVersion of Runtime
 
 ## Bug Fixes
 * Fixed an issue with loop of re-connecting to Runtime
@@ -37,6 +38,15 @@
 * Requires Version 6.0+ version of OpenFin Runtime.
 * Improved support for window embedding
 * Replaced WebSocket library with org.eclipse.jetty.websocket
+
+
+# Version 5.44.5.2
+## New Features
+* Add support for fallbackVersion of Runtime
+
+# Version 5.44.5.1
+## New Features
+* Branch from Version 6.0.1.1 to support Java 1.6
 
 # Version 5.44.3.6
 
