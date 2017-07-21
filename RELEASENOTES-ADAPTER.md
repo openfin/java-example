@@ -39,6 +39,8 @@
 * Improved support for window embedding
 * Replaced WebSocket library with org.eclipse.jetty.websocket
 
+# Version 5.44.5.3
+* Fixed an issue with connection timeout at 5 seconds
 
 # Version 5.44.5.2
 ## New Features

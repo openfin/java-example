@@ -32,6 +32,10 @@ public class NotificationTest {
         logger.debug("starting");
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
 
+        // for Runtime 6.0+, needs to start at least one app for notifications to work
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        Application application = TestUtils.runApplication(options, desktopConnection);
+
         logger.info("Waiting for notification center to be ready");
         // @TODO currently there is no way to know Notification center is ready, so we just sleep here
         // @TODO we will fix notification center to generate an event when it finishes initialization and is ready to process requests
