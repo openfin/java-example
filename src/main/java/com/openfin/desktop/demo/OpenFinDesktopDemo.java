@@ -407,6 +407,13 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         }
     }
 
+    private void resetUI() {
+        setMainButtonsEnabled(false);
+        setAppButtonsEnabled(false);
+        ((DefaultListModel) this.activeApplications.getModel()).clear();
+        this.applicationList.clear();
+        this.appOptionsList.clear();
+    }
 
     private void closeDesktop() {
         if (desktopConnection != null && desktopConnection.isConnected()) {
@@ -415,11 +422,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 //                this.desktopConnection.disconnect();
 //                Application app = Application.wrap(this.startupUUID, this.desktopConnection);
 //                app.close();
-                setMainButtonsEnabled(false);
-                setAppButtonsEnabled(false);
-                ((DefaultListModel) this.activeApplications.getModel()).clear();
-                this.applicationList.clear();
-                this.appOptionsList.clear();
+                resetUI();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -428,7 +431,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                jFrame.dispose();
+//                jFrame.dispose();
             }
         });
         try {
@@ -499,6 +502,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             @Override
             public void onClose() {
                 updateMessagePanel("Connection closed");
+                resetUI();
             }
 
             @Override
