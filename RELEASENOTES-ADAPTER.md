@@ -1,9 +1,11 @@
 
-# Version 6.0.1.1-SNAPSHOT
+# Version 6.0.1.1-SNAPSHOT 
 ## New Features
+* Requires JDK1.7+
 * Add browser-style navigation to Window class
 * Add support for fallbackVersion of Runtime
 * Add support for non-persistent connections to Runtime
+* Improve suppot for app assets
 
 ## Bug Fixes
 * Fixed an issue with loop of re-connecting to Runtime
