@@ -1,7 +1,8 @@
-# Version 6.0.1.2-SNAPSHOT
+# Version 6.0.1.2
 
 ## Bug Fixes
 * Fixed an issue with deprecated DesktopConnect.connect method.
+* Fixed an issue with sending connection info to Runtime.
 
 # Version 6.0.1.1
 ## New Features
