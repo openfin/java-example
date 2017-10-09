@@ -1,17 +1,16 @@
 package com.openfin.desktop;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static junit.framework.Assert.assertEquals;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -256,4 +255,37 @@ public class ApplicationTest {
         TestUtils.closeApplication(application1);
         TestUtils.closeApplication(application2);
     }
+    
+	@Test
+	public void addEventListener() throws Exception {
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		Application application = TestUtils.createApplication(options, desktopConnection);
+		CountDownLatch latch = new CountDownLatch(1);
+		application.addEventListener("started", event -> {
+			latch.countDown();
+		}, new AckListener() {
+			@Override
+			public void onSuccess(Ack ack) {
+			}
+
+			@Override
+			public void onError(Ack ack) {
+			}
+		});
+
+		application.run(new AckListener() {
+			@Override
+			public void onSuccess(Ack ack) {
+			}
+
+			@Override
+			public void onError(Ack ack) {
+			}
+		});
+
+		latch.await(5, TimeUnit.SECONDS);
+		assertEquals("eventListener test timeout", 0, latch.getCount());
+
+		TestUtils.closeApplication(application);
+	}
 }

@@ -1,5 +1,11 @@
 package com.openfin.desktop;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -7,12 +13,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * JUnit tests for com.openfin.desktop.InterApplicationBus class
@@ -317,4 +317,28 @@ public class InterApplicationBusTest {
         assertEquals(latch.getCount(), 0);
     }
 
+    @Ignore
+    @Test
+    public void topicWithSpecialCharacters() throws Exception {
+    	final String topic = ":/\\;@#[]{}<>+=&^%$£\"?¬";
+    	//final String topic = "whatever";
+
+        CountDownLatch latch = new CountDownLatch(1);
+        BusListener busListener = (sourceUuid, receivingTopic, payload) -> {
+            logger.debug(String.format("Receiving %s", payload.toString()));
+            if (receivingTopic.equals(topic)) {
+                latch.countDown();
+            }
+        };
+        subscribeToTopic("*", topic, busListener);
+
+        JSONObject msg = new JSONObject();
+        msg.put("name", "topicWithSpecialCharacters");
+        desktopConnection.getInterApplicationBus().publish(topic, msg);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals(latch.getCount(), 0);
+    }
+    
+    
 }
