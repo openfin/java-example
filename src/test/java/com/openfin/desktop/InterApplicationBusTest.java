@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.json.JSONObject;
@@ -340,5 +342,38 @@ public class InterApplicationBusTest {
         assertEquals(latch.getCount(), 0);
     }
     
-    
+    @Test
+    public void addRemoveSubListener() throws Exception {
+    	String topic = "addRemoveSubListener";
+    	int cnt = 10;
+    	
+        CountDownLatch latch = new CountDownLatch(cnt + cnt/2);
+        final AtomicInteger invokeCnt = new AtomicInteger(0);
+        
+    	BusListener[] listeners = new BusListener[cnt];
+    	for (int i=0; i<cnt; i++) {
+    		listeners[i] = new BusListener() {
+				@Override
+				public void onMessageReceived(String sourceUuid, String topic, Object payload) {
+					invokeCnt.incrementAndGet();
+					latch.countDown();
+				}
+			};
+			subscribeToTopic("*", topic, listeners[i]);
+    	}
+    	
+    	desktopConnection.getInterApplicationBus().send("*", topic, "whatever");
+    	
+    	latch.await(5, TimeUnit.SECONDS);
+    	
+    	for (int i=0; i<cnt/2; i++) {
+    		unsubscribeToTopic("*", topic, listeners[i*2]);
+    	}
+    	
+    	desktopConnection.getInterApplicationBus().send("*", topic, "whatever again");
+
+    	latch.await(5, TimeUnit.SECONDS);
+        assertEquals(0, latch.getCount());
+        assertEquals(cnt + cnt/2, invokeCnt.get());
+    }
 }
