@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -287,5 +288,53 @@ public class ApplicationTest {
 		assertEquals("eventListener test timeout", 0, latch.getCount());
 
 		TestUtils.closeApplication(application);
+	}
+	
+	@Test
+	public void getWindow() throws Exception {
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		String mainWindowName = options.getName();
+		Application application = TestUtils.createApplication(options, desktopConnection);
+		TestUtils.runApplication(application, true);
+		Window window = application.getWindow();
+		assertEquals(window.getName(), mainWindowName);
+		TestUtils.closeApplication(application);
+	}
+	
+	@Test
+	public void removeEventListener() throws Exception {
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		Application application = TestUtils.createApplication(options, desktopConnection);
+	
+		int cnt = 10;
+		CountDownLatch latch = new CountDownLatch(cnt);
+		AtomicInteger invokeCnt = new AtomicInteger(0);
+		EventListener[] listeners = new EventListener[cnt];
+		for (int i=0; i<cnt; i++) {
+			listeners[i] = new EventListener(){
+				@Override
+				public void eventReceived(ActionEvent actionEvent) {
+					invokeCnt.incrementAndGet();
+					latch.countDown();
+				}
+			};
+		}
+		
+		for (int i=0; i<cnt; i++) {
+			TestUtils.addEventListener(application, "window-closed", listeners[i]);
+		}
+		TestUtils.runApplication(application, true);
+		
+		for (int i=0; i<cnt/2; i++) {
+			application.removeEventListener("window-closed", listeners[i*2], null);
+		}
+
+		Window window = application.getWindow();
+		window.close();
+		
+		latch.await(5, TimeUnit.SECONDS);
+		
+		assertEquals(cnt/2, latch.getCount());
+		assertEquals(cnt/2, invokeCnt.get());
 	}
 }
