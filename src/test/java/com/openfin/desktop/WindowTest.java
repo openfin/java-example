@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -754,4 +755,43 @@ public class WindowTest {
 		TestUtils.closeApplication(application);
 	}
 
+	@Ignore
+	@Test
+	public void getSetZoomLevel() throws Exception {
+		double level = -1.5;
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		Application application = TestUtils.runApplication(options, desktopConnection);
+		Window window = application.getWindow();
+		CountDownLatch latch1 = new CountDownLatch(1);
+
+		window.setZoomLevel(level, new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				latch1.countDown();
+			}
+
+			@Override
+			public void onError(Ack ack) {
+				logger.error("error setting zoom level, reason: {}", ack.getReason());
+			}
+		});
+		latch1.await(10, TimeUnit.SECONDS);
+		assertEquals("setZoomLevel test timeout", 0, latch1.getCount());
+		
+		CountDownLatch latch2 =  new CountDownLatch(1); 
+		window.getZoomLevel(new AsyncCallback<Double>() {
+			
+			@Override
+			public void onSuccess(Double zLevel) {
+				if (zLevel.doubleValue() == level) {
+					latch2.countDown();
+				}
+			}
+		}, null);
+		latch2.await(10, TimeUnit.SECONDS);
+		assertEquals("getZoomLevel test timeout", 0, latch2.getCount());
+
+		TestUtils.closeApplication(application);
+	}
 }
