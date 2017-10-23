@@ -339,31 +339,32 @@ public class ApplicationTest {
 		assertEquals(cnt/2, invokeCnt.get());
 	}
 	
-	@Ignore
+	
 	@Test
 	public void createFromManifest() throws Exception {
-		
 		final CountDownLatch latch = new CountDownLatch(1);
-
-		Application.createFromManifest("http://localhost:8080/app_stable.json", new AsyncCallback<Application>() {
-
-			@Override
-			public void onSuccess(Application app) {
-				app.run(new AckListener() {
-
+		Application.createFromManifest(
+				"https://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/app.json",
+				new AsyncCallback<Application>() {
+					@Override
+					public void onSuccess(Application app) {
+						latch.countDown();
+					}
+				}, new AckListener() {
 					@Override
 					public void onSuccess(Ack ack) {
-						latch.countDown();
 					}
 
 					@Override
 					public void onError(Ack ack) {
-						logger.info("error running app: {}", ack.getReason());
-					}});;
-			}}, null, desktopConnection);
+						logger.info("error creating app: {}", ack.getReason());
+					}
+				}, desktopConnection);
 
 		latch.await(50, TimeUnit.SECONDS);
-		
+
 		assertEquals(0, latch.getCount());
+		
+
 	}
 }
