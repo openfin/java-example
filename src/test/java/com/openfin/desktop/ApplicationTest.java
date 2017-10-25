@@ -361,10 +361,52 @@ public class ApplicationTest {
 					}
 				}, desktopConnection);
 
-		latch.await(50, TimeUnit.SECONDS);
+		latch.await(10, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
-		
+	}
+	
+	@Test 
+	public void getChildWindows() throws Exception {
+		final int cnt = 5;
+		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
 
+		for (int i=0; i<cnt; i++) {
+			WindowOptions childOptions = TestUtils.getWindowOptions("childWindow_" + i, TestUtils.openfin_app_url);
+			TestUtils.createChildWindow(application, childOptions, desktopConnection);
+		}
+		
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicInteger winCnt = new AtomicInteger(0);
+		application.getChildWindows(
+				new AsyncCallback<List<Window>>() {
+					@Override
+					public void onSuccess(List<Window> windows) {
+						for (Window w : windows) {
+							try {
+								w.close();
+								winCnt.incrementAndGet();
+							}
+							catch (DesktopException e) {
+								e.printStackTrace();
+							}
+						}
+						latch.countDown();
+					}
+				}, new AckListener() {
+					@Override
+					public void onSuccess(Ack ack) {
+					}
+
+					@Override
+					public void onError(Ack ack) {
+						logger.info("error getting child windows: {}", ack.getReason());
+					}
+				});
+
+		latch.await(10, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
+		assertEquals(cnt, winCnt.get());
 	}
 }
