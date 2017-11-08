@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -408,5 +409,32 @@ public class ApplicationTest {
 
 		assertEquals(0, latch.getCount());
 		assertEquals(cnt, winCnt.get());
+	}
+
+	@Test 
+	public void getInfo() throws Exception {
+		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+		final CountDownLatch latch = new CountDownLatch(1);
+		application.getInfo(
+				new AsyncCallback<JSONObject>() {
+					@Override
+					public void onSuccess(JSONObject obj) {
+						logger.info("getInfo: {}", obj.toString());
+						latch.countDown();
+					}
+				}, new AckListener() {
+					@Override
+					public void onSuccess(Ack ack) {
+					}
+
+					@Override
+					public void onError(Ack ack) {
+						logger.info("error getting application info: {}", ack.getReason());
+					}
+				});
+
+		latch.await(5, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
 	}
 }
