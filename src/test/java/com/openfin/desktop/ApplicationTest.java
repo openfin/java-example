@@ -437,4 +437,31 @@ public class ApplicationTest {
 
 		assertEquals(0, latch.getCount());
 	}
+
+	@Test 
+	public void getParentUuid() throws Exception {
+		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+		final CountDownLatch latch = new CountDownLatch(1);
+		application.getParentUuid(
+				new AsyncCallback<String>() {
+					@Override
+					public void onSuccess(String uuid) {
+						logger.info("getParentUuid: {}", uuid);
+						latch.countDown();
+					}
+				}, new AckListener() {
+					@Override
+					public void onSuccess(Ack ack) {
+					}
+
+					@Override
+					public void onError(Ack ack) {
+						logger.info("error getting uuid of parent application: {}", ack.getReason());
+					}
+				});
+
+		latch.await(5, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
+	}
 }
