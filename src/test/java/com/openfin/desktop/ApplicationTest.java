@@ -464,4 +464,96 @@ public class ApplicationTest {
 
 		assertEquals(0, latch.getCount());
 	}
+
+	@Test 
+	public void getTrayIconInfo() throws Exception {
+		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+		final CountDownLatch latch = new CountDownLatch(1);
+		application.setTrayIcon(
+				"http://icons.iconarchive.com/icons/marcus-roberto/google-play/512/Google-Search-icon.png", 
+				null,
+				new AckListener() {
+					@Override
+					public void onSuccess(Ack ack) {
+						application.getTrayIconInfo(
+								new AsyncCallback<JSONObject>() {
+									@Override
+									public void onSuccess(JSONObject obj) {
+										logger.info("getTrayIconInfo: {}", obj.toString());
+										latch.countDown();
+									}
+								}, new AckListener() {
+									@Override
+									public void onSuccess(Ack ack) {
+									}
+
+									@Override
+									public void onError(Ack ack) {
+										logger.info("error getting tray icon info: {}", ack.getReason());
+									}
+								});
+					}
+
+					@Override
+					public void onError(Ack ack) {
+					}
+				});
+		
+
+		latch.await(5, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
+	}
+
+	@Test 
+	public void isRunning() throws Exception {
+		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+		final CountDownLatch latch = new CountDownLatch(1);
+		application.isRunning(
+				new AsyncCallback<Boolean>() {
+					@Override
+					public void onSuccess(Boolean running) {
+						logger.info("isRunning: {}", running);
+						latch.countDown();
+					}
+				}, new AckListener() {
+					@Override
+					public void onSuccess(Ack ack) {
+					}
+
+					@Override
+					public void onError(Ack ack) {
+						logger.info("error getting application running status: {}", ack.getReason());
+					}
+				});
+
+		latch.await(5, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
+	}
+	
+	@Test 
+	public void registerCustomData() throws Exception {
+		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+		final CountDownLatch latch = new CountDownLatch(1);
+		JSONObject data = new JSONObject();
+		data.put("userId", "myUserId");
+		data.put("organization", "myOrganizationId");
+		application.registerCustomData(data, new AckListener() {
+					@Override
+					public void onSuccess(Ack ack) {
+						logger.info("registered custom data");
+						latch.countDown();
+					}
+
+					@Override
+					public void onError(Ack ack) {
+						logger.info("error registering custom data: {}", ack.getReason());
+					}
+				});
+
+		latch.await(5, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
+	}
 }
