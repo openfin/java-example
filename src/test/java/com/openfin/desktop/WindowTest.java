@@ -794,4 +794,27 @@ public class WindowTest {
 
 		TestUtils.closeApplication(application);
 	}
+	
+	@Test
+	public void reload() throws Exception {
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		Application application = TestUtils.runApplication(options, desktopConnection);
+		Window window = application.getWindow();
+		CountDownLatch latch = new CountDownLatch(1);
+
+		window.reload(true, new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				latch.countDown();
+			}
+
+			@Override
+			public void onError(Ack ack) {
+				logger.error("error reloading window, reason: {}", ack.getReason());
+			}
+		});
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals("reload test timeout", 0, latch.getCount());
+	}
 }
