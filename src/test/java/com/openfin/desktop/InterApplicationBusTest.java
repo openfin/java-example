@@ -1,5 +1,13 @@
 package com.openfin.desktop;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -7,12 +15,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * JUnit tests for com.openfin.desktop.InterApplicationBus class
@@ -317,4 +319,61 @@ public class InterApplicationBusTest {
         assertEquals(latch.getCount(), 0);
     }
 
+    @Ignore
+    @Test
+    public void topicWithSpecialCharacters() throws Exception {
+    	final String topic = ":/\\;@#[]{}<>+=&^%$£\"?¬";
+    	//final String topic = "whatever";
+
+        CountDownLatch latch = new CountDownLatch(1);
+        BusListener busListener = (sourceUuid, receivingTopic, payload) -> {
+            logger.debug(String.format("Receiving %s", payload.toString()));
+            if (receivingTopic.equals(topic)) {
+                latch.countDown();
+            }
+        };
+        subscribeToTopic("*", topic, busListener);
+
+        JSONObject msg = new JSONObject();
+        msg.put("name", "topicWithSpecialCharacters");
+        desktopConnection.getInterApplicationBus().publish(topic, msg);
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals(latch.getCount(), 0);
+    }
+    
+    @Test
+    public void addRemoveSubListener() throws Exception {
+    	String topic = "addRemoveSubListener";
+    	int cnt = 10;
+    	
+        CountDownLatch latch = new CountDownLatch(cnt + cnt/2);
+        final AtomicInteger invokeCnt = new AtomicInteger(0);
+        
+    	BusListener[] listeners = new BusListener[cnt];
+    	for (int i=0; i<cnt; i++) {
+    		listeners[i] = new BusListener() {
+				@Override
+				public void onMessageReceived(String sourceUuid, String topic, Object payload) {
+					invokeCnt.incrementAndGet();
+					latch.countDown();
+				}
+			};
+			subscribeToTopic("*", topic, listeners[i]);
+    	}
+    	
+    	desktopConnection.getInterApplicationBus().send("*", topic, "whatever");
+    	
+    	latch.await(5, TimeUnit.SECONDS);
+    	
+    	for (int i=0; i<cnt/2; i++) {
+    		unsubscribeToTopic("*", topic, listeners[i*2]);
+    	}
+    	
+    	desktopConnection.getInterApplicationBus().send("*", topic, "whatever again");
+
+    	latch.await(5, TimeUnit.SECONDS);
+        assertEquals(0, latch.getCount());
+        assertEquals(cnt + cnt/2, invokeCnt.get());
+    }
 }

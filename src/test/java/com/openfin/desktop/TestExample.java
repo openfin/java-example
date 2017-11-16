@@ -1,13 +1,13 @@
 package com.openfin.desktop;
 
-import org.json.JSONObject;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.LinkedHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static junit.framework.Assert.assertEquals;
+import org.json.JSONObject;
+import org.junit.Test;
 
 /**
  * Created by wche on 9/15/2016.

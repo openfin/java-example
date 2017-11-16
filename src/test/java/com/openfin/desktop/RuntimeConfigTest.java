@@ -1,5 +1,14 @@
 package com.openfin.desktop;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.net.Socket;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.AfterClass;
@@ -8,13 +17,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static junit.framework.Assert.assertEquals;
-
 /**
  * Created by richard on 4/1/2016.
  */
@@ -22,18 +24,14 @@ public class RuntimeConfigTest {
     private static Logger logger = LoggerFactory.getLogger(RuntimeConfigTest.class.getName());
 
     private static final String DESKTOP_UUID = RuntimeConfigTest.class.getName();
-    private static DesktopConnection desktopConnection;
     private static RuntimeConfiguration configuration;
     private static String appUUID = UUID.randomUUID().toString();
 
-    @BeforeClass
     public static void setup() throws Exception {
         logger.debug("starting");
-        configuration = getRuntimeConfiguration();
-        desktopConnection = TestUtils.setupConnection(DESKTOP_UUID, configuration);
     }
 
-    private static RuntimeConfiguration getRuntimeConfiguration() {
+    private static RuntimeConfiguration getDefaultRuntimeConfiguration() {
         RuntimeConfiguration configuration = new RuntimeConfiguration();
         configuration.setRuntimeVersion(TestUtils.getRuntimeVersion());
         configuration.setDevToolsPort(9090);
@@ -57,45 +55,19 @@ public class RuntimeConfigTest {
         return configuration;
     }
 
-    @AfterClass
-    public static void teardown() throws Exception {
-        TestUtils.teardownDesktopConnection(desktopConnection);
-    }
-
     @Test
     public void launchFromConfig() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicReference<Boolean> atomicReference = new AtomicReference<>();
-        atomicReference.set(true);
-        // check for startup app
-        Thread waitThread = new Thread() {
-            public void run() {
-                while (atomicReference.get()) {
-                    try {
-                        if (isWindowCreated(appUUID)) {
-                            latch.countDown();
-                            atomicReference.set(false);
-                        } else {
-                            Thread.sleep(1000);
-                        }
-                    } catch (Exception ex) {
-                        logger.error("Error waiting for checking window list", ex);
-                    }
-                }
-            }
-        };
-        waitThread.start();
-
-        latch.await(10, TimeUnit.SECONDS);
-        atomicReference.set(false);
-        assertEquals(latch.getCount(), 0);
+        RuntimeConfiguration configuration = getDefaultRuntimeConfiguration();
+        DesktopConnection conn = TestUtils.setupConnection(DESKTOP_UUID, configuration);
+        assertTrue(isWindowCreated(appUUID, conn));
+        TestUtils.teardownDesktopConnection(conn);
     }
 
-    private boolean isWindowCreated(String uuid) throws Exception {
+    private boolean isWindowCreated(String uuid, DesktopConnection conn) throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<Boolean> atomicReference = new AtomicReference<>();
         atomicReference.set(false);
-        OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
+        OpenFinRuntime runtime = new OpenFinRuntime(conn);
         runtime.getAllWindows(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
@@ -118,6 +90,38 @@ public class RuntimeConfigTest {
         });
         latch.await(5, TimeUnit.SECONDS);
         return atomicReference.get();
+    }
+    
+    private static boolean serverListening(int port)
+    {
+        Socket s = null;
+        try
+        {
+            s = new Socket("localhost", port);
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+        finally
+        {
+            if(s != null)
+                try {s.close();}
+                catch(Exception e){}
+        }
+    }
+    
+    
+    @Test
+    public void setDevToolsPort() throws Exception {
+    	int devPort = 7777;
+    	
+        RuntimeConfiguration configuration = getDefaultRuntimeConfiguration();
+        configuration.setDevToolsPort(devPort);
+        DesktopConnection conn = TestUtils.setupConnection(DESKTOP_UUID, configuration);
+        assertTrue(serverListening(devPort));
+        TestUtils.teardownDesktopConnection(conn);
     }
 }
 
