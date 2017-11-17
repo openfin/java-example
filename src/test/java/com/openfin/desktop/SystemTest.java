@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -462,6 +463,7 @@ public class SystemTest {
         assertEquals("getEnvironmentVariables timeout", latch.getCount(), 0);
     }
 
+    @Ignore
     @Test
     public void deleteCacheOnRestart() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
