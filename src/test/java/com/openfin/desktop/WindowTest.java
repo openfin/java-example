@@ -648,7 +648,7 @@ public class WindowTest {
         
         Window mainWindow = application.getWindow();
         
-        Thread.sleep(1000);
+        Thread.sleep(5000);
         CountDownLatch latch = new CountDownLatch(1);
         mainWindow.executeJavaScript("_preload", result -> {
             if (result != null && result.toString().equals("12345")) {
@@ -656,7 +656,7 @@ public class WindowTest {
             }
         }, null);
         
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(10, TimeUnit.SECONDS);
         assertEquals("execute java script timeout: " + options.getUUID(), 0, latch.getCount());
 
         TestUtils.closeApplication(application);

@@ -110,7 +110,7 @@ public class TestUtils {
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
         RuntimeConfiguration configuration = new RuntimeConfiguration();
         configuration.setRuntimeVersion(runtimeVersion);
-        configuration.setAdditionalRuntimeArguments(" --v=1 --no-sandbox --diagnostics ");  // turn on Chromium debug log
+        configuration.setAdditionalRuntimeArguments(" --v=1 --no-sandbox --enable-crash-reporting ");  // turn on Chromium debug log
         configuration.setDevToolsPort(9090);
         configuration.setRdmURL(rdmUrl);
         configuration.setRuntimeAssetURL(assetsUrl);
