@@ -370,7 +370,7 @@ public class WindowTest {
 
         WindowOptions changedOptions = getOptions(application.getWindow());
 
-        assertEquals(0.5, changedOptions.getOpacity());
+        assertEquals(0.5, changedOptions.getOpacity(), 0);
 
         TestUtils.closeApplication(application);
     }

@@ -152,7 +152,7 @@ public class SystemTest {
     }
 
     @Test
-    public void wrietAndReadLog() throws Exception {
+    public void writeAndReadLog() throws Exception {
         CountDownLatch writeLatch = new CountDownLatch(1);
         String text = UUID.randomUUID().toString();  // text to write
         runtime.log("info", text, new AckListener() {
