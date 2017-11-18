@@ -160,7 +160,7 @@ public class TestUtils {
 
 
     public static void teardownDesktopConnection(DesktopConnection desktopConnection) throws Exception {
-        if (desktopConnection.isConnected()) {
+        if (desktopConnection != null && desktopConnection.isConnected()) {
             connectionClosing = true;
             disconnectedLatch = new CountDownLatch(1);
             new OpenFinRuntime(desktopConnection).exit();
