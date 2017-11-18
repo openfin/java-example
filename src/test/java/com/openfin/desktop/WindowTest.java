@@ -715,7 +715,6 @@ public class WindowTest {
 		CountDownLatch latch = new CountDownLatch(1);
 
 		window.addEventListener("blurred", new EventListener() {
-
 			@Override
 			public void eventReceived(ActionEvent e) {
 				if ("blurred".equals(e.getType())) {
@@ -723,9 +722,22 @@ public class WindowTest {
 				}
 			}
 		}, new AckListener() {
-
 			@Override
 			public void onSuccess(Ack ack) {
+                window.focus(new AckListener() {
+                    @Override
+                    public void onSuccess(Ack ack) {
+                        try {
+                            window.blur();
+                        }
+                        catch (DesktopException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    @Override
+                    public void onError(Ack ack) {
+                    }
+                });
 			}
 
 			@Override
@@ -733,22 +745,6 @@ public class WindowTest {
 			}
 		});
 
-		window.focus(new AckListener() {
-
-			@Override
-			public void onSuccess(Ack ack) {
-				try {
-					window.blur();
-				}
-				catch (DesktopException e) {
-					e.printStackTrace();
-				}
-			}
-
-			@Override
-			public void onError(Ack ack) {
-			}
-		});
 		latch.await(10, TimeUnit.SECONDS);
 		assertEquals("blur test timeout", 0, latch.getCount());
 
