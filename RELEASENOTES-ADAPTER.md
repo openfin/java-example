@@ -1,3 +1,9 @@
+# Version 6.0.1.3
+
+## New Features
+
+* Port discovery support on Mac and Linux with openfin-cli.
+
 # Version 6.0.1.2
 
 ## Bug Fixes
