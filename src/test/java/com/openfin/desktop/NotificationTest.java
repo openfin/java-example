@@ -1,17 +1,17 @@
 package com.openfin.desktop;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
 
 /**
  * Tests for com.openfin.desktop.Notification class
@@ -103,5 +103,72 @@ public class NotificationTest {
         onCloseLatch.await(5, TimeUnit.SECONDS);
         assertEquals(onShowLatch.getCount(), 0);
         assertEquals(onCloseLatch.getCount(), 0);
+    }
+    
+    @Test
+    public void sendMessage() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        NotificationOptions options = new NotificationOptions(notification_url);
+        options.setMessage(new JSONObject("{message: \"JSONMessage\"}"));
+        //options.setMessageText("Notification Text");
+        options.setTimeout(1000);
+        
+        NotificationListener nListener = new NotificationListener() {
+
+			@Override
+			public void onClick(Ack ack) {
+			}
+
+			@Override
+			public void onClose(Ack ack) {
+			}
+
+			@Override
+			public void onDismiss(Ack ack) {
+			}
+
+			@Override
+			public void onError(Ack ack) {
+                logger.error("onError for notification");
+			}
+
+			@Override
+			public void onMessage(Ack ack) {
+                logger.info("onMessage");
+				latch.countDown();
+			}
+
+			@Override
+			public void onShow(Ack ack) {
+			}
+		};
+
+		AckListener ackListener = new AckListener() {
+			@Override
+			public void onSuccess(Ack ack) {
+			}
+
+			@Override
+			public void onError(Ack ack) {
+                logger.error(ack.getReason());
+			}
+		};
+		
+        Notification n = new Notification(options, nListener, desktopConnection, ackListener);
+        n.sendMessage(new JSONObject("{message: \"JSONMessage2\"}"), new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				latch.countDown();
+			}
+
+			@Override
+			public void onError(Ack ack) {
+                logger.error("onError for sendMessage");
+			}
+		});
+        latch.await(10, TimeUnit.SECONDS);
+        assertEquals(0, latch.getCount());
+
     }
 }

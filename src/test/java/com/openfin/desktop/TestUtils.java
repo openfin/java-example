@@ -1,17 +1,16 @@
 package com.openfin.desktop;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utitlites for Junit test code
@@ -111,7 +110,7 @@ public class TestUtils {
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
         RuntimeConfiguration configuration = new RuntimeConfiguration();
         configuration.setRuntimeVersion(runtimeVersion);
-        configuration.setAdditionalRuntimeArguments(" --v=1 --no-sandbox ");  // turn on Chromium debug log
+        configuration.setAdditionalRuntimeArguments(" --v=1 --no-sandbox --enable-crash-reporting ");  // turn on Chromium debug log
         configuration.setDevToolsPort(9090);
         configuration.setRdmURL(rdmUrl);
         configuration.setRuntimeAssetURL(assetsUrl);
@@ -161,7 +160,7 @@ public class TestUtils {
 
 
     public static void teardownDesktopConnection(DesktopConnection desktopConnection) throws Exception {
-        if (desktopConnection.isConnected()) {
+        if (desktopConnection != null && desktopConnection.isConnected()) {
             connectionClosing = true;
             disconnectedLatch = new CountDownLatch(1);
             new OpenFinRuntime(desktopConnection).exit();

@@ -1,20 +1,21 @@
 package com.openfin.desktop;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JUnit tests for com.openfin.desktop.System class
@@ -152,7 +153,7 @@ public class SystemTest {
     }
 
     @Test
-    public void wrietAndReadLog() throws Exception {
+    public void writeAndReadLog() throws Exception {
         CountDownLatch writeLatch = new CountDownLatch(1);
         String text = UUID.randomUUID().toString();  // text to write
         runtime.log("info", text, new AckListener() {
@@ -462,6 +463,7 @@ public class SystemTest {
         assertEquals("getEnvironmentVariables timeout", latch.getCount(), 0);
     }
 
+    @Ignore
     @Test
     public void deleteCacheOnRestart() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);

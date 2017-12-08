@@ -1,12 +1,9 @@
 package com.openfin.desktop;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -15,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -372,7 +370,7 @@ public class WindowTest {
 
         WindowOptions changedOptions = getOptions(application.getWindow());
 
-        assertEquals(0.5, changedOptions.getOpacity());
+        assertEquals(0.5, changedOptions.getOpacity(), 0);
 
         TestUtils.closeApplication(application);
     }
@@ -650,7 +648,7 @@ public class WindowTest {
         
         Window mainWindow = application.getWindow();
         
-        Thread.sleep(1000);
+        Thread.sleep(5000);
         CountDownLatch latch = new CountDownLatch(1);
         mainWindow.executeJavaScript("_preload", result -> {
             if (result != null && result.toString().equals("12345")) {
@@ -658,10 +656,161 @@ public class WindowTest {
             }
         }, null);
         
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(10, TimeUnit.SECONDS);
         assertEquals("execute java script timeout: " + options.getUUID(), 0, latch.getCount());
 
         TestUtils.closeApplication(application);
     }
+    
+    @Test
+    public void maxWidthHeight() throws Exception {
+        ApplicationOptions options = TestUtils.getAppOptions(null);
+        options.getMainWindowOptions().setDefaultWidth(300);
+        options.getMainWindowOptions().setDefaultHeight(300);
+        options.getMainWindowOptions().setMaxWidth(300);
+        options.getMainWindowOptions().setMaxHeight(300);
+        
+        Application application = TestUtils.runApplication(options, desktopConnection);
+        Window window = application.getWindow();
+        CountDownLatch latch = new CountDownLatch(1);
+        window.setBounds(0, 0, 400, 400, new AckListener() {
 
+			@Override
+			public void onSuccess(Ack ack) {
+				window.getBounds(
+						new AsyncCallback<WindowBounds>() {
+							@Override
+							public void onSuccess(WindowBounds result) {
+								if (result.getWidth() == 300 && result.getHeight() == 300) {
+									latch.countDown();
+								}
+							}
+						}, 
+						new AckListener() {
+							@Override
+							public void onSuccess(Ack ack) {
+							}
+							@Override
+							public void onError(Ack ack) {
+							}
+						});
+			}
+
+			@Override
+			public void onError(Ack ack) {
+			}
+        	
+        });
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("maxWidthHeight test timeout", latch.getCount(), 0);
+
+        TestUtils.closeApplication(application);
+    }
+    
+	@Test
+	public void blur() throws Exception {
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		Application application = TestUtils.runApplication(options, desktopConnection);
+		Window window = application.getWindow();
+		CountDownLatch latch = new CountDownLatch(1);
+
+		window.addEventListener("blurred", new EventListener() {
+			@Override
+			public void eventReceived(ActionEvent e) {
+				if ("blurred".equals(e.getType())) {
+					latch.countDown();
+				}
+			}
+		}, new AckListener() {
+			@Override
+			public void onSuccess(Ack ack) {
+                window.focus(new AckListener() {
+                    @Override
+                    public void onSuccess(Ack ack) {
+                        try {
+                            window.blur();
+                        }
+                        catch (DesktopException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    @Override
+                    public void onError(Ack ack) {
+                    }
+                });
+			}
+
+			@Override
+			public void onError(Ack ack) {
+			}
+		});
+
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals("blur test timeout", 0, latch.getCount());
+
+		TestUtils.closeApplication(application);
+	}
+
+	@Ignore
+	@Test
+	public void getSetZoomLevel() throws Exception {
+		double level = -1.5;
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		Application application = TestUtils.runApplication(options, desktopConnection);
+		Window window = application.getWindow();
+		CountDownLatch latch1 = new CountDownLatch(1);
+
+		window.setZoomLevel(level, new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				latch1.countDown();
+			}
+
+			@Override
+			public void onError(Ack ack) {
+				logger.error("error setting zoom level, reason: {}", ack.getReason());
+			}
+		});
+		latch1.await(10, TimeUnit.SECONDS);
+		assertEquals("setZoomLevel test timeout", 0, latch1.getCount());
+		
+		CountDownLatch latch2 =  new CountDownLatch(1); 
+		window.getZoomLevel(new AsyncCallback<Double>() {
+			
+			@Override
+			public void onSuccess(Double zLevel) {
+				if (zLevel.doubleValue() == level) {
+					latch2.countDown();
+				}
+			}
+		}, null);
+		latch2.await(10, TimeUnit.SECONDS);
+		assertEquals("getZoomLevel test timeout", 0, latch2.getCount());
+
+		TestUtils.closeApplication(application);
+	}
+	
+	@Test
+	public void reload() throws Exception {
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		Application application = TestUtils.runApplication(options, desktopConnection);
+		Window window = application.getWindow();
+		CountDownLatch latch = new CountDownLatch(1);
+
+		window.reload(true, new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				latch.countDown();
+			}
+
+			@Override
+			public void onError(Ack ack) {
+				logger.error("error reloading window, reason: {}", ack.getReason());
+			}
+		});
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals("reload test timeout", 0, latch.getCount());
+	}
 }
