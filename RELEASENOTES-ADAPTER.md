@@ -1,8 +1,8 @@
 # Version 6.0.1.3
 
 ## New Features
-
 * Port discovery support on Mac and Linux with openfin-cli.
+* Add support for legacy connecting to Runtime by hard-coded port number
 
 # Version 6.0.1.2
 
