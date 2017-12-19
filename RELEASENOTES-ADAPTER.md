@@ -1,3 +1,8 @@
+# Version 6.0.2.1-SNAPSHOT
+
+## New Features
+* Added Application.registerUser.
+
 # Version 6.0.1.3
 
 ## New Features
