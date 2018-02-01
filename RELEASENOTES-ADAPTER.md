@@ -2,6 +2,7 @@
 
 ## New Features
 * Added Application.registerUser.
+* Upgrade JNA library to 4.5.1
 
 # Version 6.0.1.3
 
