@@ -264,6 +264,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 mainWindowOptions.setSaveWindowState(false);  // set to false so all windows start at same initial positions for each run
                 mainWindowOptions.setFrame(false);
                 mainWindowOptions.setContextMenu(true);
+                mainWindowOptions.setResizeRegionSize(0);        // need this to turn off resize region for embedded (child) window
                 options.setMainWindowOptions(mainWindowOptions);
                 DemoUtils.runApplication(options, this.desktopConnection,  new AckListener() {
                     @Override
