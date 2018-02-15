@@ -1,8 +1,14 @@
-# Version 6.0.2.1-SNAPSHOT
+
+# Version 6.0.2.2-SNAPSHOT
+
+## New Features
+* Improved thread safety with concurrent collection classes.
+
+# Version 6.0.2.1
 
 ## New Features
 * Added Application.registerUser.
-* Upgrade JNA library to 4.5.1
+* Upgrade JNA library to 4.5.1.
 
 # Version 6.0.1.3
 

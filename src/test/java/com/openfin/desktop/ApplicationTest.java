@@ -532,8 +532,7 @@ public class ApplicationTest {
 		assertEquals(0, latch.getCount());
 	}
 
-	@Ignore
-	@Test 
+	@Test
 	public void registerUser() throws Exception {
 		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
 		final CountDownLatch latch = new CountDownLatch(1);
