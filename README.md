@@ -1,7 +1,10 @@
-# java-example
-Examples for OpenFin Java adapter
+# Java Adapter Example
 
-## Run the example of connecting to OpenFin and creating applications
+## Overview
+The following repo contains examples for OpenFin's Java adapter.
+
+## Guidelines
+Run the example of connecting to OpenFin and creating applications
 
 1. Clone this repository
 
@@ -133,9 +136,12 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 Once the demo is running, Windows snap while being draggted close to other windows.  Snapped windows dock on mounse release. 
 
 ## More Info
-
 More information and API documentation can be found at https://openfin.co/java-api/
 
-## Getting help
+## Disclaimers
+* This is a starter example and intended to demonstrate to app providers a sample of how to approach an implementation. There are potentially other ways to approach it and alternatives could be considered. 
+* Its possible that the repo is not actively maintained.
 
-Please contact support@openfin.co
+## Support
+Please enter an issue in the repo for any questions or problems. 
+<br> Alternatively, please contact us at support@openfin.co
