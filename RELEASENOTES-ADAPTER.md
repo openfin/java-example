@@ -1,8 +1,23 @@
+
+# Version 6.0.2.2-SNAPSHOT
+
+## New Features
+* Improved thread safety with concurrent collection classes.
+
+## Bug Fixes
+* Fixed an issue with passing arguments in System.launchExternalProcess
+
+# Version 6.0.2.1
+
+## New Features
+* Added Application.registerUser.
+* Upgrade JNA library to 4.5.1.
+
 # Version 6.0.1.3
 
 ## New Features
-
 * Port discovery support on Mac and Linux with openfin-cli.
+* Add support for legacy connecting to Runtime by hard-coded port number
 
 # Version 6.0.1.2
 

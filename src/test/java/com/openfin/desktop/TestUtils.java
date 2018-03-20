@@ -114,6 +114,7 @@ public class TestUtils {
         configuration.setDevToolsPort(9090);
         configuration.setRdmURL(rdmUrl);
         configuration.setRuntimeAssetURL(assetsUrl);
+        configuration.setLicenseKey("JavaAdapterJUnitTests");
         desktopConnection.connect(configuration, new DesktopStateListener() {
             @Override
             public void onReady() {

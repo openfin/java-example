@@ -531,15 +531,12 @@ public class ApplicationTest {
 
 		assertEquals(0, latch.getCount());
 	}
-	
-	@Test 
-	public void registerCustomData() throws Exception {
+
+	@Test
+	public void registerUser() throws Exception {
 		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
 		final CountDownLatch latch = new CountDownLatch(1);
-		JSONObject data = new JSONObject();
-		data.put("userId", "myUserId");
-		data.put("organization", "myOrganizationId");
-		application.registerCustomData(data, new AckListener() {
+		application.registerUser("MyUser", "MyApp", new AckListener() {
 					@Override
 					public void onSuccess(Ack ack) {
 						logger.info("registered custom data");
@@ -548,7 +545,7 @@ public class ApplicationTest {
 
 					@Override
 					public void onError(Ack ack) {
-						logger.info("error registering custom data: {}", ack.getReason());
+						logger.info("error registering user: {}", ack.getReason());
 					}
 				});
 

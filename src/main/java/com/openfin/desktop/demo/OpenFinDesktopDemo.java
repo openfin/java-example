@@ -527,8 +527,10 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
         try {
             if (this.desktopPort > 0) {
+                this.runtimeConfiguration.setRuntimePort(9696);
                 updateMessagePanel("Connecting to Runtime already running at port " + this.desktopPort);
-                desktopConnection.connect(listener);
+                this.runtimeConfiguration.setMaxMessageSize(1024*1024);
+                desktopConnection.connect(this.runtimeConfiguration, listener, 10);
             } else {
                 updateMessagePanel("Connecting to version " + this.runtimeConfiguration.getRuntimeVersion());
                 desktopConnection.connect(this.runtimeConfiguration, listener, 10);
@@ -620,6 +622,22 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void testRoundedCorners() {
+        ApplicationOptions opts = appOptionsList.get(0);
+        OpenFinRuntime runtime = new OpenFinRuntime(this.desktopConnection);
+        try {
+            runtime.showDeveloperTools(opts.getUUID(), opts.getUUID(), null);
+
+            Window w = Window.wrap(opts.getUUID(), opts.getUUID(), this.desktopConnection);
+            WindowOptions wopts = new WindowOptions();
+            wopts.setAutoShow(true);
+            wopts.setContextMenu(true);
+            w.updateOptions(wopts, null);
+
+        } catch (DesktopException e) {
+            e.printStackTrace();
+        }
+    }
+    private void testRoundedCorners2() {
         this.selectedApplication.getWindow().getOptions(new AsyncCallback<WindowOptions>() {
             @Override
             public void onSuccess(WindowOptions result) {
@@ -683,6 +701,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void createApplication(final ApplicationOptions options) {
+        options.getMainWindowOptions().setContextMenu(false);
         Application app = new Application(options, desktopConnection, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
