@@ -1,8 +1,9 @@
 
-# Version 6.0.2.2-SNAPSHOT
+# Version 7.0.1-SNAPSHOT
 
 ## New Features
 * Improved thread safety with concurrent collection classes.
+* Added error message to DesktopStateListener.onClose (breaking change)
 
 ## Bug Fixes
 * Fixed an issue with passing arguments in System.launchExternalProcess

@@ -216,7 +216,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
                 }
 
                 @Override
-                public void onClose() {
+                public void onClose(String error) {
                 }
 
                 @Override

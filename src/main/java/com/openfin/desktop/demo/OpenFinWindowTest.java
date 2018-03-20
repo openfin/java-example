@@ -77,7 +77,7 @@ public class OpenFinWindowTest {
             }
 
             @Override
-            public void onClose() {
+            public void onClose(String error) {
                 printf("Connection to Runtime is closed");
             }
 

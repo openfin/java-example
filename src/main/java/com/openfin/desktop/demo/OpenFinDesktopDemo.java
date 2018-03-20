@@ -500,8 +500,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             }
 
             @Override
-            public void onClose() {
-                updateMessagePanel("Connection closed");
+            public void onClose(String error) {
+                updateMessagePanel(String.format("Connection closed %s", error));
                 resetUI();
             }
 

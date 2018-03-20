@@ -227,7 +227,7 @@ public class FxDemo extends Application implements DesktopStateListener {
     }
 
     @Override
-    public void onClose() {
+    public void onClose(String error) {
         logger.info("Disconnected from OpenFin Runtime");
         btnStart.setDisable(false);
         btnStop.setDisable(true);

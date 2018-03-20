@@ -31,7 +31,7 @@ public class ExternalMessageDemo {
             }
 
             @Override
-            public void onClose() {
+            public void onClose(String error) {
                 System.out.println("Connection closed");
             }
 

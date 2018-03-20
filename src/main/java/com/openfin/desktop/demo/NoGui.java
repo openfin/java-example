@@ -57,7 +57,7 @@ public class NoGui {
                 }
 
                 @Override
-                public void onClose() {
+                public void onClose(String error) {
                     System.out.println("Main.onClose");
                 }
 
