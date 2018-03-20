@@ -4,6 +4,9 @@
 ## New Features
 * Improved thread safety with concurrent collection classes.
 
+## Bug Fixes
+* Fixed an issue with passing arguments in System.launchExternalProcess
+
 # Version 6.0.2.1
 
 ## New Features
