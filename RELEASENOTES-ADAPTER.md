@@ -4,6 +4,8 @@
 ## New Features
 * Improved thread safety with concurrent collection classes.
 * Added error message to DesktopStateListener.onClose (breaking change)
+* Added OpenFinRuntime.getRuntimeInfo
+* Added OpenFinRuntime.getRvmInfo
 
 ## Bug Fixes
 * Fixed an issue with passing arguments in System.launchExternalProcess

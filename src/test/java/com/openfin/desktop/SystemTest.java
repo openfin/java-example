@@ -541,5 +541,51 @@ public class SystemTest {
 
     }
 
+    @Test
+    public void getRuntimeInfo() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        runtime.getRuntimeInfo(new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    // { "manifestUrl":"http://localhost:5090/getManifest","port":9696,"version":"8.56.30.37","architecture":"x64"}
+                    JSONObject data = (JSONObject) ack.getData();
+                    if (data.has("manifestUrl") && data.has("port") && data.has("version")) {
+                        latch.countDown();
+                    }
+                }
+            }
+
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("getRuntimeInfo timeout", latch.getCount(), 0);
+    }
+
+    @Test
+    public void getRvmInfo() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        runtime.getRvmInfo(new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    // { "action":"get-rvm-info","path":"C:\\Users\\abc\\AppData\\Local\\OpenFin\\OpenFinRVM.exe","start-time":"2018-04-12 14:01:41","version":"4.0.1.1","working-dir":"C:\\Users\\abc\\AppData\\Local\\OpenFin"}
+                    JSONObject data = (JSONObject) ack.getData();
+                    if (data.has("action") && data.has("path") && data.has("start-time")) {
+                        latch.countDown();
+                    }
+                }
+            }
+
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals("getRvmInfo timeout", latch.getCount(), 0);
+    }
+
 
 }
