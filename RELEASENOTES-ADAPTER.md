@@ -34,7 +34,7 @@
 * Add browser-style navigation to Window class
 * Add support for fallbackVersion of Runtime
 * Add support for non-persistent connections to Runtime
-* Improve suppot for app assets
+* Improve support for app assets
 
 ## Bug Fixes
 * Fixed an issue with loop of re-connecting to Runtime
