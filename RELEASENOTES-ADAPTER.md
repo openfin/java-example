@@ -1,5 +1,5 @@
 
-# Version 7.0.1-SNAPSHOT
+# Version 7.0.1
 
 ## New Features
 * Improved thread safety with concurrent collection classes.
