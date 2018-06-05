@@ -3,6 +3,10 @@ package com.openfin.desktop.demo;
 import com.openfin.desktop.*;
 import com.openfin.desktop.Window;
 import com.sun.javafx.tk.TKStage;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -28,6 +32,7 @@ import java.lang.reflect.Method;
 
 public class FxDemo extends Application implements DesktopStateListener {
     private final static Logger logger = LoggerFactory.getLogger(FxDemo.class.getName());
+    private final static String WINDOW_TITLE = "FX Demo";
 
     private DesktopConnection desktopConnection;
     private Button btnStart, btnStop;
@@ -92,7 +97,7 @@ public class FxDemo extends Application implements DesktopStateListener {
         Scene scene = new Scene(anchorPane, 800, 800);
 
         //Setting title to the Stage
-        stage.setTitle("FX Demo");
+        stage.setTitle(WINDOW_TITLE);
 
         //Adding scene to the stage
         stage.setScene(scene);
@@ -203,14 +208,8 @@ public class FxDemo extends Application implements DesktopStateListener {
     private long getWindowHandle(Stage stage) {
         long handle = -1;
         try {
-            TKStage tkStage = stage.impl_getPeer();
-            Method getPlatformWindow = tkStage.getClass().getDeclaredMethod("getPlatformWindow" );
-            getPlatformWindow.setAccessible(true);
-            Object platformWindow = getPlatformWindow.invoke(tkStage);
-            Method getNativeHandle = platformWindow.getClass().getMethod( "getNativeHandle" );
-            getNativeHandle.setAccessible(true);
-            Object nativeHandle = getNativeHandle.invoke(platformWindow);
-            handle = (Long) nativeHandle;
+        	WinDef.HWND hWnd = User32.INSTANCE.FindWindow(null, WINDOW_TITLE);
+        	handle = Pointer.nativeValue(hWnd.getPointer());
         } catch (Throwable e) {
             logger.error("Error getting Window Pointer", e);
         }
