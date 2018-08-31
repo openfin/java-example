@@ -141,7 +141,7 @@ public class DemoUtils {
         if (ackListener != null) {
             JSONObject obj = new JSONObject();
             obj.put("reason", reason);
-            ackListener.onError(new Ack(obj, null));
+            ackListener.onError(new Ack(obj, ackListener));
         }
     }
 

@@ -86,8 +86,7 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         embedCanvas = new java.awt.Canvas();
         panel.add(embedCanvas, BorderLayout.CENTER);
 
-        panel.add(embedCanvas, BorderLayout.CENTER);
-        panel.addComponentListener(new ComponentAdapter() {
+        embedCanvas.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent event) {
                 super.componentResized(event);
@@ -141,7 +140,20 @@ public class WindowEmbedDemo extends JPanel implements ActionListener, WindowLis
         jFrame.setVisible(true);
     }
 
+    private void closeEmbeddedApp() {
+        if (this.startupHtml5app != null) {
+            try {
+                this.startupHtml5app.close();
+                this.startupHtml5app = null;
+            } catch (DesktopException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
     private void closeDesktop() {
+        this.closeEmbeddedApp();
+        
         if (desktopConnection != null && desktopConnection.isConnected()) {
             try {
 //                new com.openfin.desktop.System(desktopConnection).exit();
