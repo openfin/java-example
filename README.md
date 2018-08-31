@@ -148,11 +148,14 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 1. create a canvas and place it where the HTML5 application should be embedded.
 
+```java
 	embedCanvas = new java.awt.Canvas();
 	panel.add(embedCanvas, BorderLayout.CENTER);
+```
 
 2. listen to the canvas resize event, and resize embedded HTML5 application accordingly.
 
+```java
 	embedCanvas.addComponentListener(new ComponentAdapter() {
 	    @Override
 	    public void componentResized(ComponentEvent event) {
@@ -167,29 +170,35 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 	        }
 	    }
 	});
+```
 
 3. launch and connect to OpenFin runtime 
 
+```java
 	this.desktopConnection = new DesktopConnection(appUuid);
 	DesktopStateListener listener = new DesktopStateListener() {...};
 	RuntimeConfiguration configuration = new RuntimeConfiguration();
 	configuration.setRuntimeVersion(desktopVersion);
 	desktopConnection.connect(configuration, listener, 60);
+```
 
 4. create HTML5 application
 
+```java
 	ApplicationOptions options = new ApplicationOptions(startupUuid, startupUuid, openfin_app_url);
 	WindowOptions mainWindowOptions = new WindowOptions();
 	options.setMainWindowOptions(mainWindowOptions);
 	DemoUtils.runApplication(options, this.desktopConnection, new AckListener() {...});
+```
 
 5. embed HTML5 application into the canvas
 
+```java
 	startupHtml5app = Application.wrap(this.startupUuid, this.desktopConnection);
 	Window html5Wnd = startupHtml5app.getWindow();
 	long parentHWndId = Native.getComponentID(this.embedCanvas);
 	html5Wnd.embedInto(parentHWndId, this.embedCanvas.getWidth(), this.embedCanvas.getHeight(), new AckListener() {...});
-
+```
 
 ## More Info
 
