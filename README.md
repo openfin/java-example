@@ -132,6 +132,65 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 Once the demo is running, Windows snap while being draggted close to other windows.  Snapped windows dock on mounse release. 
 
+## Run the example of embedding HTML5 application into a Java Swing window
+
+1. Clone this repository
+
+2. Go to release directory and start embed.bat
+
+3. Once the java app starts, click on "Launch OpenFin" button, which should start OpenFin Runtime and embed the OpenFin application that points to https://openfin.co
+
+4. Click "Shutdown OpenFin" button to close HTML5 application and the Java Swing window
+
+## Source Code Review for embedded OpenFin application
+
+Source code for the example is located in /src/main/java/com/openfin/desktop/demo/WindowEmbedDemo.java
+
+1. create a canvas and place it where the HTML5 application should be embedded.
+
+	embedCanvas = new java.awt.Canvas();
+	panel.add(embedCanvas, BorderLayout.CENTER);
+
+2. listen to the canvas resize event, and resize embedded HTML5 application accordingly.
+
+	embedCanvas.addComponentListener(new ComponentAdapter() {
+	    @Override
+	    public void componentResized(ComponentEvent event) {
+	        super.componentResized(event);
+	        Dimension newSize = event.getComponent().getSize();
+	        try {
+	            if (startupHtml5app != null) {
+	                startupHtml5app.getWindow().embedComponentSizeChange((int)newSize.getWidth(), (int)newSize.getHeight());
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	});
+
+3. launch and connect to OpenFin runtime 
+
+	this.desktopConnection = new DesktopConnection(appUuid);
+	DesktopStateListener listener = new DesktopStateListener() {...};
+	RuntimeConfiguration configuration = new RuntimeConfiguration();
+	configuration.setRuntimeVersion(desktopVersion);
+	desktopConnection.connect(configuration, listener, 60);
+
+4. create HTML5 application
+
+	ApplicationOptions options = new ApplicationOptions(startupUuid, startupUuid, openfin_app_url);
+	WindowOptions mainWindowOptions = new WindowOptions();
+	options.setMainWindowOptions(mainWindowOptions);
+	DemoUtils.runApplication(options, this.desktopConnection, new AckListener() {...});
+
+5. embed HTML5 application into the canvas
+
+	startupHtml5app = Application.wrap(this.startupUuid, this.desktopConnection);
+	Window html5Wnd = startupHtml5app.getWindow();
+	long parentHWndId = Native.getComponentID(this.embedCanvas);
+	html5Wnd.embedInto(parentHWndId, this.embedCanvas.getWidth(), this.embedCanvas.getHeight(), new AckListener() {...});
+
+
 ## More Info
 
 More information and API documentation can be found at https://openfin.co/java-api/
