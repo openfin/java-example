@@ -31,7 +31,7 @@ public class JNLPExample extends JFrame {
         }
 
         @Override
-        public void onClose() {
+        public void onClose(String error) {
             java.lang.System.out.println("Connection closed");
         }
 

@@ -106,7 +106,7 @@ public class DockingDemo2 extends JPanel implements ActionListener, WindowListen
                 }
 
                 @Override
-                public void onClose() {
+                public void onClose(String error) {
                 }
                 @Override
                 public void onError(String reason) {

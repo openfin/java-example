@@ -216,7 +216,7 @@ public class TVBEmbedDemo extends JPanel implements ActionListener, WindowListen
                 }
 
                 @Override
-                public void onClose() {
+                public void onClose(String error) {
                 }
 
                 @Override

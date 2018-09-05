@@ -500,8 +500,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             }
 
             @Override
-            public void onClose() {
-                updateMessagePanel("Connection closed");
+            public void onClose(String error) {
+                updateMessagePanel(String.format("Connection closed %s", error));
                 resetUI();
             }
 
@@ -527,7 +527,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
         try {
             if (this.desktopPort > 0) {
-                this.runtimeConfiguration.setRuntimePort(9696);
+                this.runtimeConfiguration.setRuntimePort(this.desktopPort);
                 updateMessagePanel("Connecting to Runtime already running at port " + this.desktopPort);
                 this.runtimeConfiguration.setMaxMessageSize(1024*1024);
                 desktopConnection.connect(this.runtimeConfiguration, listener, 10);

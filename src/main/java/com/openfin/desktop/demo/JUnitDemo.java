@@ -67,7 +67,7 @@ public class JUnitDemo {
             }
 
             @Override
-            public void onClose() {
+            public void onClose(String error) {
                 printf("Connection to Runtime closed");
             }
 

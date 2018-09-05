@@ -33,7 +33,7 @@ public class TestExample {
                 publishMessages();
             }
             @Override
-            public void onClose() {
+            public void onClose(String error) {
             }
 
             @Override

@@ -61,7 +61,7 @@ public class TestUtils {
                 connectedLatch.countDown();
             }
             @Override
-            public void onClose() {
+            public void onClose(String error) {
                 logger.debug("Connection closed");
                 disconnectedLatch.countDown();
             }
@@ -123,7 +123,7 @@ public class TestUtils {
                 connectedLatch.countDown();
             }
             @Override
-            public void onClose() {
+            public void onClose(String error) {
                 logger.debug("Connection closed");
                 disconnectedLatch.countDown();
                 connectedLatch.countDown();  // interrupt connectedLatch.await

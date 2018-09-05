@@ -164,7 +164,7 @@ public class PubSubTest {
         }
 
         @Override
-        public void onClose() {
+        public void onClose(String error) {
             logger.info("onClose");
         }
 
@@ -246,7 +246,7 @@ public class PubSubTest {
         }
 
         @Override
-        public void onClose() {
+        public void onClose(String error) {
 
         }
 

@@ -1,7 +1,15 @@
+# Version 7.0.2
 
-# Version 6.0.2.2-SNAPSHOT
+## Bug Fixes
+* Fixed an issue with setting timeout if RuntimeConfiguration.setRuntimePort is called.
+
+# Version 7.0.1
 
 ## New Features
+* Improved thread safety with concurrent collection classes.
+* Added error message to DesktopStateListener.onClose (breaking change)
+* Added OpenFinRuntime.getRuntimeInfo
+* Added OpenFinRuntime.getRvmInfo
 * Improved thread safety with concurrent collection classes.
 
 ## Bug Fixes
@@ -31,7 +39,7 @@
 * Add browser-style navigation to Window class
 * Add support for fallbackVersion of Runtime
 * Add support for non-persistent connections to Runtime
-* Improve suppot for app assets
+* Improve support for app assets
 
 ## Bug Fixes
 * Fixed an issue with loop of re-connecting to Runtime
