@@ -1,3 +1,7 @@
+# Version 7.0.2
+
+## Bug Fixes
+* Fixed an issue with setting timeout if RuntimeConfiguration.setRuntimePort is called.
 
 # Version 7.0.1
 
