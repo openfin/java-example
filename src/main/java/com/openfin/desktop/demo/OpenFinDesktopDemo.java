@@ -530,10 +530,10 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 this.runtimeConfiguration.setRuntimePort(this.desktopPort);
                 updateMessagePanel("Connecting to Runtime already running at port " + this.desktopPort);
                 this.runtimeConfiguration.setMaxMessageSize(1024*1024);
-                desktopConnection.connect(this.runtimeConfiguration, listener, 10);
+                desktopConnection.connect(this.runtimeConfiguration, listener, 20);
             } else {
                 updateMessagePanel("Connecting to version " + this.runtimeConfiguration.getRuntimeVersion());
-                desktopConnection.connect(this.runtimeConfiguration, listener, 10);
+                desktopConnection.connect(this.runtimeConfiguration, listener, 20);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
