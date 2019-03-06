@@ -61,7 +61,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     protected JButton largerButton, smallerButton, upButton, downButton, rightButton, leftButton;
 
     protected JButton createApplication;
-    protected JButton createRfq;
+    protected JButton createNotification;
 
     protected JList activeApplications;
     protected java.util.List<ApplicationOptions> appOptionsList;
@@ -195,17 +195,17 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         createApplication = new JButton("Create Application");
         createApplication.setActionCommand("create-application");
 
-        createRfq = new JButton("Create RFQ");
-        createRfq.setActionCommand("create-rfq");
+        createNotification = new JButton("Create Notification");
+        createNotification.setActionCommand("create-notification");
 
         close.addActionListener(this);
         launch.addActionListener(this);
         createApplication.addActionListener(this);
-        createRfq.addActionListener(this);
+        createNotification.addActionListener(this);
 
         buttonPanel.add(topPanel, "0,0");
         buttonPanel.add(createApplication, "0,1");
-//        buttonPanel.add(createRfq, "0,2");
+        buttonPanel.add(createNotification, "0,2");
         return buttonPanel;
     }
 
@@ -552,6 +552,8 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 if (options != null) {
                     createApplication(options);
                 }
+            } else if ("create-notification".equals(e.getActionCommand())) {
+                createNotification();
             } else if ("minimize".equals(e.getActionCommand())) {
                 if (this.selectedApplication != null) {
                     this.selectedApplication.getWindow().minimize();
@@ -606,6 +608,47 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         }catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void createNotification() throws Exception {
+        NotificationOptions options = new NotificationOptions("http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/views/notification.html");
+        options.setTimeout(5000);
+        options.setMessageText("Unit test for notification");
+        new Notification(options, new NotificationListener() {
+            @Override
+            public void onClick(Ack ack) {
+                logger.debug("onClick for notification");
+            }
+            @Override
+            public void onClose(Ack ack) {
+                logger.debug("onClose for notification");
+            }
+            @Override
+            public void onDismiss(Ack ack) {
+                logger.debug("onDismiss for notification");
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error("onError for notification");
+            }
+            @Override
+            public void onMessage(Ack ack) {
+                logger.debug("onMessage for notification");
+            }
+            @Override
+            public void onShow(Ack ack) {
+                // Known issue: this event is not being fired.
+                // logger.debug("onShow for notification");
+            }
+        }, desktopConnection, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(ack.getReason());
+            }
+        });
     }
 
     private void testOpacity() {
@@ -686,7 +729,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         close.setEnabled(enabled);
 
         createApplication.setEnabled(enabled);
-        createRfq.setEnabled(enabled);
+        createNotification.setEnabled(enabled);
 
     }
 
@@ -701,7 +744,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void createApplication(final ApplicationOptions options) {
-        options.getMainWindowOptions().setContextMenu(false);
+        options.getMainWindowOptions().setContextMenu(true);
         Application app = new Application(options, desktopConnection, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
