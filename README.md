@@ -104,7 +104,7 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 ## Source Code Review for docking windows
 
-Source code for the example is located in /src/main/java/com/openfin/desktop/demo/OpenFinDockingDemo.java.  This example uses Snap&Dock library from https://github.com/openfin/java-snap-and-dock
+Source code for the example is located in /src/main/java/com/openfin/desktop/demo/OpenFinDockingDemo.java.  
 
 1. Create connection object:
 
@@ -236,7 +236,12 @@ More information and API documentation can be found at https://openfin.co/java-a
 ## License
 MIT
 
-The code in this repository is covered by the included license.  If you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are subject to OpenFin’s [Developer License](https://openfin.co/developer-agreement/). If you have questions, please contact support@openfin.co
+The code in this repository is covered by the included license.
+
+However, if you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are covered by OpenFin’s Developer, Community, and Enterprise licenses. You can learn more about OpenFin licensing at the links listed below or just email us at support@openfin.co with questions.
+
+https://openfin.co/developer-agreement/ <br/>
+https://openfin.co/licensing/
 
 ## Support
 Please enter an issue in the repo for any questions or problems. 
