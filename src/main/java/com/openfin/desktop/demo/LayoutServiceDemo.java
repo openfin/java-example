@@ -44,7 +44,6 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	private JButton btnCreateOpenfinWindow;
 	private JButton btnCreateJavaWindow;
 	private Application application;
-	private ChannelClient channelClient;
 
 	LayoutServiceDemo() {
 		try {
@@ -68,17 +67,6 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 						@Override
 						public void onSuccess(Ack ack) {
-							if (channelClient != null) {
-								desktopConnection.getChannel().disconnect(channelClient, new AckListener() {
-									@Override
-									public void onSuccess(Ack ack) {
-									}
-
-									@Override
-									public void onError(Ack ack) {
-									}
-								});
-							}
 							mainWindow.dispose();
 							try {
 								desktopConnection.disconnect();
