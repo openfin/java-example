@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -38,6 +40,7 @@ import com.openfin.desktop.win32.ExternalWindowObserver;
 public class LayoutServiceDemo implements DesktopStateListener {
 
 	private final static String appUuid = "layoutServiceDemo";
+	private final static String javaConnectUuid = "layoutServiceDemoJava";
 
 	private DesktopConnection desktopConnection;
 	private CountDownLatch latch = new CountDownLatch(1);
@@ -46,7 +49,8 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	private JButton btnCreateJavaWindow;
 	private Application application;
 
-	JSONArray serviceConfig = new JSONArray();
+	private JSONArray serviceConfig = new JSONArray();
+	private List<ExternalWindowObserver> observers = new ArrayList<>();
 
 	LayoutServiceDemo() {
 		try {
@@ -66,26 +70,18 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			@Override
 			public void windowClosing(WindowEvent we) {
 				try {
-					application.close(true, new AckListener() {
-
-						@Override
-						public void onSuccess(Ack ack) {
-							mainWindow.dispose();
-							try {
-								desktopConnection.disconnect();
-							}
-							catch (DesktopException e) {
-								e.printStackTrace();
-							}
-						}
-
-						@Override
-						public void onError(Ack ack) {
+					observers.forEach((o) -> {
+						try {
+							o.dispose();
+						} catch (DesktopException e) {
+							e.printStackTrace();
 						}
 					});
-
+					application.close();
+					Thread.sleep(2000);
+		            java.lang.System.exit(0);
 				}
-				catch (DesktopException de) {
+				catch (Exception de) {
 					de.printStackTrace();
 				}
 			}
@@ -145,7 +141,14 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		serviceConfig.put(0, layout);
 		config.addConfigurationItem("services", serviceConfig);
 
-		this.desktopConnection = new DesktopConnection("LayoutServiceDemo");
+		JSONObject startupApp = new JSONObject();
+		startupApp.put("uuid", appUuid);
+		startupApp.put("name", appUuid);
+		startupApp.put("url", "about:blank");
+		startupApp.put("autoShow", false);
+		config.setStartupApp(startupApp);
+
+		this.desktopConnection = new DesktopConnection(javaConnectUuid);
 		this.desktopConnection.connect(config, this, 60);
 		latch.await();
 	}
@@ -190,7 +193,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		f.setLocationRelativeTo(null);
 		f.setVisible(true);
 
-		new ExternalWindowObserver(this.desktopConnection.getPort(), appUuid, windowName, f, new AckListener() {
+		ExternalWindowObserver observer = new ExternalWindowObserver(this.desktopConnection.getPort(), appUuid, windowName, f, new AckListener() {
 			@Override
 			public void onSuccess(Ack ack) {
 				ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
@@ -216,6 +219,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 				System.out.println(windowName + ": unable to register external window, " + ack.getReason());
 			}
 		});
+		this.observers.add(observer);
 	}
 
 	void createOpenfinWindow() {
@@ -244,17 +248,22 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	@Override
 	public void onReady() {
-		createApplication(appUuid, appUuid, "about:blank", new AckListener() {
-			@Override
-			public void onSuccess(Ack ack) {
-			}
 
-			@Override
-			public void onError(Ack ack) {
-				System.out.println("error creating applicaton: " + ack.getReason());
-			}
+		this.application = Application.wrap(appUuid, this.desktopConnection);
+		btnCreateOpenfinWindow.setEnabled(true);
+		btnCreateJavaWindow.setEnabled(true);
 
-		});
+//		createApplication(appUuid, appUuid, "about:blank", new AckListener() {
+//			@Override
+//			public void onSuccess(Ack ack) {
+//			}
+//
+//			@Override
+//			public void onError(Ack ack) {
+//				System.out.println("error creating applicaton: " + ack.getReason());
+//			}
+//
+//		});
 	}
 
 	@Override
