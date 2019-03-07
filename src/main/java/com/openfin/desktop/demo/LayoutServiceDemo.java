@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.openfin.desktop.Ack;
@@ -44,6 +45,8 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	private JButton btnCreateOpenfinWindow;
 	private JButton btnCreateJavaWindow;
 	private Application application;
+
+	JSONArray serviceConfig = new JSONArray();
 
 	LayoutServiceDemo() {
 		try {
@@ -129,8 +132,19 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	void launchOpenfin() throws DesktopException, DesktopIOException, IOException, InterruptedException {
 		RuntimeConfiguration config = new RuntimeConfiguration();
 		config.setRuntimeVersion("stable");
-		config.setAdditionalRuntimeArguments("--v=1");
-		config.addService("layouts", "https://cdn.openfin.co/services/openfin/layouts/app.json");
+		config.setAdditionalRuntimeArguments("--v=1 --remote-debugging-port=9090 ");
+		serviceConfig = new JSONArray();
+		JSONObject layout = new JSONObject();
+		layout.put("name", "layouts");
+		JSONObject scfg = new JSONObject();
+		JSONObject sfeatures = new JSONObject();
+		sfeatures.put("dock", true);
+		sfeatures.put("tab", false);
+		scfg.put("features", sfeatures);
+		layout.put("config", scfg);
+		serviceConfig.put(0, layout);
+		config.addConfigurationItem("services", serviceConfig);
+
 		this.desktopConnection = new DesktopConnection("LayoutServiceDemo");
 		this.desktopConnection.connect(config, this, 60);
 		latch.await();
@@ -141,6 +155,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		WindowOptions mainWindowOptions = new WindowOptions();
 		mainWindowOptions.setAutoShow(false);
 		appOpt.setMainWindowOptions(mainWindowOptions);
+		appOpt.put("services", serviceConfig);
 
 		this.application = new Application(appOpt, this.desktopConnection, new AckListener() {
 			@Override
@@ -210,7 +225,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			winOpts.setDefaultHeight(480);
 			winOpts.setDefaultWidth(640);
 			winOpts.setName(UUID.randomUUID().toString());
-			winOpts.setUrl("https://www.google.com");
+			winOpts.setUrl("https://openfin.co");
 			application.createChildWindow(winOpts, new AckListener() {
 				@Override
 				public void onSuccess(Ack ack) {
