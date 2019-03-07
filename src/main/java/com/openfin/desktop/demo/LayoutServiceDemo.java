@@ -126,8 +126,9 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		pnl.add(btnCreateOpenfinWindow);
 		pnl.add(btnCreateJavaWindow);
-		
-		contentPnl.add(new JLabel("Undock Openfin windows with global hotkey (CTRL+SHIFT+U or CMD+SHIFT+U)"), BorderLayout.NORTH);
+
+		contentPnl.add(new JLabel("Undock Openfin windows with global hotkey (CTRL+SHIFT+U or CMD+SHIFT+U)"),
+				BorderLayout.NORTH);
 		contentPnl.add(pnl, BorderLayout.CENTER);
 
 		this.mainWindow.getContentPane().add(contentPnl);
@@ -151,8 +152,6 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		ApplicationOptions appOpt = new ApplicationOptions(name, uuid, url);
 		WindowOptions mainWindowOptions = new WindowOptions();
 		mainWindowOptions.setAutoShow(false);
-		mainWindowOptions.setDefaultHeight(480);
-		mainWindowOptions.setDefaultWidth(640);
 		appOpt.setMainWindowOptions(mainWindowOptions);
 
 		this.application = new Application(appOpt, this.desktopConnection, new AckListener() {
@@ -177,7 +176,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	void createJavaWindow(String windowName) throws DesktopException {
 		final JButton btnUndock = new JButton("undock");
-		
+
 		JFrame f = new JFrame();
 		f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		f.setPreferredSize(new Dimension(640, 480));
@@ -187,24 +186,26 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		f.pack();
 		f.setLocationRelativeTo(null);
 		f.setVisible(true);
-		
+
 		new ExternalWindowObserver(this.desktopConnection.getPort(), appUuid, windowName, f, new AckListener() {
 			@Override
 			public void onSuccess(Ack ack) {
-				System.out.println(windowName + ": java window observered");
 				ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-				observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1", new AsyncCallback<ChannelClient>() {
-					@Override
-					public void onSuccess(ChannelClient client) {
-						btnUndock.addActionListener(new ActionListener() {
+				observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
+						new AsyncCallback<ChannelClient>() {
 							@Override
-							public void actionPerformed(ActionEvent e) {
-								JSONObject payload = new JSONObject();
-								payload.put("uuid", appUuid);
-								payload.put("name", windowName);
-								client.dispatch("UNDOCK-WINDOW", payload, null);
-							}});
-					}});
+							public void onSuccess(ChannelClient client) {
+								btnUndock.addActionListener(new ActionListener() {
+									@Override
+									public void actionPerformed(ActionEvent e) {
+										JSONObject payload = new JSONObject();
+										payload.put("uuid", appUuid);
+										payload.put("name", windowName);
+										client.dispatch("UNDOCK-WINDOW", payload, null);
+									}
+								});
+							}
+						});
 			}
 
 			@Override
@@ -223,7 +224,6 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			winOpts.setName(UUID.randomUUID().toString());
 			winOpts.setUrl("https://www.google.com");
 			application.createChildWindow(winOpts, new AckListener() {
-
 				@Override
 				public void onSuccess(Ack ack) {
 				}
@@ -248,27 +248,10 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 			@Override
 			public void onError(Ack ack) {
+				System.out.println("error creating applicaton: " + ack.getReason());
 			}
 
 		});
-
-		// this.desktopConnection.getChannel().connect("of-layouts-service-v1", new
-		// AsyncCallback<ChannelClient>() {
-		//
-		// @Override
-		// public void onSuccess(ChannelClient client) {
-		// channelClient = client;
-		// System.out.println("channel connected: " + client.getChannelId());
-		//
-		// // try {
-		// // desktopConnection.disconnect();
-		// // }
-		// // catch (DesktopException e) {
-		// // // TODO Auto-generated catch block
-		// // e.printStackTrace();
-		// // }
-		// }
-		// });
 	}
 
 	@Override
@@ -278,24 +261,17 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	@Override
 	public void onError(String reason) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onMessage(String message) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onOutgoingMessage(String message) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public static void main(String[] args) {
 		new LayoutServiceDemo();
 	}
-
 }
