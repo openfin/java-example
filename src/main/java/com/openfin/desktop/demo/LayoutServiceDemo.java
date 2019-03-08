@@ -8,9 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.BorderFactory;
@@ -50,14 +48,24 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	private Application application;
 
 	private JSONArray serviceConfig = new JSONArray();
-	private List<ExternalWindowObserver> observers = new ArrayList<>();
+	private Map<String, LayoutFrame> childFrames = new HashMap();
+	private WindowAdapter childFrameCleanListener;
 
 	LayoutServiceDemo() {
 		try {
 			this.createMainWindow();
 			this.launchOpenfin();
+
+			this.childFrameCleanListener = new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent e) {
+					super.windowClosed(e);
+					LayoutFrame frame = (LayoutFrame) e.getWindow();
+					childFrames.remove(frame.getWindowName());
+				}
+			};
 		}
-		catch (DesktopException | DesktopIOException | IOException | InterruptedException e) {
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -70,12 +78,8 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			@Override
 			public void windowClosing(WindowEvent we) {
 				try {
-					observers.forEach((o) -> {
-						try {
-							o.dispose();
-						} catch (DesktopException e) {
-							e.printStackTrace();
-						}
+					childFrames.values().forEach(frame -> {
+						frame.cleanup();
 					});
 					application.close();
 					Thread.sleep(2000);
@@ -99,7 +103,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					createJavaWindow(UUID.randomUUID().toString());
+					createJavaWindow();
 				}
 				catch (DesktopException e1) {
 					e1.printStackTrace();
@@ -180,46 +184,11 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		});
 	}
 
-	void createJavaWindow(String windowName) throws DesktopException {
-		final JButton btnUndock = new JButton("undock");
-
-		JFrame f = new JFrame();
-		f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		f.setPreferredSize(new Dimension(640, 480));
-		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		pnl.add(btnUndock);
-		f.getContentPane().add(pnl);
-		f.pack();
-		f.setLocationRelativeTo(null);
-		f.setVisible(true);
-
-		ExternalWindowObserver observer = new ExternalWindowObserver(this.desktopConnection.getPort(), appUuid, windowName, f, new AckListener() {
-			@Override
-			public void onSuccess(Ack ack) {
-				ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-				observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
-						new AsyncCallback<ChannelClient>() {
-							@Override
-							public void onSuccess(ChannelClient client) {
-								btnUndock.addActionListener(new ActionListener() {
-									@Override
-									public void actionPerformed(ActionEvent e) {
-										JSONObject payload = new JSONObject();
-										payload.put("uuid", appUuid);
-										payload.put("name", windowName);
-										client.dispatch("UNDOCK-WINDOW", payload, null);
-									}
-								});
-							}
-						});
-			}
-
-			@Override
-			public void onError(Ack ack) {
-				System.out.println(windowName + ": unable to register external window, " + ack.getReason());
-			}
-		});
-		this.observers.add(observer);
+	void createJavaWindow() throws DesktopException {
+		String windowName = UUID.randomUUID().toString();
+		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName);
+		this.childFrames.put(windowName, frame);
+		frame.addWindowListener(this.childFrameCleanListener);
 	}
 
 	void createOpenfinWindow() {
@@ -252,18 +221,6 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		this.application = Application.wrap(appUuid, this.desktopConnection);
 		btnCreateOpenfinWindow.setEnabled(true);
 		btnCreateJavaWindow.setEnabled(true);
-
-//		createApplication(appUuid, appUuid, "about:blank", new AckListener() {
-//			@Override
-//			public void onSuccess(Ack ack) {
-//			}
-//
-//			@Override
-//			public void onError(Ack ack) {
-//				System.out.println("error creating applicaton: " + ack.getReason());
-//			}
-//
-//		});
 	}
 
 	@Override
