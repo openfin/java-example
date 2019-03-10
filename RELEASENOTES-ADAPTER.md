@@ -1,3 +1,9 @@
+# Version 7.1.1
+
+## New Features
+* Added Channel API
+* Requires JDK1.8+
+
 # Version 7.0.2
 
 ## Bug Fixes
