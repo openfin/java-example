@@ -6,6 +6,7 @@ package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
 import com.openfin.desktop.Window;
+import com.openfin.desktop.channel.ChannelAction;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 import org.json.JSONObject;
@@ -56,6 +57,14 @@ public class LayoutFrame extends JFrame {
                                         client.dispatch("UNDOCK-WINDOW", payload, null);
                                     }
                                 });
+
+                                client.register("event", new ChannelAction() {
+                                    @Override
+                                    public JSONObject invoke(String action, JSONObject payload) {
+                                        System.out.printf("channel event " + action);
+                                        return null;
+                                    }
+                                });
                             }
                         });
             }
@@ -70,12 +79,16 @@ public class LayoutFrame extends JFrame {
             @Override
             public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
                 JSONObject eventObj = actionEvent.getEventObject();
-                String reason = eventObj.getString("reason");
-                if ("leave".equals(reason)) {
-                    LayoutFrame.this.btnUndock.setEnabled(false);
-                } else {
-                    LayoutFrame.this.btnUndock.setEnabled(true);
-                }
+                w.getGroup(new AsyncCallback<java.util.List<Window>>() {
+                    @Override
+                    public void onSuccess(java.util.List<Window> result) {
+                        if (result.size() > 0) {
+                            LayoutFrame.this.btnUndock.setEnabled(true);
+                        } else {
+                            LayoutFrame.this.btnUndock.setEnabled(false);
+                        }
+                    }
+                }, null);
             }
         }, null);
 

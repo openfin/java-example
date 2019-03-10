@@ -198,7 +198,8 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			winOpts.setDefaultHeight(480);
 			winOpts.setDefaultWidth(640);
 			winOpts.setName(UUID.randomUUID().toString());
-			winOpts.setUrl("https://openfin.co");
+			String url = java.lang.System.getProperty("com.openfin.demo.layout.url");
+			winOpts.setUrl(url == null ? "https://openfin.co" : url);
 			application.createChildWindow(winOpts, new AckListener() {
 				@Override
 				public void onSuccess(Ack ack) {
