@@ -1,0 +1,39 @@
+<html>
+<head>
+    <title>Openfin Layouts Included</title>
+    <script src="https://cdn.openfin.co/services/openfin/layouts/1.0.0/openfin-layouts.js"></script>
+
+    <script type="text/javascript">
+
+        window.addEventListener("DOMContentLoaded", function() {
+            OpenFinLayouts.snapAndDock.addEventListener('window-docked', e => {
+                let undock = document.getElementById("undock");
+                undock.disabled = false;
+            });            
+            OpenFinLayouts.snapAndDock.addEventListener('window-undocked', e => {
+                let undock = document.getElementById("undock");
+                undock.disabled = true;
+            });            
+        });
+
+        function undockMe() {
+            OpenFinLayouts.snapAndDock.undockWindow();
+        }
+    </script>
+</head>
+<body style="background-color: rgb(158, 240, 222);">
+    <script>
+        const randomColor = () => {
+            return '#' + ((1 << 24) * Math.random() | 0).toString(16);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.backgroundColor = randomColor();
+        });
+    </script>
+    
+    <p>Openfin Layouts Library is included via script tag in this window.  Accessible with global var OpenfinLayouts</p>
+    <div>
+            <Button id="undock" disabled onclick="undockMe()"> Undock </Button>
+    </div>
+</body></html>
