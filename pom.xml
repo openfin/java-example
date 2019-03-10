@@ -58,11 +58,7 @@
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-<<<<<<< HEAD
-            <version>7.0.2</version>
-=======
             <version>7.1.1-SNAPSHOT</version>
->>>>>>> develop
         </dependency>
         <dependency>
             <groupId>co.openfin</groupId>
