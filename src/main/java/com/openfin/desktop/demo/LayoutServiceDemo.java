@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.lang.System;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
@@ -18,20 +19,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import com.openfin.desktop.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.openfin.desktop.Ack;
-import com.openfin.desktop.AckListener;
-import com.openfin.desktop.Application;
-import com.openfin.desktop.ApplicationOptions;
-import com.openfin.desktop.AsyncCallback;
-import com.openfin.desktop.DesktopConnection;
-import com.openfin.desktop.DesktopException;
-import com.openfin.desktop.DesktopIOException;
-import com.openfin.desktop.DesktopStateListener;
-import com.openfin.desktop.RuntimeConfiguration;
-import com.openfin.desktop.WindowOptions;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 
@@ -82,7 +73,10 @@ public class LayoutServiceDemo implements DesktopStateListener {
 						frame.cleanup();
 					});
 					application.close();
-					Thread.sleep(2000);
+					Thread.sleep(1000);
+					OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
+					runtime.exit();
+					Thread.sleep(1000);
 		            java.lang.System.exit(0);
 				}
 				catch (Exception de) {
@@ -131,6 +125,10 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	void launchOpenfin() throws DesktopException, DesktopIOException, IOException, InterruptedException {
 		RuntimeConfiguration config = new RuntimeConfiguration();
+		String rvm = System.getProperty("com.openfin.demo.layout.rvm");
+		if (rvm != null) {
+			config.setLaunchRVMPath(rvm);
+		}
 		config.setRuntimeVersion("stable");
 		config.setAdditionalRuntimeArguments("--v=1 --remote-debugging-port=9090 ");
 		serviceConfig = new JSONArray();
@@ -185,7 +183,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	}
 
 	void createJavaWindow() throws DesktopException {
-		String windowName = UUID.randomUUID().toString();
+		String windowName = "Java-" + UUID.randomUUID().toString();
 		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName);
 		this.childFrames.put(windowName, frame);
 		frame.addWindowListener(this.childFrameCleanListener);
