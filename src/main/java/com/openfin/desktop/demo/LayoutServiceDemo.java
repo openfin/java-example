@@ -139,7 +139,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		JSONObject scfg = new JSONObject();
 		JSONObject sfeatures = new JSONObject();
 		sfeatures.put("dock", true);
-		sfeatures.put("tab", false);
+		sfeatures.put("tab", true);
 		scfg.put("features", sfeatures);
 		layout.put("config", scfg);
 		serviceConfig.put(0, layout);
@@ -197,6 +197,8 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			winOpts.setAutoShow(true);
 			winOpts.setDefaultHeight(480);
 			winOpts.setDefaultWidth(640);
+            winOpts.setResizable(true);
+            winOpts.setFrame(true);
 			winOpts.setName(UUID.randomUUID().toString());
 			String url = java.lang.System.getProperty("com.openfin.demo.layout.url");
 			winOpts.setUrl(url == null ? "https://openfin.co" : url);

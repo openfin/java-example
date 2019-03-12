@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.System;
+import java.util.Iterator;
 
 public class LayoutFrame extends JFrame {
     private ExternalWindowObserver externalWindowObserver;
@@ -83,7 +84,15 @@ public class LayoutFrame extends JFrame {
                     @Override
                     public void onSuccess(java.util.List<Window> result) {
                         if (result.size() > 0) {
-                            LayoutFrame.this.btnUndock.setEnabled(true);
+                            boolean tabbed = false;
+                            for (Iterator<Window> iter = result.iterator(); iter.hasNext();) {
+                                Window w = iter.next();
+                                if ("layouts-service".equals(w.getUuid())) {
+                                    tabbed = true;
+                                    break;
+                                }
+                            }
+                            LayoutFrame.this.btnUndock.setEnabled(!tabbed);
                         } else {
                             LayoutFrame.this.btnUndock.setEnabled(false);
                         }
