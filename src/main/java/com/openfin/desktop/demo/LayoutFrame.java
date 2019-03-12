@@ -9,6 +9,7 @@ import com.openfin.desktop.Window;
 import com.openfin.desktop.channel.ChannelAction;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.win32.ExternalWindowObserver;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.swing.*;
@@ -24,10 +25,13 @@ public class LayoutFrame extends JFrame {
     private ExternalWindowObserver externalWindowObserver;
     private JButton btnUndock;
     private String windowName;
+    private ChannelClient channelClient;
+    private String appUuid;
 
     public LayoutFrame(DesktopConnection desktopConnection, String appUuid, String windowName) throws DesktopException {
         super();
         System.out.println(windowName + " being created ");
+        this.appUuid = appUuid;
         this.windowName = windowName;
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.setPreferredSize(new Dimension(640, 480));
@@ -49,6 +53,7 @@ public class LayoutFrame extends JFrame {
                         new AsyncCallback<ChannelClient>() {
                             @Override
                             public void onSuccess(ChannelClient client) {
+                                LayoutFrame.this.channelClient = client;
                                 btnUndock.addActionListener(new ActionListener() {
                                     @Override
                                     public void actionPerformed(ActionEvent e) {
@@ -84,15 +89,7 @@ public class LayoutFrame extends JFrame {
                     @Override
                     public void onSuccess(java.util.List<Window> result) {
                         if (result.size() > 0) {
-                            boolean tabbed = false;
-                            for (Iterator<Window> iter = result.iterator(); iter.hasNext();) {
-                                Window w = iter.next();
-                                if ("layouts-service".equals(w.getUuid())) {
-                                    tabbed = true;
-                                    break;
-                                }
-                            }
-                            LayoutFrame.this.btnUndock.setEnabled(!tabbed);
+                            checkTabbing();
                         } else {
                             LayoutFrame.this.btnUndock.setEnabled(false);
                         }
@@ -114,6 +111,30 @@ public class LayoutFrame extends JFrame {
             public void windowClosed(WindowEvent e) {
                 super.windowClosed(e);
                 System.out.println(windowName + " closed ");
+            }
+        });
+    }
+
+    private void checkTabbing() {
+        JSONObject payload = new JSONObject();
+        payload.put("uuid", appUuid);
+        payload.put("name", windowName);
+        channelClient.dispatch("GETTABS", payload, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                System.out.printf("channel GETTABS ");
+                JSONObject data = (JSONObject) ack.getData();
+                Object result = data.get("result");
+                if (result != null && result instanceof JSONArray) {
+                    JSONArray tabs = (JSONArray) result;
+                    LayoutFrame.this.btnUndock.setEnabled(!(tabs != null && tabs.length() > 0));
+                } else {
+                    LayoutFrame.this.btnUndock.setEnabled(true);
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+                System.out.printf("channel GETTABS error " + ack.getReason());
             }
         });
     }
