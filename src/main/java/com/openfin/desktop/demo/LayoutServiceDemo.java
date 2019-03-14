@@ -129,7 +129,11 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		if (rvm != null) {
 			config.setLaunchRVMPath(rvm);
 		}
-		config.setRuntimeVersion("stable");
+		String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
+		if (desktopVersion == null) {
+			desktopVersion = "stable";
+		}
+		config.setRuntimeVersion(desktopVersion);
 		config.setAdditionalRuntimeArguments("--v=1 --remote-debugging-port=9090 ");
 		serviceConfig = new JSONArray();
 		JSONObject layout = new JSONObject();
