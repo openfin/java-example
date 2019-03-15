@@ -166,10 +166,10 @@ public class LayoutFrame extends JFrame {
 				if (hasFrame) {
 					frame.setResizable(true);
 //					style = style & ~User32.WS_CHILD;
-					style = style | User32.WS_CAPTION | User32.WS_BORDER ;
+					style = style | User32.WS_CAPTION | User32.WS_BORDER | User32.WS_THICKFRAME;
 				} else {
 					frame.setResizable(false);
-					style = style &~ User32.WS_CAPTION &~ User32.WS_BORDER;
+					style = style &~ User32.WS_CAPTION &~ User32.WS_BORDER &~ User32.WS_THICKFRAME;
 //					style = style | User32.WS_CHILD;
 				}
 				User32.INSTANCE.SetWindowLong(hWnd, User32.GWL_STYLE, style);
