@@ -20,6 +20,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.System;
@@ -31,12 +34,18 @@ public class LayoutFrame extends JFrame {
 	private String windowName;
 	private ChannelClient channelClient;
 	private String appUuid;
+	private boolean frameless;
 
 	public LayoutFrame(DesktopConnection desktopConnection, String appUuid, String windowName) throws DesktopException {
+		this(desktopConnection, appUuid, windowName, false);
+	}
+	
+	public LayoutFrame(DesktopConnection desktopConnection, String appUuid, String windowName, boolean frameless) throws DesktopException {
 		super();
 		System.out.println(windowName + " being created ");
 		this.appUuid = appUuid;
 		this.windowName = windowName;
+		this.frameless = frameless;
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.setPreferredSize(new Dimension(640, 480));
 		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -44,6 +53,45 @@ public class LayoutFrame extends JFrame {
 		this.btnUndock.setEnabled(false);
 		pnl.add(btnUndock);
 		this.getContentPane().add(pnl);
+		
+		if (frameless) {
+			this.setUndecorated(true);
+			JPanel titleBar = new JPanel(new BorderLayout());
+			titleBar.setBackground(Color.DARK_GRAY);
+			MouseAdapter myListener = new MouseAdapter() {
+				int pressedAtX, pressedAtY;
+				@Override
+				public void mousePressed(MouseEvent e) {
+					pressedAtX = e.getX();
+					pressedAtY = e.getY();
+					System.out.println("mouse pressed at x=" + pressedAtX + ", y=" + pressedAtY);
+				}
+
+				@Override
+				public void mouseDragged(MouseEvent e) {
+					int distanceX = e.getX() - pressedAtX;
+					int distanceY = e.getY() - pressedAtY;
+					System.out.println("dragged x=" + distanceX + ", y=" + distanceY);
+					Point frameLocation = LayoutFrame.this.getLocation();
+					LayoutFrame.this.setLocation(frameLocation.x + distanceX, frameLocation.y + distanceY);
+				}
+			};
+			titleBar.addMouseListener(myListener);
+			titleBar.addMouseMotionListener(myListener);
+			
+			JButton btnClose = new JButton("X");
+			btnClose.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					LayoutFrame.this.dispose();
+				}});
+			titleBar.add(btnClose, BorderLayout.EAST);
+			
+			this.getContentPane().add(titleBar, BorderLayout.NORTH);
+			
+		}
+		
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
@@ -152,33 +200,35 @@ public class LayoutFrame extends JFrame {
 	}
 
 	private void setHasFrame(JFrame frame, boolean hasFrame) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				System.out.println(windowName + " hasFrame=" + hasFrame);
-				
-				Dimension size = frame.getSize();
-				WinDef.HWND hWnd = new WinDef.HWND();
-				hWnd.setPointer(Native.getComponentPointer(frame));
+		if (!this.frameless) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					System.out.println(windowName + " hasFrame=" + hasFrame);
+					
+					Dimension size = frame.getSize();
+					WinDef.HWND hWnd = new WinDef.HWND();
+					hWnd.setPointer(Native.getComponentPointer(frame));
 
-				int style = User32.INSTANCE.GetWindowLong(hWnd, User32.GWL_STYLE);
+					int style = User32.INSTANCE.GetWindowLong(hWnd, User32.GWL_STYLE);
 
-				if (hasFrame) {
-					frame.setResizable(true);
-//					style = style & ~User32.WS_CHILD;
-					style = style | User32.WS_CAPTION | User32.WS_BORDER | User32.WS_THICKFRAME;
-				} else {
-					frame.setResizable(false);
-					style = style &~ User32.WS_CAPTION &~ User32.WS_BORDER &~ User32.WS_THICKFRAME;
-//					style = style | User32.WS_CHILD;
+					if (hasFrame) {
+						frame.setResizable(true);
+//						style = style & ~User32.WS_CHILD;
+						style = style | User32.WS_CAPTION | User32.WS_BORDER | User32.WS_THICKFRAME;
+					} else {
+						frame.setResizable(false);
+						style = style &~ User32.WS_CAPTION &~ User32.WS_BORDER &~ User32.WS_THICKFRAME;
+//						style = style | User32.WS_CHILD;
+					}
+					User32.INSTANCE.SetWindowLong(hWnd, User32.GWL_STYLE, style);
+					User32.INSTANCE.RedrawWindow(hWnd, null, null, new WinDef.DWORD((User32.RDW_FRAME | User32.RDW_INVALIDATE)));
+					frame.setSize(size.width, size.height + 1);
+					frame.invalidate();
+					frame.repaint();
 				}
-				User32.INSTANCE.SetWindowLong(hWnd, User32.GWL_STYLE, style);
-				User32.INSTANCE.RedrawWindow(hWnd, null, null, new WinDef.DWORD((User32.RDW_FRAME | User32.RDW_INVALIDATE)));
-				frame.setSize(size.width, size.height + 1);
-				frame.invalidate();
-				frame.repaint();
-			}
-		});
+			});
+		}
 	}
 
 	public String getWindowName() {

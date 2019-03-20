@@ -41,6 +41,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	private JSONArray serviceConfig = new JSONArray();
 	private Map<String, LayoutFrame> childFrames = new HashMap();
 	private WindowAdapter childFrameCleanListener;
+	private JButton btnCreateFramelessJavaWindow;
 
 	LayoutServiceDemo() {
 		try {
@@ -104,13 +105,29 @@ public class LayoutServiceDemo implements DesktopStateListener {
 				}
 			}
 		});
+		this.btnCreateFramelessJavaWindow = new JButton("Create Frameless Java Window");
+		this.btnCreateFramelessJavaWindow.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					createFramelessJavaWindow();
+				}
+				catch (DesktopException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		
+		
 		this.btnCreateOpenfinWindow.setEnabled(false);
 		this.btnCreateJavaWindow.setEnabled(false);
+		this.btnCreateFramelessJavaWindow.setEnabled(false);
 		JPanel contentPnl = new JPanel(new BorderLayout(10, 10));
 		contentPnl.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		pnl.add(btnCreateOpenfinWindow);
 		pnl.add(btnCreateJavaWindow);
+		pnl.add(btnCreateFramelessJavaWindow);
 
 		contentPnl.add(new JLabel("Undock Openfin windows with global hotkey (CTRL+SHIFT+U or CMD+SHIFT+U)"),
 				BorderLayout.NORTH);
@@ -172,6 +189,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 					public void run() {
 						btnCreateOpenfinWindow.setEnabled(true);
 						btnCreateJavaWindow.setEnabled(true);
+						btnCreateFramelessJavaWindow.setEnabled(true);
 					}
 				});
 			}
@@ -185,6 +203,13 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	void createJavaWindow() throws DesktopException {
 		String windowName = "Java-" + UUID.randomUUID().toString();
 		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName);
+		this.childFrames.put(windowName, frame);
+		frame.addWindowListener(this.childFrameCleanListener);
+	}
+	
+	void createFramelessJavaWindow() throws DesktopException {
+		String windowName = "Java-" + UUID.randomUUID().toString();
+		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName, true);
 		this.childFrames.put(windowName, frame);
 		frame.addWindowListener(this.childFrameCleanListener);
 	}
@@ -218,10 +243,10 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	@Override
 	public void onReady() {
-
 		this.application = Application.wrap(appUuid, this.desktopConnection);
 		btnCreateOpenfinWindow.setEnabled(true);
 		btnCreateJavaWindow.setEnabled(true);
+		btnCreateFramelessJavaWindow.setEnabled(true);
 	}
 
 	@Override
