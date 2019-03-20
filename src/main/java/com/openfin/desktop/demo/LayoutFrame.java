@@ -9,6 +9,9 @@ import com.openfin.desktop.Window;
 import com.openfin.desktop.channel.ChannelAction;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.win32.ExternalWindowObserver;
+import com.sun.jna.Native;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -92,6 +95,7 @@ public class LayoutFrame extends JFrame {
                             checkTabbing();
                         } else {
                             LayoutFrame.this.btnUndock.setEnabled(false);
+//                            setHasFrame(LayoutFrame.this, true);
                         }
                     }
                 }, null);
@@ -113,6 +117,8 @@ public class LayoutFrame extends JFrame {
                 System.out.println(windowName + " closed ");
             }
         });
+
+//        this.externalWindowObserver.setUserGesture(false);
     }
 
     private void checkTabbing() {
@@ -128,13 +134,47 @@ public class LayoutFrame extends JFrame {
                 if (result != null && result instanceof JSONArray) {
                     JSONArray tabs = (JSONArray) result;
                     LayoutFrame.this.btnUndock.setEnabled(!(tabs != null && tabs.length() > 0));
+//                    setHasFrame(LayoutFrame.this, false);
                 } else {
                     LayoutFrame.this.btnUndock.setEnabled(true);
+//                    setHasFrame(LayoutFrame.this, true);
+
                 }
             }
             @Override
             public void onError(Ack ack) {
                 System.out.printf("channel GETTABS error " + ack.getReason());
+            }
+        });
+    }
+
+
+    private void setHasFrame(JFrame frame, boolean hasFrame) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(windowName + " hasFrame=" + hasFrame);
+
+                Dimension size = frame.getSize();
+                WinDef.HWND hWnd = new WinDef.HWND();
+                hWnd.setPointer(Native.getComponentPointer(frame));
+
+                int style = User32.INSTANCE.GetWindowLong(hWnd, User32.GWL_STYLE);
+
+                if (hasFrame) {
+                    frame.setResizable(true);
+//					style = style & ~User32.WS_CHILD;
+                    style = style | User32.WS_CAPTION | User32.WS_BORDER | User32.WS_THICKFRAME;
+                } else {
+                    frame.setResizable(false);
+                    style = style &~ User32.WS_CAPTION &~ User32.WS_BORDER &~ User32.WS_THICKFRAME;
+//					style = style | User32.WS_CHILD;
+                }
+                User32.INSTANCE.SetWindowLong(hWnd, User32.GWL_STYLE, style);
+                User32.INSTANCE.RedrawWindow(hWnd, null, null, new WinDef.DWORD((User32.RDW_FRAME | User32.RDW_INVALIDATE)));
+                frame.setSize(size.width, size.height + 1);
+                frame.invalidate();
+                frame.repaint();
             }
         });
     }
