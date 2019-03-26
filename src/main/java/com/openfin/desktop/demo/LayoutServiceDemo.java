@@ -18,6 +18,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import javafx.embed.swing.JFXPanel;
+
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -50,10 +59,15 @@ public class LayoutServiceDemo implements DesktopStateListener {
 	private JSONArray serviceConfig = new JSONArray();
 	private Map<String, LayoutFrame> childFrames = new HashMap();
 	private WindowAdapter childFrameCleanListener;
+    private JButton btnCreateJavaFxWindow;
 
 	LayoutServiceDemo() {
 		try {
 			this.createMainWindow();
+			
+			//init javafx
+			new JFXPanel();
+			
 			this.launchOpenfin();
 
 			this.childFrameCleanListener = new WindowAdapter() {
@@ -110,13 +124,22 @@ public class LayoutServiceDemo implements DesktopStateListener {
 				}
 			}
 		});
+        this.btnCreateJavaFxWindow = new JButton("Create JavaFX Window");
+        this.btnCreateJavaFxWindow.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createJavaFxWindow();
+            }
+        });
 		this.btnCreateOpenfinWindow.setEnabled(false);
 		this.btnCreateJavaWindow.setEnabled(false);
+        this.btnCreateJavaFxWindow.setEnabled(false);
 		JPanel contentPnl = new JPanel(new BorderLayout(10, 10));
 		contentPnl.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		pnl.add(btnCreateOpenfinWindow);
-		pnl.add(btnCreateJavaWindow);
+        pnl.add(btnCreateJavaWindow);
+		pnl.add(btnCreateJavaFxWindow);
 
 		contentPnl.add(new JLabel("Undock Openfin windows with global hotkey (CTRL+SHIFT+U or CMD+SHIFT+U)"),
 				BorderLayout.NORTH);
@@ -174,6 +197,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 					public void run() {
 						btnCreateOpenfinWindow.setEnabled(true);
 						btnCreateJavaWindow.setEnabled(true);
+                        btnCreateJavaFxWindow.setEnabled(true);
 					}
 				});
 			}
@@ -189,6 +213,38 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName);
 		this.childFrames.put(windowName, frame);
 		frame.addWindowListener(this.childFrameCleanListener);
+	}
+	
+	void createJavaFxWindow() {
+        String windowName = UUID.randomUUID().toString();
+	    javafx.application.Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                Button undock = new Button("undock");
+                
+                StackPane secondaryLayout = new StackPane();
+                secondaryLayout.getChildren().add(undock);
+ 
+                Scene secondScene = new Scene(secondaryLayout, 230, 100);
+ 
+                // New window (Stage)
+                Stage newWindow = new Stage();
+                newWindow.setTitle(windowName);
+                newWindow.setScene(secondScene);
+ 
+                // Set position of second window, related to primary window.
+                newWindow.setX(200);
+                newWindow.setY(150);
+                newWindow.show();            
+ 
+                try {
+                    new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, newWindow, null);
+                } catch (DesktopException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                }
+       });
 	}
 
 	void createOpenfinWindow() {
@@ -222,6 +278,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		this.application = Application.wrap(appUuid, this.desktopConnection);
 		btnCreateOpenfinWindow.setEnabled(true);
 		btnCreateJavaWindow.setEnabled(true);
+        btnCreateJavaFxWindow.setEnabled(true);
 	}
 
 	@Override
