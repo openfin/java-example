@@ -41,6 +41,7 @@ import com.openfin.desktop.DesktopIOException;
 import com.openfin.desktop.DesktopStateListener;
 import com.openfin.desktop.RuntimeConfiguration;
 import com.openfin.desktop.WindowOptions;
+import com.openfin.desktop.channel.ChannelAction;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 
@@ -238,9 +239,33 @@ public class LayoutServiceDemo implements DesktopStateListener {
                 newWindow.show();            
  
                 try {
-                    new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, newWindow, null);
+                    new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, newWindow, new AckListener() {
+
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
+                            observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
+                                    new AsyncCallback<ChannelClient>() {
+                                        @Override
+                                        public void onSuccess(ChannelClient client) {
+                                            undock.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+                                                @Override 
+                                                public void handle(javafx.event.ActionEvent e) {
+                                                    JSONObject payload = new JSONObject();
+                                                    payload.put("uuid", appUuid);
+                                                    payload.put("name", windowName);
+                                                    client.dispatch("UNDOCK-WINDOW", payload, null);
+                                                }
+                                            });
+                                        }
+                                    });
+                        }
+
+                        @Override
+                        public void onError(Ack ack) {
+                            
+                        }});
                 } catch (DesktopException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 }
