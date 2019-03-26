@@ -39,7 +39,9 @@ import com.openfin.desktop.DesktopConnection;
 import com.openfin.desktop.DesktopException;
 import com.openfin.desktop.DesktopIOException;
 import com.openfin.desktop.DesktopStateListener;
+import com.openfin.desktop.EventListener;
 import com.openfin.desktop.RuntimeConfiguration;
+import com.openfin.desktop.Window;
 import com.openfin.desktop.WindowOptions;
 import com.openfin.desktop.channel.ChannelAction;
 import com.openfin.desktop.channel.ChannelClient;
@@ -216,61 +218,81 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		frame.addWindowListener(this.childFrameCleanListener);
 	}
 	
-	void createJavaFxWindow() {
+    void createJavaFxWindow() {
         String windowName = UUID.randomUUID().toString();
-	    javafx.application.Platform.runLater(new Runnable() {
+        javafx.application.Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                Button undock = new Button("undock");
-                
+                Button btnUndock = new Button("undock");
+                btnUndock.setDisable(true);
+
                 StackPane secondaryLayout = new StackPane();
-                secondaryLayout.getChildren().add(undock);
- 
+                secondaryLayout.getChildren().add(btnUndock);
+
                 Scene secondScene = new Scene(secondaryLayout, 230, 100);
- 
+
                 // New window (Stage)
                 Stage newWindow = new Stage();
                 newWindow.setTitle(windowName);
                 newWindow.setScene(secondScene);
- 
+
                 // Set position of second window, related to primary window.
                 newWindow.setX(200);
                 newWindow.setY(150);
-                newWindow.show();            
- 
-                try {
-                    new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, newWindow, new AckListener() {
+                newWindow.show();
 
-                        @Override
-                        public void onSuccess(Ack ack) {
-                            ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-                            observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
-                                    new AsyncCallback<ChannelClient>() {
-                                        @Override
-                                        public void onSuccess(ChannelClient client) {
-                                            undock.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
-                                                @Override 
-                                                public void handle(javafx.event.ActionEvent e) {
-                                                    JSONObject payload = new JSONObject();
-                                                    payload.put("uuid", appUuid);
-                                                    payload.put("name", windowName);
-                                                    client.dispatch("UNDOCK-WINDOW", payload, null);
+                try {
+                    new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, newWindow,
+                            new AckListener() {
+                                @Override
+                                public void onSuccess(Ack ack) {
+                                    ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
+                                    observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
+                                            new AsyncCallback<ChannelClient>() {
+                                                @Override
+                                                public void onSuccess(ChannelClient client) {
+                                                    btnUndock.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+                                                        @Override
+                                                        public void handle(javafx.event.ActionEvent e) {
+                                                            JSONObject payload = new JSONObject();
+                                                            payload.put("uuid", appUuid);
+                                                            payload.put("name", windowName);
+                                                            client.dispatch("UNDOCK-WINDOW", payload, null);
+                                                        }
+                                                    });
                                                 }
                                             });
-                                        }
-                                    });
-                        }
+                                }
 
+                                @Override
+                                public void onError(Ack ack) {
+                                }
+                            });
+                    
+                    Window w = Window.wrap(appUuid, windowName, desktopConnection);
+                    w.addEventListener("group-changed", new EventListener() {
                         @Override
-                        public void onError(Ack ack) {
-                            
-                        }});
+                        public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                            JSONObject eventObj = actionEvent.getEventObject();
+                            w.getGroup(new AsyncCallback<java.util.List<Window>>() {
+                                @Override
+                                public void onSuccess(java.util.List<Window> result) {
+                                    if (result.size() > 0) {
+                                        btnUndock.setDisable(false);
+                                    } else {
+                                        btnUndock.setDisable(true);
+                                    }
+                                }
+                            }, null);
+                        }
+                    }, null);
+
                 } catch (DesktopException e) {
                     e.printStackTrace();
                 }
-                }
-       });
-	}
+            }
+        });
+    }
 
 	void createOpenfinWindow() {
 		try {
