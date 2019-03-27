@@ -136,7 +136,10 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		pnl.add(btnCreateOpenfinWindow);
 		pnl.add(btnCreateJavaWindow);
-		pnl.add(btnCreateFramelessJavaWindow);
+		if (System.getProperty("com.openfin.demo.layout.frameless") != null) {
+			// This example is experimental and not available yet
+			pnl.add(btnCreateFramelessJavaWindow);
+		}
 		pnl.add(btnCreateJavaFxWindow);
 
 		contentPnl.add(new JLabel("Undock Openfin windows with global hotkey (CTRL+SHIFT+U or CMD+SHIFT+U)"),
