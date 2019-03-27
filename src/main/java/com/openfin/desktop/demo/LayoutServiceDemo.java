@@ -23,9 +23,6 @@ import com.openfin.desktop.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.openfin.desktop.channel.ChannelClient;
-import com.openfin.desktop.win32.ExternalWindowObserver;
-
 public class LayoutServiceDemo implements DesktopStateListener {
 
 	private final static String appUuid = "layoutServiceDemo-" + UUID.randomUUID();
@@ -40,7 +37,10 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	private JSONArray serviceConfig = new JSONArray();
 	private Map<String, LayoutFrame> childFrames = new HashMap();
+	private Map<String, FxLayoutFrame> childFxFrames = new HashMap();
 	private WindowAdapter childFrameCleanListener;
+	private JButton btnCreateFramelessJavaWindow;
+	private JButton btnCreateJavaFxWindow;
 
 	LayoutServiceDemo() {
 		try {
@@ -70,6 +70,9 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			public void windowClosing(WindowEvent we) {
 				try {
 					childFrames.values().forEach(frame -> {
+						frame.cleanup();
+					});
+					childFxFrames.values().forEach(frame -> {
 						frame.cleanup();
 					});
 					application.close();
@@ -104,13 +107,37 @@ public class LayoutServiceDemo implements DesktopStateListener {
 				}
 			}
 		});
+		this.btnCreateFramelessJavaWindow = new JButton("Create Frameless Java Window");
+		this.btnCreateFramelessJavaWindow.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					createFramelessJavaWindow();
+				}
+				catch (DesktopException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		this.btnCreateJavaFxWindow = new JButton("Create JavaFX Window");
+		this.btnCreateJavaFxWindow.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				createJavaFxWindow();
+			}
+		});
+		
 		this.btnCreateOpenfinWindow.setEnabled(false);
 		this.btnCreateJavaWindow.setEnabled(false);
+		this.btnCreateFramelessJavaWindow.setEnabled(false);
+		this.btnCreateJavaFxWindow.setEnabled(false);
 		JPanel contentPnl = new JPanel(new BorderLayout(10, 10));
 		contentPnl.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		pnl.add(btnCreateOpenfinWindow);
 		pnl.add(btnCreateJavaWindow);
+		pnl.add(btnCreateFramelessJavaWindow);
+		pnl.add(btnCreateJavaFxWindow);
 
 		contentPnl.add(new JLabel("Undock Openfin windows with global hotkey (CTRL+SHIFT+U or CMD+SHIFT+U)"),
 				BorderLayout.NORTH);
@@ -129,11 +156,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		if (rvm != null) {
 			config.setLaunchRVMPath(rvm);
 		}
-		String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
-		if (desktopVersion == null) {
-			desktopVersion = "stable";
-		}
-		config.setRuntimeVersion(desktopVersion);
+		config.setRuntimeVersion("9.61.38.40");
 		config.setAdditionalRuntimeArguments("--v=1 --remote-debugging-port=9090 ");
 		serviceConfig = new JSONArray();
 		JSONObject layout = new JSONObject();
@@ -176,6 +199,8 @@ public class LayoutServiceDemo implements DesktopStateListener {
 					public void run() {
 						btnCreateOpenfinWindow.setEnabled(true);
 						btnCreateJavaWindow.setEnabled(true);
+						btnCreateFramelessJavaWindow.setEnabled(true);
+						btnCreateJavaFxWindow.setEnabled(true);
 					}
 				});
 			}
@@ -191,6 +216,19 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName);
 		this.childFrames.put(windowName, frame);
 		frame.addWindowListener(this.childFrameCleanListener);
+	}
+	
+	void createFramelessJavaWindow() throws DesktopException {
+		String windowName = "Java-" + UUID.randomUUID().toString();
+		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName, true);
+		this.childFrames.put(windowName, frame);
+		frame.addWindowListener(this.childFrameCleanListener);
+	}
+
+	void createJavaFxWindow() {
+		String windowName = "JavaFX-" + UUID.randomUUID().toString();
+		FxLayoutFrame frame = new FxLayoutFrame(this.desktopConnection, appUuid, windowName);
+		this.childFxFrames.put(windowName, frame);
 	}
 
 	void createOpenfinWindow() {
@@ -222,10 +260,11 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	@Override
 	public void onReady() {
-
 		this.application = Application.wrap(appUuid, this.desktopConnection);
 		btnCreateOpenfinWindow.setEnabled(true);
 		btnCreateJavaWindow.setEnabled(true);
+		btnCreateFramelessJavaWindow.setEnabled(true);
+		btnCreateJavaFxWindow.setEnabled(true);
 	}
 
 	@Override
