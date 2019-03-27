@@ -26,6 +26,7 @@ public class FxLayoutFrame {
         this.windowName = windowName;
         if (jFXPanel == null) {
           jFXPanel = new JFXPanel();
+            javafx.application.Platform.setImplicitExit(false);
         }
         javafx.application.Platform.runLater(new Runnable() {
             @Override
@@ -47,12 +48,8 @@ public class FxLayoutFrame {
                 FxLayoutFrame.this.stage.setY(480);
                 FxLayoutFrame.this.stage.show();
 
-                FxLayoutFrame.this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-                    @Override
-                    public void handle(WindowEvent event) {
-                        FxLayoutFrame.this.cleanup();
-                    }
-                });
+//                FxLayoutFrame.this.stage.setOnCloseRequest(event -> FxLayoutFrame.this.cleanup());
+
                 try {
                     FxLayoutFrame.this.externalWindowObserver =
                         new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, FxLayoutFrame.this.stage,

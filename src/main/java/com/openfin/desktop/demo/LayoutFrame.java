@@ -10,7 +10,6 @@ import com.openfin.desktop.channel.ChannelAction;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 import com.sun.jna.Native;
-import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 
 import org.json.JSONArray;
@@ -214,27 +213,14 @@ public class LayoutFrame extends JFrame {
 				@Override
 				public void run() {
 					System.out.println(windowName + " hasFrame=" + hasFrame);
-					
-					Dimension size = frame.getSize();
 					WinDef.HWND hWnd = new WinDef.HWND();
 					hWnd.setPointer(Native.getComponentPointer(frame));
-
-					int style = User32.INSTANCE.GetWindowLong(hWnd, User32.GWL_STYLE);
-
-					if (hasFrame) {
-						frame.setResizable(true);
-//						style = style & ~User32.WS_CHILD;
-						style = style | User32.WS_CAPTION | User32.WS_BORDER | User32.WS_THICKFRAME;
-					} else {
-						frame.setResizable(false);
-						style = style &~ User32.WS_CAPTION &~ User32.WS_BORDER &~ User32.WS_THICKFRAME;
-//						style = style | User32.WS_CHILD;
-					}
-					User32.INSTANCE.SetWindowLong(hWnd, User32.GWL_STYLE, style);
-					User32.INSTANCE.RedrawWindow(hWnd, null, null, new WinDef.DWORD((User32.RDW_FRAME | User32.RDW_INVALIDATE)));
-					frame.setSize(size.width, size.height + 1);
+					LayoutFrame.this.externalWindowObserver.setHasFrame(hWnd, hasFrame);
+					frame.setResizable(hasFrame);
 					frame.invalidate();
+					frame.validate();
 					frame.repaint();
+					SwingUtilities.updateComponentTreeUI(frame);
 				}
 			});
 		}
