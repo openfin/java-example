@@ -25,8 +25,8 @@ import org.json.JSONObject;
 
 public class LayoutServiceDemo implements DesktopStateListener {
 
-	private final static String appUuid = "layoutServiceDemo";
-	private final static String javaConnectUuid = "layoutServiceDemoJava";
+	private final static String appUuid = "layoutServiceDemo-" + UUID.randomUUID();
+	private final static String javaConnectUuid = "layoutServiceDemoJava-" + UUID.randomUUID();
 
 	private DesktopConnection desktopConnection;
 	private CountDownLatch latch = new CountDownLatch(1);
