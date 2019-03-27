@@ -146,7 +146,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		if (rvm != null) {
 			config.setLaunchRVMPath(rvm);
 		}
-		config.setRuntimeVersion("stable");
+		config.setRuntimeVersion("9.61.38.40");
 		config.setAdditionalRuntimeArguments("--v=1 --remote-debugging-port=9090 ");
 		serviceConfig = new JSONArray();
 		JSONObject layout = new JSONObject();

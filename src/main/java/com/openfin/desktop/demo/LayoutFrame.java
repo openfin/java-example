@@ -22,11 +22,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.System;
-import java.util.Iterator;
 
 public class LayoutFrame extends JFrame {
 	private ExternalWindowObserver externalWindowObserver;
@@ -132,6 +130,17 @@ public class LayoutFrame extends JFrame {
 						System.out.println(windowName + ": unable to register external window, " + ack.getReason());
 					}
 				});
+		this.externalWindowObserver.setUserGesture(!this.frameless);
+		try {
+			if (this.frameless) {
+				WindowOptions options = new WindowOptions();
+				options.setFrame(false);
+				this.externalWindowObserver.setWindowOptions(options);
+			}
+			this.externalWindowObserver.start();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		Window w = Window.wrap(appUuid, windowName, desktopConnection);
 		w.addEventListener("group-changed", new EventListener() {
