@@ -19,10 +19,14 @@ public class FxLayoutFrame {
     private ExternalWindowObserver externalWindowObserver;
     private String windowName;
     private Stage stage;
+    private static JFXPanel jFXPanel;
 
     public FxLayoutFrame(DesktopConnection desktopConnection, String appUuid, String windowName) {
+        System.out.println(windowName + " being created ");
         this.windowName = windowName;
-        new JFXPanel();
+        if (jFXPanel == null) {
+          jFXPanel = new JFXPanel();
+        }
         javafx.application.Platform.runLater(new Runnable() {
             @Override
             public void run() {

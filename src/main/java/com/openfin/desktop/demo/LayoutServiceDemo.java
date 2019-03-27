@@ -20,14 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.openfin.desktop.*;
-import javafx.embed.swing.JFXPanel;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import com.openfin.desktop.channel.ChannelClient;
-import com.openfin.desktop.win32.ExternalWindowObserver;
 
 public class LayoutServiceDemo implements DesktopStateListener {
 
