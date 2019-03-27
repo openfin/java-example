@@ -20,6 +20,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.openfin.desktop.*;
+import javafx.embed.swing.JFXPanel;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -40,8 +43,10 @@ public class LayoutServiceDemo implements DesktopStateListener {
 
 	private JSONArray serviceConfig = new JSONArray();
 	private Map<String, LayoutFrame> childFrames = new HashMap();
+	private Map<String, FxLayoutFrame> childFxFrames = new HashMap();
 	private WindowAdapter childFrameCleanListener;
 	private JButton btnCreateFramelessJavaWindow;
+	private JButton btnCreateJavaFxWindow;
 
 	LayoutServiceDemo() {
 		try {
@@ -71,6 +76,9 @@ public class LayoutServiceDemo implements DesktopStateListener {
 			public void windowClosing(WindowEvent we) {
 				try {
 					childFrames.values().forEach(frame -> {
+						frame.cleanup();
+					});
+					childFxFrames.values().forEach(frame -> {
 						frame.cleanup();
 					});
 					application.close();
@@ -117,17 +125,25 @@ public class LayoutServiceDemo implements DesktopStateListener {
 				}
 			}
 		});
-		
+		this.btnCreateJavaFxWindow = new JButton("Create JavaFX Window");
+		this.btnCreateJavaFxWindow.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				createJavaFxWindow();
+			}
+		});
 		
 		this.btnCreateOpenfinWindow.setEnabled(false);
 		this.btnCreateJavaWindow.setEnabled(false);
 		this.btnCreateFramelessJavaWindow.setEnabled(false);
+		this.btnCreateJavaFxWindow.setEnabled(false);
 		JPanel contentPnl = new JPanel(new BorderLayout(10, 10));
 		contentPnl.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		pnl.add(btnCreateOpenfinWindow);
 		pnl.add(btnCreateJavaWindow);
 		pnl.add(btnCreateFramelessJavaWindow);
+		pnl.add(btnCreateJavaFxWindow);
 
 		contentPnl.add(new JLabel("Undock Openfin windows with global hotkey (CTRL+SHIFT+U or CMD+SHIFT+U)"),
 				BorderLayout.NORTH);
@@ -190,6 +206,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 						btnCreateOpenfinWindow.setEnabled(true);
 						btnCreateJavaWindow.setEnabled(true);
 						btnCreateFramelessJavaWindow.setEnabled(true);
+						btnCreateJavaFxWindow.setEnabled(true);
 					}
 				});
 			}
@@ -212,6 +229,12 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		LayoutFrame frame = new LayoutFrame(this.desktopConnection, appUuid, windowName, true);
 		this.childFrames.put(windowName, frame);
 		frame.addWindowListener(this.childFrameCleanListener);
+	}
+
+	void createJavaFxWindow() {
+		String windowName = "JavaFX-" + UUID.randomUUID().toString();
+		FxLayoutFrame frame = new FxLayoutFrame(this.desktopConnection, appUuid, windowName);
+		this.childFxFrames.put(windowName, frame);
 	}
 
 	void createOpenfinWindow() {
@@ -247,6 +270,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		btnCreateOpenfinWindow.setEnabled(true);
 		btnCreateJavaWindow.setEnabled(true);
 		btnCreateFramelessJavaWindow.setEnabled(true);
+		btnCreateJavaFxWindow.setEnabled(true);
 	}
 
 	@Override
