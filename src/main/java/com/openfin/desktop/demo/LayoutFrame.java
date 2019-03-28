@@ -238,4 +238,48 @@ public class LayoutFrame extends JFrame {
 			e.printStackTrace();
 		}
 	}
+
+
+	public static void main(String[] args) {
+		final JFrame frame = new JFrame();
+		frame.setPreferredSize(new Dimension(640, 480));
+		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+		frame.setUndecorated(true);
+		JPanel titleBar = new JPanel(new BorderLayout());
+		titleBar.setBackground(Color.DARK_GRAY);
+		MouseAdapter myListener = new MouseAdapter() {
+			int pressedAtX, pressedAtY;
+			@Override
+			public void mousePressed(MouseEvent e) {
+				pressedAtX = e.getX();
+				pressedAtY = e.getY();
+				System.out.println("mouse pressed at x=" + pressedAtX + ", y=" + pressedAtY);
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				int distanceX = e.getX() - pressedAtX;
+				int distanceY = e.getY() - pressedAtY;
+				System.out.println("dragged x=" + distanceX + ", y=" + distanceY);
+				Point frameLocation = frame.getLocation();
+				frame.setLocation(frameLocation.x + distanceX, frameLocation.y + distanceY);
+			}
+		};
+		titleBar.addMouseListener(myListener);
+		titleBar.addMouseMotionListener(myListener);
+
+		JButton btnClose = new JButton("X");
+		btnClose.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+			}});
+		titleBar.add(btnClose, BorderLayout.EAST);
+		frame.getContentPane().add(titleBar, BorderLayout.NORTH);
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+	}
+
 }
