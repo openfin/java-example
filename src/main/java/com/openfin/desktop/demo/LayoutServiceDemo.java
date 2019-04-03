@@ -170,6 +170,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		sfeatures.put("tab", true);
 		scfg.put("features", sfeatures);
 		layout.put("config", scfg);
+		layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
 		serviceConfig.put(0, layout);
 		config.addConfigurationItem("services", serviceConfig);
 
