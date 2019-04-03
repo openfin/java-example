@@ -2,6 +2,8 @@
 
 ## New Features
 * Added Channel API
+* Launch pre-installed RVM directly to improve performance
+* Better naming of local app manifest file
 * Requires JDK1.8+
 
 # Version 7.0.2

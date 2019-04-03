@@ -116,13 +116,13 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             securityRealm = java.lang.System.getProperty("com.openfin.demo.security.realm");
         }
         if (securityRealm != null) {
-            this.desktopConnection.setRuntimeSecurityRealm(securityRealm);
             this.runtimeConfiguration.setSecurityRealm(securityRealm);
         }
         String desktopVersion = java.lang.System.getProperty("com.openfin.demo.version");
         if (desktopVersion == null) {
             desktopVersion = "stable";
         }
+        this.runtimeConfiguration.setLocalManifestFileName("OpenFinJavaDemo");
         this.runtimeConfiguration.setRuntimeVersion(desktopVersion);
 
         String fallBackVersion = java.lang.System.getProperty("com.openfin.demo.fallBackVersion");
@@ -554,6 +554,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
                 }
             } else if ("create-notification".equals(e.getActionCommand())) {
                 createNotification();
+                bus.send("*", "test", "Hello from Java");
             } else if ("minimize".equals(e.getActionCommand())) {
                 if (this.selectedApplication != null) {
                     this.selectedApplication.getWindow().minimize();
