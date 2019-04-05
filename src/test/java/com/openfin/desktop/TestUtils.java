@@ -50,9 +50,11 @@ public class TestUtils {
         if (swaiTime != null) {
             waitTime = Integer.parseInt(swaiTime);
         }
-
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
-        desktopConnection.setAdditionalRuntimeArguments(" --v=1 --no-sandbox ");  // turn on Chromium debug log
+        String args = java.lang.System.getProperty("com.openfin.test.runtime.additionalRuntimeArguments");
+        if (args != null) {
+            configuration.setAdditionalRuntimeArguments(args);
+        }
         desktopConnection.connect(configuration, new DesktopStateListener() {
             @Override
             public void onReady() {
@@ -110,7 +112,10 @@ public class TestUtils {
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
         RuntimeConfiguration configuration = new RuntimeConfiguration();
         configuration.setRuntimeVersion(runtimeVersion);
-        configuration.setAdditionalRuntimeArguments(" --v=1 --no-sandbox --enable-crash-reporting ");  // turn on Chromium debug log
+        String args = java.lang.System.getProperty("com.openfin.test.runtime.additionalRuntimeArguments");
+        if (args != null) {
+            configuration.setAdditionalRuntimeArguments(args);
+        }
         configuration.setDevToolsPort(9090);
         configuration.setRdmURL(rdmUrl);
         configuration.setRuntimeAssetURL(assetsUrl);
