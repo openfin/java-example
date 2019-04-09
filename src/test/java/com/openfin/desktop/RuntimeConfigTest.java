@@ -63,6 +63,15 @@ public class RuntimeConfigTest {
         TestUtils.teardownDesktopConnection(conn);
     }
 
+    @Test
+    public void launchFromRemoteConfig() throws Exception {
+        RuntimeConfiguration configuration = new RuntimeConfiguration();
+        configuration.setManifestLocation(TestUtils.hello_app_manifest_url);
+        DesktopConnection conn = TestUtils.setupConnection(DESKTOP_UUID, configuration);
+        assertTrue(isWindowCreated("OpenFinHelloWorld", conn));
+        TestUtils.teardownDesktopConnection(conn);
+    }
+
     private boolean isWindowCreated(String uuid, DesktopConnection conn) throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<Boolean> atomicReference = new AtomicReference<>();

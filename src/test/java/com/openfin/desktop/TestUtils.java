@@ -27,7 +27,8 @@ public class TestUtils {
     private static String runtimeVersion;
     private static CountDownLatch disconnectedLatch;
     public static final String openfin_app_url = "https://cdn.openfin.co/examples/junit/SimpleOpenFinApp.html";  // source is in release/SimpleOpenFinApp.html
-    public static final String icon_url = "http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/img/openfin.ico";
+    public static final String icon_url = "https://cdn.openfin.co/demos/hello/img/openfin.ico";
+    public static final String hello_app_manifest_url = "https://cdn.openfin.co/demos/hello/app.json";
 
     static  {
         runtimeVersion = java.lang.System.getProperty("com.openfin.test.runtime.version");
