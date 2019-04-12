@@ -6,6 +6,10 @@
 * Better naming of local app manifest file
 * Requires JDK1.8+
 
+## Bug Fixes
+
+* Fixed an issue with synchronization in InterApplicationBus.send
+
 # Version 7.0.2
 
 ## Bug Fixes
