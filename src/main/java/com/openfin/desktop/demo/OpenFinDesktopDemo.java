@@ -134,9 +134,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
             updateMessagePanel("Additional RVM arguments: " + rvmArgs);
             this.runtimeConfiguration.setAdditionalRvmArguments(rvmArgs);
         }
-        this.runtimeConfiguration.setRdmURL(java.lang.System.getProperty("com.openfin.demo.rdmURL"));
-        this.runtimeConfiguration.setRuntimeAssetURL(java.lang.System.getProperty("com.openfin.demo.assetsURL"));
-        this.runtimeConfiguration.setAdditionalRuntimeArguments("--v=1 --no-sandbox ");  // enable additional logging
+        this.runtimeConfiguration.setAdditionalRuntimeArguments("--v=1 ");  // enable additional logging
         this.runtimeConfiguration.setDevToolsPort(9090);
         this.runtimeConfiguration.setLicenseKey("my-license-key");
         JSONObject myconfig = new JSONObject();
