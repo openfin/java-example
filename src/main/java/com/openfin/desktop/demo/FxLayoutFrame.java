@@ -57,23 +57,18 @@ public class FxLayoutFrame {
                                 @Override
                                 public void onSuccess(Ack ack) {
                                     ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-                                    observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
-                                            new AsyncCallback<ChannelClient>() {
-                                                @Override
-                                                public void onSuccess(ChannelClient client) {
-                                                    btnUndock.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
-                                                        @Override
-                                                        public void handle(javafx.event.ActionEvent e) {
-                                                            JSONObject payload = new JSONObject();
-                                                            payload.put("uuid", appUuid);
-                                                            payload.put("name", windowName);
-                                                            client.dispatch("UNDOCK-WINDOW", payload, null);
-                                                        }
-                                                    });
-                                                }
-                                            });
+                                    observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1").thenAccept(channelClient -> {
+                                        btnUndock.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+                                            @Override
+                                            public void handle(javafx.event.ActionEvent e) {
+                                                JSONObject payload = new JSONObject();
+                                                payload.put("uuid", appUuid);
+                                                payload.put("name", windowName);
+                                                channelClient.dispatch("UNDOCK-WINDOW", payload);
+                                            }
+                                        });
+                                    });
                                 }
-
                                 @Override
                                 public void onError(Ack ack) {
                                 }

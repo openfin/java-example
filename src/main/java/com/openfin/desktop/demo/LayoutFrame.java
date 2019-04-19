@@ -35,7 +35,7 @@ public class LayoutFrame extends JFrame {
 	public LayoutFrame(DesktopConnection desktopConnection, String appUuid, String windowName) throws DesktopException {
 		this(desktopConnection, appUuid, windowName, false);
 	}
-	
+
 	public LayoutFrame(DesktopConnection desktopConnection, String appUuid, String windowName, boolean frameless) throws DesktopException {
 		super();
 		System.out.println(windowName + " being created ");
@@ -49,7 +49,7 @@ public class LayoutFrame extends JFrame {
 		this.btnUndock.setEnabled(false);
 		pnl.add(btnUndock);
 		this.getContentPane().add(pnl);
-		
+
 		if (frameless) {
 			this.setUndecorated(true);
 			JPanel titleBar = new JPanel(new BorderLayout());
@@ -74,7 +74,7 @@ public class LayoutFrame extends JFrame {
 			};
 			titleBar.addMouseListener(myListener);
 			titleBar.addMouseMotionListener(myListener);
-			
+
 			JButton btnClose = new JButton("X");
 			btnClose.addActionListener(new ActionListener() {
 
@@ -83,11 +83,11 @@ public class LayoutFrame extends JFrame {
 					LayoutFrame.this.dispose();
 				}});
 			titleBar.add(btnClose, BorderLayout.EAST);
-			
+
 			this.getContentPane().add(titleBar, BorderLayout.NORTH);
-			
+
 		}
-		
+
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
@@ -97,32 +97,27 @@ public class LayoutFrame extends JFrame {
 					@Override
 					public void onSuccess(Ack ack) {
 						ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-						observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
-								new AsyncCallback<ChannelClient>() {
-									@Override
-									public void onSuccess(ChannelClient client) {
-										LayoutFrame.this.channelClient = client;
-										btnUndock.addActionListener(new ActionListener() {
-											@Override
-											public void actionPerformed(ActionEvent e) {
-												JSONObject payload = new JSONObject();
-												payload.put("uuid", appUuid);
-												payload.put("name", windowName);
-												client.dispatch("UNDOCK-WINDOW", payload, null);
-											}
-										});
+						observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1").thenAccept(client -> {
+							LayoutFrame.this.channelClient = client;
+							btnUndock.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									JSONObject payload = new JSONObject();
+									payload.put("uuid", appUuid);
+									payload.put("name", windowName);
+									client.dispatch("UNDOCK-WINDOW", payload);
+								}
+							});
 
-										client.register("event", new ChannelAction() {
-											@Override
-											public JSONObject invoke(String action, JSONObject payload) {
-												System.out.printf("channel event " + action);
-												return null;
-											}
-										});
-									}
-								});
+							client.register("event", new ChannelAction() {
+								@Override
+								public JSONObject invoke(String action, JSONObject payload) {
+									System.out.printf("channel event " + action);
+									return null;
+								}
+							});
+						});
 					}
-
 					@Override
 					public void onError(Ack ack) {
 						System.out.println(windowName + ": unable to register external window, " + ack.getReason());
@@ -182,9 +177,8 @@ public class LayoutFrame extends JFrame {
 		JSONObject payload = new JSONObject();
 		payload.put("uuid", appUuid);
 		payload.put("name", windowName);
-		channelClient.dispatch("GETTABS", payload, new AckListener() {
-			@Override
-			public void onSuccess(Ack ack) {
+		channelClient.dispatch("GETTABS", payload).thenAccept(ack -> {
+			if (ack.isSuccessful()) {
 				System.out.printf("channel GETTABS ");
 				JSONObject data = (JSONObject) ack.getData();
 				Object result = data.get("result");
@@ -197,11 +191,8 @@ public class LayoutFrame extends JFrame {
 					LayoutFrame.this.btnUndock.setEnabled(true);
 					setHasFrame(LayoutFrame.this, true);
 				}
-			}
-
-			@Override
-			public void onError(Ack ack) {
-				System.out.printf("channel GETTABS error " + ack.getReason());
+			} else {
+				System.out.printf("Error with channel GETTABS " + ack.getReason());
 			}
 		});
 	}
