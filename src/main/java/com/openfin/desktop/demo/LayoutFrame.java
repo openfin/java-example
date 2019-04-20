@@ -51,7 +51,7 @@ public class LayoutFrame extends JFrame {
                             JSONObject payload = new JSONObject();
                             payload.put("uuid", appUuid);
                             payload.put("name", windowName);
-                            client.dispatch("UNDOCK-WINDOW", payload, null);
+                            client.dispatch("UNDOCK-WINDOW", payload);
                         }
                     });
 

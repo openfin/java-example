@@ -1,17 +1,17 @@
 package com.openfin.desktop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +24,7 @@ import com.openfin.desktop.channel.ConnectionEvent;
 import com.openfin.desktop.channel.Middleware;
 
 /**
- * JUnit tests for com.openfin.desktop.InterApplicationBus class
- *
- * Test cases in this class need to have access to an OpenFin HTML5 app to
- * verify sub/pub workflow. Sources for the app can be found in release
- * directory: PubSubExample.html. It is hosted by OpenFin at
- * https://cdn.openfin.co/examples/junit/PubSubExample.html
- *
- * Created by wche on 1/27/16.
- *
+ * JUnit tests for com.openfin.desktop.channel.Channel class
  */
 public class ChannelTest {
 	private static Logger logger = LoggerFactory.getLogger(ChannelTest.class.getName());
@@ -42,7 +34,6 @@ public class ChannelTest {
 
 	@BeforeClass
 	public static void setup() throws Exception {
-		logger.debug("starting");
 		desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
 	}
 
@@ -53,46 +44,36 @@ public class ChannelTest {
 
 	@Test
 	public void createChannelProvider() throws Exception {
-		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create("createChannelProviderTest").thenRun(()->{
-			latch.countDown();
-		});
-
-		latch.await(10, TimeUnit.SECONDS);
-
-		assertEquals(0, latch.getCount());
+		ChannelProvider provider = desktopConnection.getChannel().create("createChannelProviderTest").get();
+		assertNotNull(provider);
 	}
 
 	@Test
 	public void createChannelClient() throws Exception {
-		CountDownLatch latch = new CountDownLatch(1);
 		final String channelName = "createChannelClientTest";
-		desktopConnection.getChannel().create(channelName).thenRun(()->{
-			latch.countDown();
-		});
+		
+		ChannelProvider provider = desktopConnection.getChannel().create(channelName).get();
+		
+		ChannelClient client = desktopConnection.getChannel().connect(channelName).get();
 
-		latch.await(10, TimeUnit.SECONDS);
-
-		assertEquals(0, latch.getCount());
+		assertNotNull(client);
 	}
 
 	@Test
 	public void registerAction() throws Exception {
 		final String channelName = "registerActionTest";
-		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName).thenAcceptAsync(provider->{
-			provider.register("currentTime", new ChannelAction() {
+		AtomicBoolean registered = new AtomicBoolean(false);
+		
+		desktopConnection.getChannel().create(channelName).thenAccept(provider->{
+			registered.set(provider.register("currentTime", new ChannelAction() {
 				@Override
 				public JSONObject invoke(String action, JSONObject payload) {
 					return payload.put("currentTime", java.lang.System.currentTimeMillis());
 				}
-			});
-			latch.countDown();
-		});
-
-		latch.await(10, TimeUnit.SECONDS);
-
-		assertEquals(0, latch.getCount());
+			}));
+		}).get();
+		
+		assertEquals(true, registered.get());
 	}
 	
 	@Test
@@ -100,10 +81,8 @@ public class ChannelTest {
 		final String channelName = "invokeProviderActionTest";
 		final String actionName = "increment";
 		final int initValue = 10;
-		final AtomicInteger resultValue = new AtomicInteger(-1);
 
-		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName).thenAccept(provider -> {
+		CompletableFuture<Ack> ackFuture = desktopConnection.getChannel().create(channelName).thenAccept(provider -> {
 			provider.register(actionName, new ChannelAction() {
 				@Override
 				public JSONObject invoke(String action, JSONObject payload) {
@@ -111,29 +90,23 @@ public class ChannelTest {
 					return payload.put("value", currentValue + 1);
 				}
 			});
-
-			desktopConnection.getChannel().connect(channelName).thenAccept(client -> {
+		}).thenApply(v -> {
+			try {
+				ChannelClient client = desktopConnection.getChannel().connect(channelName).get();
 				JSONObject payload = new JSONObject();
 				payload.put("value", initValue);
-				client.dispatch(actionName, payload, new AckListener() {
-					@Override
-					public void onSuccess(Ack ack) {
-						resultValue.set(ack.getJsonObject().getJSONObject("data").getJSONObject("result")
-								.getInt("value"));
-						latch.countDown();
-					}
+				return client.dispatch(actionName, payload).get();
+			}
+			catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e);
+			}
 
-					@Override
-					public void onError(Ack ack) {
-					}
-				});
-			});
 		});
 
-		latch.await(10, TimeUnit.SECONDS);
-
-		assertEquals(0, latch.getCount());
-		assertEquals(initValue + 1, resultValue.get());
+		Ack ack = ackFuture.get();
+		int resultValue = ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value");
+				
+		assertEquals(initValue + 1, resultValue);
 	}
 
 	@Test
@@ -150,7 +123,7 @@ public class ChannelTest {
 					// once the channel is connected, invoke publish method
 					JSONObject payload = new JSONObject();
 					payload.put("message", actionMessage);
-					provider.publish(actionName, payload, null);
+					provider.publish(actionName, payload);
 				}
 
 				@Override
@@ -195,11 +168,13 @@ public class ChannelTest {
 				}
 			});
 
-			desktopConnection.getChannel().connect(channelName).thenAccept(client->{
-				desktopConnection.getChannel().disconnect(client, null);
-			});
-		});
+		}).get();
 
+		desktopConnection.getChannel().connect(channelName).thenAccept(client->{
+			desktopConnection.getChannel().disconnect(client);
+		}).get();
+
+		
 		latch.await(10, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
@@ -211,10 +186,8 @@ public class ChannelTest {
 		final String actionName = "increment";
 		final int initValue = 10;
 		final int middlewareIncrement = 2;
-		final AtomicInteger resultValue = new AtomicInteger(-1);
 
-		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName).thenAccept(provider -> {
+		CompletableFuture<Ack> ackFuture = desktopConnection.getChannel().create(channelName).thenAccept(provider -> {
 			provider.setBeforeAction(new Middleware() {
 
 				@Override
@@ -224,8 +197,9 @@ public class ChannelTest {
 						payload.put("value", value + middlewareIncrement);
 					}
 					return payload;
-				}});
-			
+				}
+			});
+
 			provider.register(actionName, new ChannelAction() {
 				@Override
 				public JSONObject invoke(String action, JSONObject payload) {
@@ -233,29 +207,29 @@ public class ChannelTest {
 					return payload.put("value", currentValue + 1);
 				}
 			});
-
-			desktopConnection.getChannel().connect(channelName).thenAccept(client -> {
-				JSONObject payload = new JSONObject();
-				payload.put("value", initValue);
-				client.dispatch(actionName, payload, new AckListener() {
-					@Override
-					public void onSuccess(Ack ack) {
-						resultValue.set(ack.getJsonObject().getJSONObject("data").getJSONObject("result")
-								.getInt("value"));
-						latch.countDown();
+		}).thenApply((v) -> {
+			try {
+				return desktopConnection.getChannel().connect(channelName).thenApply(client -> {
+					JSONObject payload = new JSONObject();
+					payload.put("value", initValue);
+					try {
+						return client.dispatch(actionName, payload).get();
 					}
-
-					@Override
-					public void onError(Ack ack) {
+					catch (InterruptedException | ExecutionException e) {
+						throw new RuntimeException(e);
 					}
-				});
-			});
+				}).get();
+			}
+			catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e);
+			}
 		});
 
-		latch.await(10, TimeUnit.SECONDS);
+		Ack ack = ackFuture.get();
 
-		assertEquals(0, latch.getCount());
-		assertEquals(initValue + 3, resultValue.get());
+		int resultValue = ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value");
+
+		assertEquals(initValue + 3, resultValue);
 	}
 
 }
