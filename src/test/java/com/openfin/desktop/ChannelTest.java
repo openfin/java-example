@@ -1,19 +1,17 @@
 package com.openfin.desktop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +24,7 @@ import com.openfin.desktop.channel.ConnectionEvent;
 import com.openfin.desktop.channel.Middleware;
 
 /**
- * JUnit tests for com.openfin.desktop.InterApplicationBus class
- *
- * Test cases in this class need to have access to an OpenFin HTML5 app to
- * verify sub/pub workflow. Sources for the app can be found in release
- * directory: PubSubExample.html. It is hosted by OpenFin at
- * https://cdn.openfin.co/examples/junit/PubSubExample.html
- *
- * Created by wche on 1/27/16.
- *
+ * JUnit tests for com.openfin.desktop.channel.Channel class
  */
 public class ChannelTest {
 	private static Logger logger = LoggerFactory.getLogger(ChannelTest.class.getName());
@@ -44,7 +34,6 @@ public class ChannelTest {
 
 	@BeforeClass
 	public static void setup() throws Exception {
-		logger.debug("starting");
 		desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
 	}
 
@@ -55,46 +44,36 @@ public class ChannelTest {
 
 	@Test
 	public void createChannelProvider() throws Exception {
-		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create("createChannelProviderTest").thenRun(()->{
-			latch.countDown();
-		});
-
-		latch.await(10, TimeUnit.SECONDS);
-
-		assertEquals(0, latch.getCount());
+		ChannelProvider provider = desktopConnection.getChannel().create("createChannelProviderTest").get();
+		assertNotNull(provider);
 	}
 
 	@Test
 	public void createChannelClient() throws Exception {
-		CountDownLatch latch = new CountDownLatch(1);
 		final String channelName = "createChannelClientTest";
-		desktopConnection.getChannel().create(channelName).thenRun(()->{
-			latch.countDown();
-		});
+		
+		ChannelProvider provider = desktopConnection.getChannel().create(channelName).get();
+		
+		ChannelClient client = desktopConnection.getChannel().connect(channelName).get();
 
-		latch.await(10, TimeUnit.SECONDS);
-
-		assertEquals(0, latch.getCount());
+		assertNotNull(client);
 	}
 
 	@Test
 	public void registerAction() throws Exception {
 		final String channelName = "registerActionTest";
-		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName).thenAcceptAsync(provider->{
-			provider.register("currentTime", new ChannelAction() {
+		AtomicBoolean registered = new AtomicBoolean(false);
+		
+		desktopConnection.getChannel().create(channelName).thenAccept(provider->{
+			registered.set(provider.register("currentTime", new ChannelAction() {
 				@Override
 				public JSONObject invoke(String action, JSONObject payload) {
 					return payload.put("currentTime", java.lang.System.currentTimeMillis());
 				}
-			});
-			latch.countDown();
-		});
-
-		latch.await(10, TimeUnit.SECONDS);
-
-		assertEquals(0, latch.getCount());
+			}));
+		}).get();
+		
+		assertEquals(true, registered.get());
 	}
 	
 	@Test
@@ -126,7 +105,7 @@ public class ChannelTest {
 
 		Ack ack = ackFuture.get();
 		int resultValue = ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value");
-
+				
 		assertEquals(initValue + 1, resultValue);
 	}
 
@@ -195,7 +174,7 @@ public class ChannelTest {
 			desktopConnection.getChannel().disconnect(client);
 		}).get();
 
-
+		
 		latch.await(10, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
