@@ -23,8 +23,6 @@ public class LaunchManifestDemo extends Application {
     private DesktopConnection desktopConnectionSL;  // connection to StockFlux by Scott Logic
     private Button btnGiantMachine, btnScottLogic;
 
-    private String startupUuid = LaunchManifestDemo.class.getName();
-    private com.openfin.desktop.Application startupHtml5app;
 
     @Override
     public void start(Stage stage) {
@@ -79,7 +77,7 @@ public class LaunchManifestDemo extends Application {
             RuntimeConfiguration cfg = new RuntimeConfiguration();
             cfg.setManifestLocation("https://openfin.giantmachines.com/public/app.json");
             try {
-                desktopConnectionGM = new DesktopConnection(startupUuid);
+                desktopConnectionGM = new DesktopConnection("Watchlist Java");
                 desktopConnectionGM.connect(cfg, new DesktopStateListener() {
                     @Override
                     public void onReady() {
@@ -113,7 +111,7 @@ public class LaunchManifestDemo extends Application {
             RuntimeConfiguration cfg = new RuntimeConfiguration();
             cfg.setManifestLocation("http://scottlogic.github.io/StockFlux/master/app.json");
             try {
-                desktopConnectionSL = new DesktopConnection(startupUuid);
+                desktopConnectionSL = new DesktopConnection("StockFlux Java");
                 desktopConnectionSL.connect(cfg, new DesktopStateListener() {
                     @Override
                     public void onReady() {
