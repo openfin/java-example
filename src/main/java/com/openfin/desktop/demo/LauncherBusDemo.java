@@ -244,6 +244,8 @@ public class LauncherBusDemo extends Application {
         }
         String windowName = appUuid + "-Java-Window";
         try {
+            // ExternalWindowObserver forwards window events to Runtime & Layout Service.  Currently ExternalWindowObserver requires UUID of an
+            // existing OpenFin app.  So here we are using UUID of the startup app in manifest.
             this.externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, this.stage,
                     new AckListener() {
                         @Override
