@@ -149,7 +149,7 @@ public class LauncherBusDemo extends Application {
             sfeatures.put("tab", false);
             scfg.put("features", sfeatures);
             layout.put("config", scfg);
-//            layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
+            layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
             serviceConfig.put(0, layout);
             cfg.addConfigurationItem("services", serviceConfig);
 
