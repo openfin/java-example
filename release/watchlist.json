@@ -1,0 +1,33 @@
+{
+  "devtools_port": 9090,
+  "startup_app": {
+    "name": "GiantMachinesWatchlist",
+    "url": "http://watchlist.giantmachines.com",
+    "uuid": "GiantMachinesWatchlist",
+    "applicationIcon": "http://watchlist.giantmachines.com/watchlist-icon.png",
+    "autoShow": true,
+    "frame": false,
+    "defaultHeight": 600,
+    "defaultWidth": 450,
+    "defaultTop": 50,
+    "defaultLeft": 50,
+    "resizable": false,
+    "maximizable": false
+  },
+  "runtime": {
+    "arguments": "--v=1",
+    "version": "9.61.38.40",
+    "forceLatest": true
+  },
+  "services": [{
+    "manifestUrl": "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json",
+    "name": "layouts",
+    "config": {
+      "features": {
+        "tab": false,
+        "dock": true
+      }
+    }
+  }],
+  "splashScreenImage": "http://watchlist.giantmachines.com/watchlist-splash.png"
+}

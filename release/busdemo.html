@@ -1,6 +1,7 @@
 <html>
 <head>
     <title>Inter Application Bus demo</title>
+    <script src="https://cdn.openfin.co/services/openfin/layouts/1.0.0/openfin-layouts.js"></script>
 
     <script type="text/javascript">
 
@@ -11,7 +12,19 @@
                 console.log(m);
             });
 
+            OpenFinLayouts.snapAndDock.addEventListener('window-docked', e => {
+                let undock = document.getElementById("undock");
+                undock.disabled = false;
+            });
+            OpenFinLayouts.snapAndDock.addEventListener('window-undocked', e => {
+                let undock = document.getElementById("undock");
+                undock.disabled = true;
+            });
         });
+
+        function undockMe() {
+            OpenFinLayouts.snapAndDock.undockWindow();
+        }
 
     </script>
 </head>
@@ -23,5 +36,9 @@
 <p>Demo for Inter Application Bus</p>
 <div id="messageFromJava">
 </div>
+<div>
+    <Button id="undock" disabled onclick="undockMe()"> Undock </Button>
+</div>
+
 </body>
 </html>

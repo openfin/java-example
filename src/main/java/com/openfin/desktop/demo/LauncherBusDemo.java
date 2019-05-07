@@ -7,6 +7,8 @@
 package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
+import com.openfin.desktop.channel.ChannelClient;
+import com.openfin.desktop.win32.ExternalWindowObserver;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -16,9 +18,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.System;
 
 public class LauncherBusDemo extends Application {
     private final static Logger logger = LoggerFactory.getLogger(LauncherBusDemo.class.getName());
@@ -27,11 +32,16 @@ public class LauncherBusDemo extends Application {
     private DesktopConnection desktopConnection;
     private InterApplicationBus interApplicationBus;
     private Button btnOFApp1, btnOFApp2;
+    private Button btnUndock;   // button to undock this Java window
     private Button btnOFSendApp1, btnOFSendApp2;  // send messages to OpenFin app via Inter App Bus
-    private final String app1Uuid = "OpenFin app1";
-    private final String app2Uuid = "OpenFin app2";
+    private static String appUuid = "LaunchManifestDemo";  // App UUID for startup app in manifest
+    private final String app1Uuid = "Layout Client1";       // defined in layoutclient1.json
+    private final String app2Uuid = "Layout Client2";       // defined in layoutclient2.json
     private final String appUrl = "http://localhost:8888/busdemo.html";
     com.openfin.desktop.Application app1, app2;  // OpenFin apps
+
+    private ExternalWindowObserver externalWindowObserver;  // required for Layout service to control Java window
+    private Stage stage;
 
     @Override
     public void start(Stage stage) {
@@ -43,7 +53,7 @@ public class LauncherBusDemo extends Application {
         btnOFApp1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                launchOFApp1(app1Uuid, appUrl, 500, 100);
+                launchAppFromManifest("http://localhost:8888/layoutclient1.json");
             }
         });
 
@@ -55,7 +65,7 @@ public class LauncherBusDemo extends Application {
         btnOFApp2.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                launchOFApp2(app2Uuid, appUrl, 500, 500);
+                launchAppFromManifest("http://localhost:8888/layoutclient2.json");
             }
         });
 
@@ -67,7 +77,7 @@ public class LauncherBusDemo extends Application {
         btnOFSendApp1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                sendOFApp(app1);
+                sendOFApp(app1Uuid);
             }
         });
 
@@ -79,15 +89,22 @@ public class LauncherBusDemo extends Application {
         btnOFSendApp2.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                sendOFApp(app2);
+                sendOFApp(app2Uuid);
             }
         });
+
+        btnUndock = new Button();
+        btnUndock.setText("Undock");
+        btnUndock.setLayoutX(10);
+        btnUndock.setLayoutY(170);
+        btnUndock.setDisable(true);
 
         AnchorPane anchorPane = new AnchorPane();
         anchorPane.getChildren().add(btnOFApp1);
         anchorPane.getChildren().add(btnOFApp2);
         anchorPane.getChildren().add(btnOFSendApp1);
         anchorPane.getChildren().add(btnOFSendApp2);
+        anchorPane.getChildren().add(btnUndock);
 
         //Creating a Group object
         Group root = new Group();
@@ -96,7 +113,7 @@ public class LauncherBusDemo extends Application {
         ObservableList list = root.getChildren();
 
         //Creating a scene object
-        Scene scene = new Scene(anchorPane, 800, 800);
+        Scene scene = new Scene(anchorPane, 400, 400);
 
         //Setting title to the Stage
         stage.setTitle(WINDOW_TITLE);
@@ -107,6 +124,10 @@ public class LauncherBusDemo extends Application {
         //Displaying the contents of the stage
         stage.show();
 
+        this.stage = stage;
+        this.stage.setResizable(false);
+        this.stage.setOnCloseRequest(event -> cleanup());
+
         launchRuntime();
     }
 
@@ -114,7 +135,31 @@ public class LauncherBusDemo extends Application {
         if (desktopConnection == null) {
             RuntimeConfiguration cfg = new RuntimeConfiguration();
             cfg.setRuntimeVersion("stable");
-            cfg.setAdditionalRuntimeArguments("--v=1");   // enable verbose logging by Runtime
+            cfg.setSecurityRealm("java-test");
+            cfg.setAdditionalRuntimeArguments("--v=1 --enable-mesh ");   // --v=1  => enable verbose logging by Runtime
+                                                                         // --enable-mesh  => enable multi-Runtime for the security realm
+            // Add Layout Service to the manifest
+            JSONArray serviceConfig = new JSONArray();
+            // add Layout service to app manifest
+            JSONObject layout = new JSONObject();
+            layout.put("name", "layouts");
+            JSONObject scfg = new JSONObject();
+            JSONObject sfeatures = new JSONObject();
+            sfeatures.put("dock", true);
+            sfeatures.put("tab", false);
+            scfg.put("features", sfeatures);
+            layout.put("config", scfg);
+//            layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
+            serviceConfig.put(0, layout);
+            cfg.addConfigurationItem("services", serviceConfig);
+
+            JSONObject startupApp = new JSONObject();
+            startupApp.put("uuid", appUuid);
+            startupApp.put("name", appUuid);
+            startupApp.put("url", "about:blank");
+            startupApp.put("autoShow", false);
+            cfg.setStartupApp(startupApp);
+
             try {
                 desktopConnection = new DesktopConnection("Java app");
                 desktopConnection.connect(cfg, new DesktopStateListener() {
@@ -124,6 +169,7 @@ public class LauncherBusDemo extends Application {
                         interApplicationBus = new InterApplicationBus(desktopConnection);
                         btnOFApp1.setDisable(false);
                         btnOFApp2.setDisable(false);
+                        configAppEventListener();
                     }
 
                     @Override
@@ -148,76 +194,168 @@ public class LauncherBusDemo extends Application {
         }
     }
 
-    private void launchOFApp1(String uuid, String url, int left, int top) {
-        ApplicationOptions options = createAppOptions(uuid, url, left, top);
-        app1 = new com.openfin.desktop.Application(options, desktopConnection, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                app1.run(new AckListener() {
-                    @Override
-                    public void onSuccess(Ack ack) {
-                        btnOFSendApp1.setDisable(false);
-                    }
-                    @Override
-                    public void onError(Ack ack) {
-                        logger.error(String.format("Error running %s", uuid));
-                    }
-                });
-            }
-            @Override
-            public void onError(Ack ack) {
-                logger.error(String.format("Error creating %s", uuid));
-            }
-        });
+    private void configAppEventListener() {
+        try {
+            // set up listener for "started" and "closed" event for layoutclient1.json
+            app1 = com.openfin.desktop.Application.wrap(app1Uuid, this.desktopConnection);
+            app1.addEventListener("started", new EventListener() {
+                @Override
+                public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                    btnOFApp1.setDisable(true);
+                    btnOFSendApp1.setDisable(false);
+                }
+            }, null);
+            app1.addEventListener("closed", new EventListener() {
+                @Override
+                public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                    btnOFApp1.setDisable(false);
+                    btnOFSendApp1.setDisable(true);
+                }
+            }, null);
+
+            // set up listener for "started and "closed" event for layoutclient2.json
+            app2 = com.openfin.desktop.Application.wrap(app2Uuid, this.desktopConnection);
+            app2.addEventListener("started", new EventListener() {
+                @Override
+                public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                    btnOFApp2.setDisable(true);
+                    btnOFSendApp2.setDisable(false);
+                }
+            }, null);
+            app2.addEventListener("closed", new EventListener() {
+                @Override
+                public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                    btnOFApp2.setDisable(false);
+                    btnOFSendApp2.setDisable(true);
+                }
+            }, null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
-    private void launchOFApp2(String uuid, String url, int left, int width) {
-        ApplicationOptions options = createAppOptions(uuid, url, left, width);
-        app2 = new com.openfin.desktop.Application(options, desktopConnection, new AckListener() {
+    /**
+     * Create externalWindowObserver for this Java frame so Runtime & Layout Service can keep track of location & size
+     */
+    private void createExternalWindowObserver() {
+        if (this.externalWindowObserver != null) {
+            // only needs to happen once
+            return;
+        }
+        String windowName = appUuid + "-Java-Window";
+        try {
+            this.externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, this.stage,
+                    new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
+                            observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
+                                    new AsyncCallback<ChannelClient>() {
+                                        @Override
+                                        public void onSuccess(ChannelClient client) {
+                                            btnUndock.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+                                                @Override
+                                                public void handle(javafx.event.ActionEvent e) {
+                                                    JSONObject payload = new JSONObject();
+                                                    payload.put("uuid", appUuid);
+                                                    payload.put("name", windowName);
+                                                    client.dispatch("UNDOCK-WINDOW", payload, null);
+                                                }
+                                            });
+                                        }
+                                    });
+                        }
+
+                        @Override
+                        public void onError(Ack ack) {
+                            System.out.println(windowName + ": unable to register external window, " + ack.getReason());
+                        }
+                    });
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        // when this Java window is docked or undocked by layout service, "group-changed" is fired.
+        // calling getGroup to determine if btnUndock should enabled.
+        Window w = Window.wrap(appUuid, windowName, desktopConnection);
+        w.addEventListener("group-changed", new EventListener() {
             @Override
-            public void onSuccess(Ack ack) {
-                app2.run(new AckListener() {
+            public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
+                w.getGroup(new AsyncCallback<java.util.List<Window>>() {
                     @Override
-                    public void onSuccess(Ack ack) {
-                        btnOFSendApp2.setDisable(false);
+                    public void onSuccess(java.util.List<Window> result) {
+                        if (result.size() > 0) {
+                            btnUndock.setDisable(false);
+                        } else {
+                            btnUndock.setDisable(true);
+                        }
                     }
-                    @Override
-                    public void onError(Ack ack) {
-                        logger.error(String.format("Error running %s", uuid));
-                    }
-                });
+                }, null);
             }
-            @Override
-            public void onError(Ack ack) {
-                logger.error(String.format("Error creating %s", uuid));
-            }
-        });
+        }, null);
+
+        try {
+            this.externalWindowObserver.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private ApplicationOptions createAppOptions(String uuid, String url, int left, int top) {
-        ApplicationOptions options = new ApplicationOptions(uuid, uuid, url);
-        WindowOptions windowOptions = new WindowOptions();
-        windowOptions.setDefaultHeight(400);
-        windowOptions.setDefaultWidth(400);
-        windowOptions.setDefaultLeft(left);
-        windowOptions.setDefaultTop(top);
-        windowOptions.setSaveWindowState(false);  // so last position is not saved
-        windowOptions.setContextMenu(true);       // enable Javascript Devtools
-        windowOptions.setAutoShow(false);          // hide the window initially, show it when a message is sent to it
-        options.setMainWindowOptions(windowOptions);
-        return options;
+    private void launchAppFromManifest(String manifest) {
+        try {
+            com.openfin.desktop.Application.createFromManifest(manifest,
+                    new AsyncCallback<com.openfin.desktop.Application>() {
+                        @Override
+                        public void onSuccess(com.openfin.desktop.Application app) {
+                            try {
+                                app.run();
+                                createExternalWindowObserver();
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    }, new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                        }
+
+                        @Override
+                        public void onError(Ack ack) {
+                            logger.info("error creating app: {}", ack.getReason());
+                        }
+                    }, desktopConnection);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
-    private void sendOFApp(com.openfin.desktop.Application app) {
+    private void sendOFApp(String desticationAppUuid) {
         JSONObject msg = new JSONObject();
         msg.put("ticker", "AAPL");
         msg.put("price", Math.random() * 100);
         try {
-            interApplicationBus.send(app.getOptions().getUUID(), "messageFromJavaTopic", msg);
-            app.getWindow().show();
+            interApplicationBus.send(desticationAppUuid, "messageFromJavaTopic", msg);
         } catch (DesktopException e) {
             e.printStackTrace();
         }
+    }
+
+    public void cleanup() {
+        try {
+            if (this.externalWindowObserver != null) {
+                this.externalWindowObserver.dispose();
+            }
+            if (this.desktopConnection != null) {
+                OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
+                runtime.exit();
+                Thread.sleep(1000);
+                java.lang.System.exit(0);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        this.externalWindowObserver = null;
     }
 
     public static void main(String args[]) {
