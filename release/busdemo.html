@@ -26,9 +26,23 @@
             OpenFinLayouts.snapAndDock.undockWindow();
         }
 
+        function createChildWindow() {
+            const winOption = {
+                name:'child',  // needs to be unique within its app
+                defaultWidth: 420,
+                defaultHeight: 420,
+                url: 'http://localhost:8888/layout.html',
+                frame: true,
+                autoShow: true,
+                saveWindowState: false
+            };
+            fin.Window.create(winOption);
+        }
+
+
     </script>
 </head>
-<body style="background-color: rgb(158, 240, 222);">
+<body>
 <script>
 
 </script>
@@ -38,6 +52,9 @@
 </div>
 <div>
     <Button id="undock" disabled onclick="undockMe()"> Undock </Button>
+</div>
+<div>
+    <Button id="createChild" onclick="createChildWindow()"> Create Child Window </Button>
 </div>
 
 </body>

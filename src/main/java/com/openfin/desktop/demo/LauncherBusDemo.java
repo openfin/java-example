@@ -7,129 +7,128 @@
 package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
+import com.openfin.desktop.ActionEvent;
+import com.openfin.desktop.Window;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.win32.ExternalWindowObserver;
-import javafx.application.Application;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.AnchorPane;
-import javafx.stage.Stage;
+import com.sun.jna.Native;
+import info.clearthought.layout.TableLayout;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.lang.System;
 
-public class LauncherBusDemo extends Application {
+public class LauncherBusDemo extends JFrame {
     private final static Logger logger = LoggerFactory.getLogger(LauncherBusDemo.class.getName());
     private final static String WINDOW_TITLE = "Launcher and InterAppBus Demo";
 
     private DesktopConnection desktopConnection;
     private InterApplicationBus interApplicationBus;
-    private Button btnOFApp1, btnOFApp2;
-    private Button btnUndock;   // button to undock this Java window
-    private Button btnOFSendApp1, btnOFSendApp2;  // send messages to OpenFin app via Inter App Bus
+    private JButton btnOFApp1, btnOFApp2;
+    private JButton btnUndock;   // button to undock this Java window
+    private JButton btnOFSendApp1, btnOFSendApp2;  // send messages to OpenFin app via Inter App Bus
     private static String appUuid = "LaunchManifestDemo";  // App UUID for startup app in manifest
     private final String app1Uuid = "Layout Client1";       // defined in layoutclient1.json
     private final String app2Uuid = "Layout Client2";       // defined in layoutclient2.json
     private final String appUrl = "http://localhost:8888/busdemo.html";
     com.openfin.desktop.Application app1, app2;  // OpenFin apps
 
-    private ExternalWindowObserver externalWindowObserver;  // required for Layout service to control Java window
-    private Stage stage;
+    private final String embedUuid = "Embed Client";
+    Application embeddedApp;   // OpenFin app to be embedded in Java canvas
 
-    @Override
-    public void start(Stage stage) {
-        btnOFApp1 = new Button();
-        btnOFApp1.setDisable(true);
+    private ExternalWindowObserver externalWindowObserver;  // required for Layout service to control Java window
+    protected java.awt.Canvas embedCanvas;                  // required for embedding OpenFin window
+
+    public LauncherBusDemo() {
+        btnOFApp1 = new JButton();
+        btnOFApp1.setEnabled(false);
         btnOFApp1.setText("Launch OpenFin app1");
-        btnOFApp1.setLayoutX(10);
-        btnOFApp1.setLayoutY(10);
-        btnOFApp1.setOnAction(new EventHandler<ActionEvent>() {
+        btnOFApp1.addActionListener(new ActionListener() {
             @Override
-            public void handle(ActionEvent event) {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 launchAppFromManifest("http://localhost:8888/layoutclient1.json");
             }
         });
 
-        btnOFApp2 = new Button();
-        btnOFApp2.setDisable(true);
+        btnOFApp2 = new JButton();
+        btnOFApp2.setEnabled(false);
         btnOFApp2.setText("Launch OpenFin App2");
-        btnOFApp2.setLayoutX(10);
-        btnOFApp2.setLayoutY(50);
-        btnOFApp2.setOnAction(new EventHandler<ActionEvent>() {
+        btnOFApp2.addActionListener(new ActionListener() {
             @Override
-            public void handle(ActionEvent event) {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 launchAppFromManifest("http://localhost:8888/layoutclient2.json");
             }
         });
 
-        btnOFSendApp1 = new Button();
-        btnOFSendApp1.setDisable(true);
+        btnOFSendApp1 = new JButton();
+        btnOFSendApp1.setEnabled(false);
         btnOFSendApp1.setText("Send messages OpenFin app1");
-        btnOFSendApp1.setLayoutX(10);
-        btnOFSendApp1.setLayoutY(90);
-        btnOFSendApp1.setOnAction(new EventHandler<ActionEvent>() {
+        btnOFSendApp1.addActionListener(new ActionListener() {
             @Override
-            public void handle(ActionEvent event) {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 sendOFApp(app1Uuid);
             }
         });
 
-        btnOFSendApp2 = new Button();
-        btnOFSendApp2.setDisable(true);
+        btnOFSendApp2 = new JButton();
+        btnOFSendApp2.setEnabled(false);
         btnOFSendApp2.setText("Send messages OpenFin app2");
-        btnOFSendApp2.setLayoutX(10);
-        btnOFSendApp2.setLayoutY(130);
-        btnOFSendApp2.setOnAction(new EventHandler<ActionEvent>() {
+        btnOFSendApp1.addActionListener(new ActionListener() {
             @Override
-            public void handle(ActionEvent event) {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 sendOFApp(app2Uuid);
             }
         });
 
-        btnUndock = new Button();
+        btnUndock = new JButton();
         btnUndock.setText("Undock");
-        btnUndock.setLayoutX(10);
-        btnUndock.setLayoutY(170);
-        btnUndock.setDisable(true);
+        btnUndock.setEnabled(false);
 
-        AnchorPane anchorPane = new AnchorPane();
-        anchorPane.getChildren().add(btnOFApp1);
-        anchorPane.getChildren().add(btnOFApp2);
-        anchorPane.getChildren().add(btnOFSendApp1);
-        anchorPane.getChildren().add(btnOFSendApp2);
-        anchorPane.getChildren().add(btnUndock);
+        JPanel topPanel = new JPanel();
+        double size[][] = {{10, 190}, {25, 5, 25, 5, 25, 5, 25, 5, 25, 5}};
+        topPanel.setLayout(new TableLayout(size));
 
-        //Creating a Group object
-        Group root = new Group();
+        topPanel.add(btnOFApp1, "1,0,1,0");
+        topPanel.add(btnOFApp2, "1,2,1,2");
+        topPanel.add(btnOFSendApp1, "1,4,1,4");
+        topPanel.add(btnOFSendApp2, "1,6,1,6");
+        topPanel.add(btnUndock, "1,8,1,8");
 
-        //Retrieving the observable list object
-        ObservableList list = root.getChildren();
-
-        //Creating a scene object
-        Scene scene = new Scene(anchorPane, 400, 400);
-
-        //Setting title to the Stage
-        stage.setTitle(WINDOW_TITLE);
-
-        //Adding scene to the stage
-        stage.setScene(scene);
-
-        //Displaying the contents of the stage
-        stage.show();
-
-        this.stage = stage;
-        this.stage.setResizable(false);
-        this.stage.setOnCloseRequest(event -> cleanup());
+        setLayout(new BorderLayout());
+        add(topPanel, BorderLayout.NORTH);
+        add(layoutEmbedPanel(), BorderLayout.CENTER);
 
         launchRuntime();
     }
+
+    protected JPanel layoutEmbedPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(2), "HTML5 app"));
+        embedCanvas = new java.awt.Canvas();
+        panel.add(embedCanvas, BorderLayout.CENTER);
+        embedCanvas.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent event) {
+                super.componentResized(event);
+                Dimension newSize = event.getComponent().getSize();
+                try {
+//                    if (startupHtml5app != null) {
+//                        startupHtml5app.getWindow().embedComponentSizeChange((int)newSize.getWidth(), (int)newSize.getHeight());
+//                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return panel;
+    }
+
 
     private void launchRuntime() {
         if (desktopConnection == null) {
@@ -146,7 +145,7 @@ public class LauncherBusDemo extends Application {
             JSONObject scfg = new JSONObject();
             JSONObject sfeatures = new JSONObject();
             sfeatures.put("dock", true);
-            sfeatures.put("tab", false);
+            sfeatures.put("tab", true);
             scfg.put("features", sfeatures);
             layout.put("config", scfg);
             layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
@@ -167,9 +166,10 @@ public class LauncherBusDemo extends Application {
                     public void onReady() {
                         logger.info("Connected to OpenFin Runtime");
                         interApplicationBus = new InterApplicationBus(desktopConnection);
-                        btnOFApp1.setDisable(false);
-                        btnOFApp2.setDisable(false);
+                        btnOFApp1.setEnabled(true);
+                        btnOFApp2.setEnabled(true);
                         configAppEventListener();
+                        createEmbddedApp();
                     }
 
                     @Override
@@ -201,15 +201,15 @@ public class LauncherBusDemo extends Application {
             app1.addEventListener("started", new EventListener() {
                 @Override
                 public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
-                    btnOFApp1.setDisable(true);
-                    btnOFSendApp1.setDisable(false);
+                    btnOFApp1.setEnabled(false);
+                    btnOFSendApp1.setEnabled(true);
                 }
             }, null);
             app1.addEventListener("closed", new EventListener() {
                 @Override
                 public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
-                    btnOFApp1.setDisable(false);
-                    btnOFSendApp1.setDisable(true);
+                    btnOFApp1.setEnabled(true);
+                    btnOFSendApp1.setEnabled(false);
                 }
             }, null);
 
@@ -218,15 +218,15 @@ public class LauncherBusDemo extends Application {
             app2.addEventListener("started", new EventListener() {
                 @Override
                 public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
-                    btnOFApp2.setDisable(true);
-                    btnOFSendApp2.setDisable(false);
+                    btnOFApp2.setEnabled(false);
+                    btnOFSendApp2.setEnabled(true);
                 }
             }, null);
             app2.addEventListener("closed", new EventListener() {
                 @Override
                 public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
-                    btnOFApp2.setDisable(false);
-                    btnOFSendApp2.setDisable(true);
+                    btnOFApp2.setEnabled(true);
+                    btnOFSendApp2.setEnabled(false);
                 }
             }, null);
         } catch (Exception ex) {
@@ -246,7 +246,7 @@ public class LauncherBusDemo extends Application {
         try {
             // ExternalWindowObserver forwards window events to Runtime & Layout Service.  Currently ExternalWindowObserver requires UUID of an
             // existing OpenFin app.  So here we are using UUID of the startup app in manifest.
-            this.externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, this.stage,
+            this.externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, this,
                     new AckListener() {
                         @Override
                         public void onSuccess(Ack ack) {
@@ -255,9 +255,9 @@ public class LauncherBusDemo extends Application {
                                     new AsyncCallback<ChannelClient>() {
                                         @Override
                                         public void onSuccess(ChannelClient client) {
-                                            btnUndock.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+                                            btnUndock.addActionListener(new ActionListener() {
                                                 @Override
-                                                public void handle(javafx.event.ActionEvent e) {
+                                                public void actionPerformed(java.awt.event.ActionEvent e) {
                                                     JSONObject payload = new JSONObject();
                                                     payload.put("uuid", appUuid);
                                                     payload.put("name", windowName);
@@ -287,9 +287,9 @@ public class LauncherBusDemo extends Application {
                     @Override
                     public void onSuccess(java.util.List<Window> result) {
                         if (result.size() > 0) {
-                            btnUndock.setDisable(false);
+                            btnUndock.setEnabled(true);
                         } else {
-                            btnUndock.setDisable(true);
+                            btnUndock.setEnabled(false);
                         }
                     }
                 }, null);
@@ -342,6 +342,60 @@ public class LauncherBusDemo extends Application {
         }
     }
 
+    void createEmbddedApp() {
+        ApplicationOptions appOpt = new ApplicationOptions(embedUuid, embedUuid, "http://localhost:8888/busdemo.html");
+        WindowOptions mainWindowOptions = new WindowOptions();
+        mainWindowOptions.setAutoShow(true);
+        mainWindowOptions.setFrame(false);   // remove frame for embedded app
+        mainWindowOptions.setResizable(true);
+        mainWindowOptions.setContextMenu(true);
+        appOpt.setMainWindowOptions(mainWindowOptions);
+
+        this.embeddedApp = new Application(appOpt, this.desktopConnection, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                try {
+                    embeddedApp.run(new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            embedOpenFinApp();
+                        }
+                        @Override
+                        public void onError(Ack ack) {
+                        }
+                    });
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+    }
+    private void embedOpenFinApp() {
+        try {
+            Window html5Wnd = embeddedApp.getWindow();
+            long parentHWndId = Native.getComponentID(this.embedCanvas);
+            System.out.println("Canvas HWND " + Long.toHexString(parentHWndId));
+            html5Wnd.embedInto(parentHWndId, this.embedCanvas.getWidth(), this.embedCanvas.getHeight(), new AckListener() {
+                @Override
+                public void onSuccess(Ack ack) {
+                    if (ack.isSuccessful()) {
+                    } else {
+                        logger.error("embedding failed: " + ack.getJsonObject().toString());
+                    }
+                }
+                @Override
+                public void onError(Ack ack) {
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public void cleanup() {
         try {
             if (this.externalWindowObserver != null) {
@@ -360,8 +414,39 @@ public class LauncherBusDemo extends Application {
         this.externalWindowObserver = null;
     }
 
+    private static void createAndShowGUI(final String startupUuid) {
+        //Create and set up the window.
+        LauncherBusDemo newContentPane = new LauncherBusDemo();
+//        newContentPane.setOpaque(true); //content panes must be opaque
+//        jFrame.setContentPane(newContentPane);
+//        jFrame.addWindowListener(newContentPane);
+        //Display the window.
+        newContentPane.pack();
+        newContentPane.setSize(700, 700);
+        newContentPane.setLocationRelativeTo(null);
+        newContentPane.setResizable(true);
+        newContentPane.setVisible(true);
+
+        newContentPane.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we) {
+                try {
+                    newContentPane.cleanup();
+                }
+                catch (Exception de) {
+                    de.printStackTrace();
+                }
+            }
+        });
+    }
+
+
     public static void main(String args[]) {
-        launch(args);
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createAndShowGUI("OpenFin Embed Example");
+            }
+        });
     }
 
 
