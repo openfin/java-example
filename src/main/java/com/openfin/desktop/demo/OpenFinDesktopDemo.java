@@ -361,6 +361,12 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     @Override
     public void windowClosing(WindowEvent e) {
         closeDesktop();
+        try {
+            Thread.sleep(1000);
+            java.lang.System.exit(0);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
