@@ -160,6 +160,29 @@ public class ChannelTest {
 	}
 
 	@Test
+	public void connectBeforeProviderIsReady() throws Exception {
+		final String channelName = "connectBeforeProviderIsReadyTest";
+
+		CountDownLatch latch = new CountDownLatch(1);
+
+		desktopConnection.getChannel().connect(channelName, new AsyncCallback<ChannelClient>() {
+			@Override
+			public void onSuccess(ChannelClient client) {
+				latch.countDown();
+			}
+		});
+		
+		desktopConnection.getChannel().create(channelName, new AsyncCallback<ChannelProvider>() {
+			@Override
+			public void onSuccess(ChannelProvider provider) {
+			}
+		});
+		
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals(0, latch.getCount());
+	}
+
+	@Test
 	public void publishToClient() throws Exception {
 		final String channelName = "publishToClientTest";
 		final String actionName = "message";
