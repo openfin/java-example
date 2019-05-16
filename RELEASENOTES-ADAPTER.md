@@ -1,3 +1,8 @@
+# Version 7.1.2
+## Bug Fixes
+
+* Fixed an issue with dependencies
+
 # Version 7.1.1
 
 ## New Features
