@@ -7,9 +7,11 @@
 package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
-import com.openfin.desktop.ActionEvent;
 import com.openfin.desktop.Window;
 import com.openfin.desktop.channel.ChannelClient;
+import com.openfin.desktop.channel.NotificationClient;
+import com.openfin.desktop.channel.NotificationListener;
+import com.openfin.desktop.channel.NotificationOptions;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 import com.sun.jna.Native;
 import info.clearthought.layout.TableLayout;
@@ -22,6 +24,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.lang.System;
+import java.util.UUID;
 
 public class LauncherBusDemo extends JFrame {
     private final static Logger logger = LoggerFactory.getLogger(LauncherBusDemo.class.getName());
@@ -29,7 +32,9 @@ public class LauncherBusDemo extends JFrame {
 
     private DesktopConnection desktopConnection;
     private InterApplicationBus interApplicationBus;
+    private NotificationClient notificationClient;
     private JButton btnOFApp1, btnOFApp2;
+    private JButton btnNotification, btnToggleNotification;   // button to create notifications
     private JButton btnUndock;   // button to undock this Java window
     private JButton btnOFSendApp1, btnOFSendApp2;  // send messages to OpenFin app via Inter App Bus
     private static String appUuid = "LaunchManifestDemo";  // App UUID for startup app in manifest
@@ -85,19 +90,41 @@ public class LauncherBusDemo extends JFrame {
             }
         });
 
+        btnNotification = new JButton();
+        btnNotification.setText("Notification");
+        btnNotification.setEnabled(false);
+        btnNotification.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                createNotification();
+            }
+        });
+
+        btnToggleNotification = new JButton();
+        btnToggleNotification.setText("Toggle Notification CENTER");
+        btnToggleNotification.setEnabled(false);
+        btnToggleNotification.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                toggleNotificationCenter();
+            }
+        });
+
         btnUndock = new JButton();
         btnUndock.setText("Undock");
         btnUndock.setEnabled(false);
 
         JPanel topPanel = new JPanel();
-        double size[][] = {{10, 190}, {25, 5, 25, 5, 25, 5, 25, 5, 25, 5}};
+        double size[][] = {{10, 190}, {25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5}};
         topPanel.setLayout(new TableLayout(size));
 
         topPanel.add(btnOFApp1, "1,0,1,0");
         topPanel.add(btnOFApp2, "1,2,1,2");
         topPanel.add(btnOFSendApp1, "1,4,1,4");
         topPanel.add(btnOFSendApp2, "1,6,1,6");
-        topPanel.add(btnUndock, "1,8,1,8");
+        topPanel.add(btnNotification, "1,8,1,8");
+        topPanel.add(btnToggleNotification, "1,10,1,10");
+        topPanel.add(btnUndock, "1,12,1,12");
 
         setLayout(new BorderLayout());
         add(topPanel, BorderLayout.NORTH);
@@ -135,6 +162,7 @@ public class LauncherBusDemo extends JFrame {
             RuntimeConfiguration cfg = new RuntimeConfiguration();
             cfg.setRuntimeVersion("stable");
             cfg.setSecurityRealm("java-test");
+            cfg.setDevToolsPort(9099);
             cfg.setAdditionalRuntimeArguments("--v=1 --enable-mesh ");   // --v=1  => enable verbose logging by Runtime
                                                                          // --enable-mesh  => enable multi-Runtime for the security realm
             // Add Layout Service to the manifest
@@ -150,6 +178,11 @@ public class LauncherBusDemo extends JFrame {
             layout.put("config", scfg);
             layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
             serviceConfig.put(0, layout);
+
+            JSONObject notification = new JSONObject();
+            notification.put("name", "notifications");
+            serviceConfig.put(1, notification);
+
             cfg.addConfigurationItem("services", serviceConfig);
 
             JSONObject startupApp = new JSONObject();
@@ -170,6 +203,7 @@ public class LauncherBusDemo extends JFrame {
                         btnOFApp2.setEnabled(true);
                         configAppEventListener();
                         createEmbddedApp();
+                        createNotificationClient();
                     }
 
                     @Override
@@ -394,7 +428,47 @@ public class LauncherBusDemo extends JFrame {
             e.printStackTrace();
         }
     }
+    private void createNotificationClient() {
+        this.notificationClient = new NotificationClient(this.desktopConnection, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                btnNotification.setEnabled(true);
+                btnToggleNotification.setEnabled(true);
+                LauncherBusDemo.this.notificationClient.addNotificationListener(new NotificationListener() {
+                    @Override
+                    public void onClick(NotificationOptions options) {
+                        logger.info(String.format("Notification clicked %s", options.getId()));
+                    }
+                    @Override
+                    public void onButtonClick(NotificationOptions options) {
+                        logger.info(String.format("Notification button clicked %s button index %d", options.getId(),
+                                    options.getButtonIndex()));
+                    }
+                    @Override
+                    public void onClose(NotificationOptions options) {
+                        logger.info(String.format("Notification closed %s", options.getId()));
+                    }
+                });
+            }
+            @Override
+            public void onError(Ack ack) {
 
+            }
+        });
+    }
+    private void createNotification() {
+        NotificationOptions options = new NotificationOptions();
+        options.setId(UUID.randomUUID().toString());
+        options.setBody("Hello From Java app");
+        options.setTitle("Java Demo");
+        options.setIcon("https://openfin.co/favicon.ico");
+        options.addButton(null, "button1");
+        options.addButton(null, "button2");
+        this.notificationClient.create(options, null);
+    }
+    private void toggleNotificationCenter() {
+        this.notificationClient.toggleNotificationCenter(null);
+    }
 
     public void cleanup() {
         try {
