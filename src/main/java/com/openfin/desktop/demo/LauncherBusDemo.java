@@ -8,8 +8,7 @@ package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
 import com.openfin.desktop.Window;
-import com.openfin.desktop.channel.ChannelClient;
-import com.openfin.desktop.channel.NotificationClient;
+import com.openfin.desktop.channel.*;
 import com.openfin.desktop.channel.NotificationListener;
 import com.openfin.desktop.channel.NotificationOptions;
 import com.openfin.desktop.win32.ExternalWindowObserver;
@@ -28,7 +27,6 @@ import java.util.UUID;
 
 public class LauncherBusDemo extends JFrame {
     private final static Logger logger = LoggerFactory.getLogger(LauncherBusDemo.class.getName());
-    private final static String WINDOW_TITLE = "Launcher and InterAppBus Demo";
 
     private DesktopConnection desktopConnection;
     private InterApplicationBus interApplicationBus;
@@ -37,6 +35,7 @@ public class LauncherBusDemo extends JFrame {
     private JButton btnNotification, btnToggleNotification;   // button to create notifications
     private JButton btnUndock;   // button to undock this Java window
     private JButton btnOFSendApp1, btnOFSendApp2;  // send messages to OpenFin app via Inter App Bus
+    private JButton btnGenerateWorkSpace, btnRestoreWorkSpace;
     private static String appUuid = "LaunchManifestDemo";  // App UUID for startup app in manifest
     private final String app1Uuid = "Layout Client1";       // defined in layoutclient1.json
     private final String app2Uuid = "Layout Client2";       // defined in layoutclient2.json
@@ -46,6 +45,8 @@ public class LauncherBusDemo extends JFrame {
     private final String embedUuid = "Embed Client";
     Application embeddedApp;   // OpenFin app to be embedded in Java canvas
 
+    private LayoutClient layoutClient;                      // client for Layout service
+    private JSONObject lastSavedWorkspace;
     private ExternalWindowObserver externalWindowObserver;  // required for Layout service to control Java window
     protected java.awt.Canvas embedCanvas;                  // required for embedding OpenFin window
 
@@ -110,12 +111,32 @@ public class LauncherBusDemo extends JFrame {
             }
         });
 
+        btnGenerateWorkSpace = new JButton();
+        btnGenerateWorkSpace.setText("Generate WorkSpace");
+        btnGenerateWorkSpace.setEnabled(false);
+        btnGenerateWorkSpace.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                generateWorkSpace();
+            }
+        });
+
+        btnRestoreWorkSpace = new JButton();
+        btnRestoreWorkSpace.setText("Restore WorkSpace");
+        btnRestoreWorkSpace.setEnabled(false);
+        btnRestoreWorkSpace.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                restoreWorkSpace();
+            }
+        });
+
         btnUndock = new JButton();
         btnUndock.setText("Undock");
         btnUndock.setEnabled(false);
 
         JPanel topPanel = new JPanel();
-        double size[][] = {{10, 190}, {25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5}};
+        double size[][] = {{10, 190}, {25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5}};
         topPanel.setLayout(new TableLayout(size));
 
         topPanel.add(btnOFApp1, "1,0,1,0");
@@ -124,7 +145,9 @@ public class LauncherBusDemo extends JFrame {
         topPanel.add(btnOFSendApp2, "1,6,1,6");
         topPanel.add(btnNotification, "1,8,1,8");
         topPanel.add(btnToggleNotification, "1,10,1,10");
-        topPanel.add(btnUndock, "1,12,1,12");
+        topPanel.add(btnGenerateWorkSpace, "1,12,1,12");
+        topPanel.add(btnRestoreWorkSpace, "1,14,1,14");
+        topPanel.add(btnUndock, "1,16,1,16");
 
         setLayout(new BorderLayout());
         add(topPanel, BorderLayout.NORTH);
@@ -203,6 +226,7 @@ public class LauncherBusDemo extends JFrame {
                         btnOFApp2.setEnabled(true);
                         configAppEventListener();
                         createEmbddedApp();
+                        createLayoutClient();
                         createNotificationClient();
                     }
 
@@ -284,24 +308,13 @@ public class LauncherBusDemo extends JFrame {
                     new AckListener() {
                         @Override
                         public void onSuccess(Ack ack) {
-                            ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-                            observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
-                                    new AsyncCallback<ChannelClient>() {
-                                        @Override
-                                        public void onSuccess(ChannelClient client) {
-                                            btnUndock.addActionListener(new ActionListener() {
-                                                @Override
-                                                public void actionPerformed(java.awt.event.ActionEvent e) {
-                                                    JSONObject payload = new JSONObject();
-                                                    payload.put("uuid", appUuid);
-                                                    payload.put("name", windowName);
-                                                    client.dispatch("UNDOCK-WINDOW", payload, null);
-                                                }
-                                            });
-                                        }
-                                    });
+                            btnUndock.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(java.awt.event.ActionEvent e) {
+                                    LauncherBusDemo.this.layoutClient.undockWindow(appUuid, windowName, null);
+                                }
+                            });
                         }
-
                         @Override
                         public void onError(Ack ack) {
                             System.out.println(windowName + ": unable to register external window, " + ack.getReason());
@@ -428,6 +441,19 @@ public class LauncherBusDemo extends JFrame {
             e.printStackTrace();
         }
     }
+    private void createLayoutClient() {
+        this.layoutClient = new LayoutClient(this.desktopConnection, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                btnGenerateWorkSpace.setEnabled(true);
+                btnRestoreWorkSpace.setEnabled(true);
+                createExternalWindowObserver();
+            }
+            @Override
+            public void onError(Ack ack) {
+            }
+        });
+    }
     private void createNotificationClient() {
         this.notificationClient = new NotificationClient(this.desktopConnection, new AckListener() {
             @Override
@@ -468,6 +494,40 @@ public class LauncherBusDemo extends JFrame {
     }
     private void toggleNotificationCenter() {
         this.notificationClient.toggleNotificationCenter(null);
+    }
+
+    private void generateWorkSpace() {
+        this.layoutClient.generateWorkspace(new AsyncCallback<JSONObject>() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                LauncherBusDemo.this.lastSavedWorkspace = result;
+                logger.info(String.format("Current workspace %s", result.toString()));
+            }
+        },
+        new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+            }
+            @Override
+            public void onError(Ack ack) {
+                logger.error(String.format("Error generating workspace %s", ack.getReason()));
+            }
+        });
+    }
+
+    private void restoreWorkSpace() {
+        if (this.lastSavedWorkspace != null) {
+            this.layoutClient.retoreWorkspace(this.lastSavedWorkspace, new AckListener() {
+                @Override
+                public void onSuccess(Ack ack) {
+                }
+
+                @Override
+                public void onError(Ack ack) {
+                    logger.error(String.format("Error restoring workspace %s", ack.getReason()));
+                }
+            });
+        }
     }
 
     public void cleanup() {
