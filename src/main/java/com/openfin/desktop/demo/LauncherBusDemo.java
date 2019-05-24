@@ -576,6 +576,8 @@ public class LauncherBusDemo extends JFrame {
 
 
     public static void main(String args[]) {
+
+        System.out.println(String.format("Install info on your machine %s",  .toString()));
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 createAndShowGUI("OpenFin Embed Example");
