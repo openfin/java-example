@@ -32,6 +32,7 @@ public class WindowTest {
     private static final String DESKTOP_UUID = WindowTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static final String child_window_url = "http://test.openf.in/test.html";  // simple test app
+    private static final String guest_url = "https://example.com";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -452,7 +453,7 @@ public class WindowTest {
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
         CountDownLatch latch = new CountDownLatch(1);
-        window.navigate("https://openfin.co", new AckListener() {
+        window.navigate(guest_url, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -466,9 +467,9 @@ public class WindowTest {
 
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("Window.navigate timeout", latch.getCount(), 0);
-        Thread.sleep(1000); // give time for https://openfin.co to load
+        Thread.sleep(1000); // give time for guest_url to load
         window.executeJavaScript("location.href", result -> {
-            if (result != null && result.toString().equals("https://openfin.co")) {
+            if (result != null && result.toString().equals(guest_url)) {
                 latch.countDown();
             }
         }, null);
@@ -484,7 +485,7 @@ public class WindowTest {
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
         CountDownLatch latch = new CountDownLatch(1);
-        window.navigate("https://openfin.co", new AckListener() {
+        window.navigate(guest_url, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -520,9 +521,9 @@ public class WindowTest {
 
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("Window.navigate timeout", latch.getCount(), 0);
-        Thread.sleep(1000); // give time for https://openfin.co to load
+        Thread.sleep(1000); // give time for guest_url to load
         window.executeJavaScript("location.href", result -> {
-            if (result != null && result.toString().equals("https://openfin.co")) {
+            if (result != null && result.toString().equals(guest_url)) {
                 latch.countDown();
             }
         }, null);
@@ -542,7 +543,7 @@ public class WindowTest {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
-                	window.navigate("https://openfin.co", new AckListener() {
+                	window.navigate(guest_url, new AckListener() {
                         @Override
                         public void onSuccess(Ack ack) {
                             if (ack.isSuccessful()) {
@@ -582,9 +583,9 @@ public class WindowTest {
 
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("Window.navigate timeout", latch.getCount(), 0);
-        Thread.sleep(1000); // give time for https://openfin.co to load
+        Thread.sleep(1000); // give time for guest_url to load
         window.executeJavaScript("location.href", result -> {
-            if (result != null && result.toString().equals("https://openfin.co")) {
+            if (result != null && result.toString().equals(guest_url)) {
                 latch.countDown();
             }
         }, null);
@@ -600,7 +601,7 @@ public class WindowTest {
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
         CountDownLatch latch = new CountDownLatch(1);
-        window.navigate("https://openfin.co", new AckListener() {
+        window.navigate(guest_url, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
@@ -628,7 +629,7 @@ public class WindowTest {
         assertEquals("Window.navigate timeout", latch.getCount(), 0);
         Thread.sleep(1000);
         window.executeJavaScript("location.href", result -> {
-            if (result != null && result.toString().equals("https://openfin.co")) {
+            if (result != null && result.toString().equals(guest_url)) {
                 latch.countDown();
             }
         }, null);
