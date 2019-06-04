@@ -520,12 +520,12 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
             @Override
             public void onMessage(String message) {
-                updateMessagePanel("-->FROM DESKTOP-" + message);
+//                updateMessagePanel("-->FROM DESKTOP-" + message);
             }
 
             @Override
             public void onOutgoingMessage(String message) {
-                updateMessagePanel("<--TO DESKTOP-" + message);
+//                updateMessagePanel("<--TO DESKTOP-" + message);
             }
         };
 

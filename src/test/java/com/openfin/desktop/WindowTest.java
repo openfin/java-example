@@ -489,7 +489,7 @@ public class WindowTest {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
-                	window.navigate("https://www.google.com", new AckListener() {
+                	window.navigate(guest_url, new AckListener() {
                         @Override
                         public void onSuccess(Ack ack) {
                             if (ack.isSuccessful()) {

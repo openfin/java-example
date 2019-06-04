@@ -24,9 +24,15 @@ public class ChannelExample implements DesktopStateListener {
 
     private DesktopConnection desktopConnection;
 
+    private static String channelType;  // client or provider, if not set, both
+
     public ChannelExample() {
         try {
-            desktopConnection = new DesktopConnection("ChannelExample");
+            StringBuilder sb = new StringBuilder("ChannelExample");
+            if (channelType != null) {
+                sb.append(channelType);
+            }
+            desktopConnection = new DesktopConnection(sb.toString());
             String desktopVersion = java.lang.System.getProperty("com.openfin.demo.runtime.version", "stable");
             RuntimeConfiguration configuration = new RuntimeConfiguration();
             configuration.setRuntimeVersion(desktopVersion);
@@ -148,8 +154,12 @@ public class ChannelExample implements DesktopStateListener {
 
     @Override
     public void onReady() {
-        createChannelProvider();
-        createChannelClient();
+        if ("provider".equals(channelType) || channelType == null) {
+            createChannelProvider();
+        }
+        if ("client".equals(channelType) || channelType == null) {
+            createChannelClient();
+        }
     }
 
     @Override
@@ -173,7 +183,9 @@ public class ChannelExample implements DesktopStateListener {
     }
 
     public static void main(String[] args) {
-
+        if (args.length > 0) {
+            channelType = args[0];
+        }
         try {
             new ChannelExample();
             latch.await();

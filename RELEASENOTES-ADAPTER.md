@@ -1,3 +1,7 @@
+# Version 7.1.3
+## New Features
+* Add support for the new notification service
+
 # Version 7.1.2
 ## Bug Fixes
 
