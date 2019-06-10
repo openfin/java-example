@@ -32,7 +32,7 @@ public class WindowTest {
     private static final String DESKTOP_UUID = WindowTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static final String child_window_url = "http://test.openf.in/test.html";  // simple test app
-    private static final String guest_url = "https://example.com";
+    private static final String guest_url = "https://example.com/";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -484,44 +484,11 @@ public class WindowTest {
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
-        CountDownLatch latch = new CountDownLatch(1);
-        window.navigate(guest_url, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                if (ack.isSuccessful()) {
-                	window.navigate(guest_url, new AckListener() {
-                        @Override
-                        public void onSuccess(Ack ack) {
-                            if (ack.isSuccessful()) {
-                            	window.navigateBack(new AckListener() {
-                                    @Override
-                                    public void onSuccess(Ack ack) {
-                                        if (ack.isSuccessful()) {
-                                            if (ack.isSuccessful()) {
-                                                latch.countDown();
-                                            }
-                                        }
-                                    }
-                                    @Override
-                                    public void onError(Ack ack) {
-                                    }
-                                });
-                            }
-                        }
-                        @Override
-                        public void onError(Ack ack) {
-                        }
-                    });
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
-        });
+        CountDownLatch latch = new CountDownLatch(2);
+        navigateAndWaitForContent(window, guest_url);
+        navigateAndWaitForContent(window, "https://openfin.co");
+        navigateHistoryAndWaitForContent(window, -1, latch);
 
-        latch.await(5, TimeUnit.SECONDS);
-        assertEquals("Window.navigate timeout", latch.getCount(), 0);
-        Thread.sleep(1000); // give time for guest_url to load
         window.executeJavaScript("location.href", result -> {
             if (result != null && result.toString().equals(guest_url)) {
                 latch.countDown();
@@ -538,52 +505,12 @@ public class WindowTest {
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
-        CountDownLatch latch = new CountDownLatch(1);
-        window.navigate("https://www.google.com", new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                if (ack.isSuccessful()) {
-                	window.navigate(guest_url, new AckListener() {
-                        @Override
-                        public void onSuccess(Ack ack) {
-                            if (ack.isSuccessful()) {
-                            	window.navigateBack(new AckListener() {
-                                    @Override
-                                    public void onSuccess(Ack ack) {
-                                        if (ack.isSuccessful()) {
-                                        	window.navigateForward(new AckListener() {
-                                                @Override
-                                                public void onSuccess(Ack ack) {
-                                                    if (ack.isSuccessful()) {
-                                                        latch.countDown();
-                                                    }
-                                                }
-                                                @Override
-                                                public void onError(Ack ack) {
-                                                }
-                                            });
-                                        }
-                                    }
-                                    @Override
-                                    public void onError(Ack ack) {
-                                    }
-                                });
-                            }
-                        }
-                        @Override
-                        public void onError(Ack ack) {
-                        }
-                    });
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
-        });
+        CountDownLatch latch = new CountDownLatch(3);
+        navigateAndWaitForContent(window, "https://openfin.co");
+        navigateAndWaitForContent(window, guest_url);
+        navigateHistoryAndWaitForContent(window, -1, latch);
+        navigateHistoryAndWaitForContent(window, 1, latch);
 
-        latch.await(5, TimeUnit.SECONDS);
-        assertEquals("Window.navigate timeout", latch.getCount(), 0);
-        Thread.sleep(1000); // give time for guest_url to load
         window.executeJavaScript("location.href", result -> {
             if (result != null && result.toString().equals(guest_url)) {
                 latch.countDown();
@@ -593,6 +520,44 @@ public class WindowTest {
         latch.await(5, TimeUnit.SECONDS);
         assertEquals("Window.executeJavaScript timeout", latch.getCount(), 0);
         TestUtils.closeApplication(application);
+    }
+
+    private void navigateAndWaitForContent(Window window, String url) throws Exception {
+        String eventType = "dom-content-loaded";
+        CountDownLatch latch = new CountDownLatch(1);
+        EventListener listener = new EventListener() {
+            @Override
+            public void eventReceived(ActionEvent actionEvent) {
+                if (eventType.equals(actionEvent.getType())) {
+                    latch.countDown();
+                }
+            }
+        };
+        TestUtils.addEventListener(window, "dom-content-loaded", listener);
+        window.navigate(url, null);
+        latch.await(5, TimeUnit.SECONDS);
+        window.removeEventListener(eventType, listener, null);
+        assertEquals("waitForWindowEvent timeout", latch.getCount(), 0);
+    }
+
+    private void navigateHistoryAndWaitForContent(Window window, int direction, CountDownLatch latch) throws Exception {
+        String eventType = "dom-content-loaded";
+        EventListener listener = new EventListener() {
+            @Override
+            public void eventReceived(ActionEvent actionEvent) {
+                if (eventType.equals(actionEvent.getType())) {
+                    latch.countDown();
+                }
+            }
+        };
+        TestUtils.addEventListener(window, "dom-content-loaded", listener);
+        if (direction < 0) {
+            window.navigateBack(null);
+        } else {
+            window.navigateForward(null);
+        }
+        latch.await(5, TimeUnit.SECONDS);
+        window.removeEventListener(eventType, listener, null);
     }
 
     @Test

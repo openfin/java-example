@@ -450,4 +450,12 @@ public class TestUtils {
         assertEquals("getMonitorInfo timeout", latch.getCount(), 0);
         return windowBoundsAtomicReference.get();
     }
+
+    public static void pause(int milliSeconds) {
+        try {
+            Thread.sleep(milliSeconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }
