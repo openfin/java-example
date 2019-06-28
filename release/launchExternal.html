@@ -1,0 +1,45 @@
+<html>
+<head>
+    <title>LaunchExternalProcess example</title>
+ 
+    <script type="text/javascript">
+
+        window.addEventListener("DOMContentLoaded", function() {
+
+            fin.desktop.InterApplicationBus.subscribe('*', 'messageFromJavaTopic',  m => {
+                document.getElementById("messageFromJava").innerText = JSON.stringify(m);
+                console.log(m);
+            });
+
+        });
+
+        function launch() {
+            const inputBox = document.getElementById('path');
+            
+
+            fin.System.launchExternalProcess({
+                path: inputBox.value,
+                arguments: "",
+                listener: function (result) {
+                    console.log('the exit code', result.exitCode);
+                }
+            }).then(processIdentity => console.log(processIdentity)).catch(err => console.log(err));
+        }
+
+</script>
+</head>
+<body>
+<script>
+
+</script>
+
+<p>LaunchExternalProcess example</p>
+<div id="messageFromJava">
+</div>
+<div>
+    Full Path <input  id="path" type="text" style="width: 400px" ></input>
+    <Button id="launch" onclick="launch()"> Launch </Button>
+</div>
+
+</body>
+</html>
