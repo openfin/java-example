@@ -486,7 +486,7 @@ public class WindowTest {
         Window window = application.getWindow();
         CountDownLatch latch = new CountDownLatch(2);
         navigateAndWaitForContent(window, guest_url);
-        navigateAndWaitForContent(window, "https://openfin.co");
+        navigateAndWaitForContent(window, "https://google.com");
         navigateHistoryAndWaitForContent(window, -1, latch);
 
         window.executeJavaScript("location.href", result -> {
@@ -506,12 +506,13 @@ public class WindowTest {
         Application application = TestUtils.runApplication(options, desktopConnection);
         Window window = application.getWindow();
         CountDownLatch latch = new CountDownLatch(3);
-        navigateAndWaitForContent(window, "https://openfin.co");
+        navigateAndWaitForContent(window, "https://google.com");
         navigateAndWaitForContent(window, guest_url);
         navigateHistoryAndWaitForContent(window, -1, latch);
         navigateHistoryAndWaitForContent(window, 1, latch);
 
         window.executeJavaScript("location.href", result -> {
+            logger.info(String.format("location.ref %s ", result.toString()));
             if (result != null && result.toString().equals(guest_url)) {
                 latch.countDown();
             }
@@ -533,7 +534,7 @@ public class WindowTest {
                 }
             }
         };
-        TestUtils.addEventListener(window, "dom-content-loaded", listener);
+        TestUtils.addEventListener(window, eventType, listener);
         window.navigate(url, null);
         latch.await(5, TimeUnit.SECONDS);
         window.removeEventListener(eventType, listener, null);
