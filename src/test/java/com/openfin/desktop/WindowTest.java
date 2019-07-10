@@ -664,6 +664,10 @@ public class WindowTest {
 
 			@Override
 			public void onError(Ack ack) {
+			    // starting 13.76.43.x, Runtime rejects setBounds with numbers > max height/width
+			    if (ack.getReason().contains("Proposed window bounds violate size constraints")) {
+                    latch.countDown();
+                }
 			}
         	
         });
