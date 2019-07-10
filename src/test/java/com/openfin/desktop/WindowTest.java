@@ -31,7 +31,6 @@ public class WindowTest {
 
     private static final String DESKTOP_UUID = WindowTest.class.getName();
     private static DesktopConnection desktopConnection;
-    private static final String child_window_url = "http://test.openf.in/test.html";  // simple test app
     private static final String guest_url = "https://example.com/";
 
     @BeforeClass
@@ -219,7 +218,7 @@ public class WindowTest {
         String childName = "docking test";
         Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
         Window mainWindow = application.getWindow();
-        WindowOptions childOptions = TestUtils.getWindowOptions(childName, child_window_url);
+        WindowOptions childOptions = TestUtils.getWindowOptions(childName, guest_url);
         Window childWindow = TestUtils.createChildWindow(application, childOptions, desktopConnection);
         WindowBounds beforeMoveBounds = TestUtils.getBounds(childWindow);
         CountDownLatch joinLatch = new CountDownLatch(1);
