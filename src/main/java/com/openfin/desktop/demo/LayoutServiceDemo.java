@@ -159,8 +159,8 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		if (rvm != null) {
 			config.setLaunchRVMPath(rvm);
 		}
-		config.setRuntimeVersion("9.61.38.40");
-		config.setAdditionalRuntimeArguments("--v=1 --remote-debugging-port=9090 ");
+		config.setRuntimeVersion("stable");
+		config.setAdditionalRuntimeArguments("--v=1 ");
 		serviceConfig = new JSONArray();
 		JSONObject layout = new JSONObject();
 		layout.put("name", "layouts");
@@ -170,7 +170,6 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		sfeatures.put("tab", true);
 		scfg.put("features", sfeatures);
 		layout.put("config", scfg);
-		layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
 		serviceConfig.put(0, layout);
 		config.addConfigurationItem("services", serviceConfig);
 

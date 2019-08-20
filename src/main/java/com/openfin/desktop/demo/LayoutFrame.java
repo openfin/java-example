@@ -26,6 +26,7 @@ import java.lang.System;
 
 public class LayoutFrame extends JFrame {
 	private ExternalWindowObserver externalWindowObserver;
+	private JLabel labelName;
 	private JButton btnUndock;
 	private String windowName;
 	private ChannelClient channelClient;
@@ -38,18 +39,22 @@ public class LayoutFrame extends JFrame {
 	
 	public LayoutFrame(DesktopConnection desktopConnection, String appUuid, String windowName, boolean frameless) throws DesktopException {
 		super();
+		this.setTitle(windowName);
 		System.out.println(windowName + " being created ");
 		this.appUuid = appUuid;
 		this.windowName = windowName;
 		this.frameless = frameless;
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.setPreferredSize(new Dimension(640, 480));
-		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		JPanel pnl = new JPanel();
+		pnl.setLayout(new BoxLayout(pnl, BoxLayout.Y_AXIS));
+		this.labelName = new JLabel(windowName);
+		pnl.add(labelName);
 		this.btnUndock = new JButton("undock");
 		this.btnUndock.setEnabled(false);
 		pnl.add(btnUndock);
 		this.getContentPane().add(pnl);
-		
+
 		if (frameless) {
 			this.setUndecorated(true);
 			JPanel titleBar = new JPanel(new BorderLayout());
@@ -61,15 +66,25 @@ public class LayoutFrame extends JFrame {
 					pressedAtX = e.getX();
 					pressedAtY = e.getY();
 					System.out.println("mouse pressed at x=" + pressedAtX + ", y=" + pressedAtY);
+					LayoutFrame.this.externalWindowObserver.enterSizeMove();
 				}
-
 				@Override
 				public void mouseDragged(MouseEvent e) {
 					int distanceX = e.getX() - pressedAtX;
 					int distanceY = e.getY() - pressedAtY;
 					System.out.println("dragged x=" + distanceX + ", y=" + distanceY);
 					Point frameLocation = LayoutFrame.this.getLocation();
-					LayoutFrame.this.setLocation(frameLocation.x + distanceX, frameLocation.y + distanceY);
+					Dimension dimension = LayoutFrame.this.getSize();
+					WindowBounds bounds = new WindowBounds(frameLocation.x + distanceX, frameLocation.y + distanceY,
+							dimension.width, dimension.height);
+					Point point = new Point(e.getX(), e.getY());
+					if (!LayoutFrame.this.externalWindowObserver.onMoving(bounds, point)) {
+						LayoutFrame.this.setLocation(frameLocation.x + distanceX, frameLocation.y + distanceY);
+					}
+				}
+				@Override
+				public void mouseReleased(MouseEvent e) {
+					LayoutFrame.this.externalWindowObserver.exitSizeMove();
 				}
 			};
 			titleBar.addMouseListener(myListener);
@@ -128,13 +143,13 @@ public class LayoutFrame extends JFrame {
 						System.out.println(windowName + ": unable to register external window, " + ack.getReason());
 					}
 				});
-		this.externalWindowObserver.setUserGesture(!this.frameless);
+//		this.externalWindowObserver.setUserGesture(!this.frameless);
 		try {
-			if (this.frameless) {
-				WindowOptions options = new WindowOptions();
-				options.setFrame(false);
-				this.externalWindowObserver.setWindowOptions(options);
-			}
+//			if (this.frameless) {
+//				WindowOptions options = new WindowOptions();
+//				options.setFrame(false);
+//				this.externalWindowObserver.setWindowOptions(options);
+//			}
 			this.externalWindowObserver.start();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -256,7 +271,6 @@ public class LayoutFrame extends JFrame {
 				pressedAtY = e.getY();
 				System.out.println("mouse pressed at x=" + pressedAtX + ", y=" + pressedAtY);
 			}
-
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				int distanceX = e.getX() - pressedAtX;
@@ -264,6 +278,12 @@ public class LayoutFrame extends JFrame {
 				System.out.println("dragged x=" + distanceX + ", y=" + distanceY);
 				Point frameLocation = frame.getLocation();
 				frame.setLocation(frameLocation.x + distanceX, frameLocation.y + distanceY);
+			}
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				pressedAtX = e.getX();
+				pressedAtY = e.getY();
+				System.out.println("mouse released at x=" + pressedAtX + ", y=" + pressedAtY);
 			}
 		};
 		titleBar.addMouseListener(myListener);
