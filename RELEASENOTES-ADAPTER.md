@@ -1,3 +1,7 @@
+# Version 7.2.1
+## New Features
+* Add support for FDC3 service
+
 # Version 7.1.3
 ## New Features
 * Add support for the new notification service

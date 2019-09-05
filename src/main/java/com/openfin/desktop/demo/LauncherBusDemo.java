@@ -32,11 +32,13 @@ public class LauncherBusDemo extends JFrame {
     private InterApplicationBus interApplicationBus;
     private NotificationClient notificationClient;
     private JButton btnOFApp1, btnOFApp2;
+    private JButton btnTabOFApp1;
     private JButton btnNotification, btnToggleNotification;   // button to create notifications
     private JButton btnUndock;   // button to undock this Java window
     private JButton btnOFSendApp1, btnOFSendApp2;  // send messages to OpenFin app via Inter App Bus
     private JButton btnGenerateWorkSpace, btnRestoreWorkSpace;
-    private static String appUuid = "LaunchManifestDemo";  // App UUID for startup app in manifest
+    private static String appStartupUuid = "LaunchManifestDemo";  // App UUID for startup app in startup manifest
+    private static String javaWindowName = appStartupUuid + "-Java-Window";  // name of this Java window registered with Runtime
     private final String app1Uuid = "Layout Client1";       // defined in layoutclient1.json
     private final String app2Uuid = "Layout Client2";       // defined in layoutclient2.json
     private final String appUrl = "http://localhost:8888/busdemo.html";
@@ -58,6 +60,17 @@ public class LauncherBusDemo extends JFrame {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 launchAppFromManifest("http://localhost:8888/layoutclient1.json");
+            }
+        });
+
+        btnTabOFApp1 = new JButton();
+        btnTabOFApp1.setEnabled(false);
+        btnTabOFApp1.setText("Tab to OpenFin app1");
+        btnTabOFApp1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                // uuid and name from http://localhost:8888/layoutclient1.json
+                tabToWindow("Layout Client1", "Layout Client1");
             }
         });
 
@@ -136,18 +149,19 @@ public class LauncherBusDemo extends JFrame {
         btnUndock.setEnabled(false);
 
         JPanel topPanel = new JPanel();
-        double size[][] = {{10, 190}, {25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5}};
+        double size[][] = {{10, 190}, {25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5, 25, 5}};
         topPanel.setLayout(new TableLayout(size));
 
         topPanel.add(btnOFApp1, "1,0,1,0");
-        topPanel.add(btnOFApp2, "1,2,1,2");
-        topPanel.add(btnOFSendApp1, "1,4,1,4");
-        topPanel.add(btnOFSendApp2, "1,6,1,6");
-        topPanel.add(btnNotification, "1,8,1,8");
-        topPanel.add(btnToggleNotification, "1,10,1,10");
-        topPanel.add(btnGenerateWorkSpace, "1,12,1,12");
-        topPanel.add(btnRestoreWorkSpace, "1,14,1,14");
-        topPanel.add(btnUndock, "1,16,1,16");
+        topPanel.add(btnTabOFApp1, "1,2,1,2");
+        topPanel.add(btnOFApp2, "1,4,1,4");
+        topPanel.add(btnOFSendApp1, "1,6,1,6");
+        topPanel.add(btnOFSendApp2, "1,8,1,8");
+        topPanel.add(btnNotification, "1,10,1,10");
+        topPanel.add(btnToggleNotification, "1,12,1,12");
+        topPanel.add(btnGenerateWorkSpace, "1,14,1,14");
+        topPanel.add(btnRestoreWorkSpace, "1,16,1,16");
+        topPanel.add(btnUndock, "1,18,1,18");
 
         setLayout(new BorderLayout());
         add(topPanel, BorderLayout.NORTH);
@@ -199,7 +213,7 @@ public class LauncherBusDemo extends JFrame {
             sfeatures.put("tab", true);
             scfg.put("features", sfeatures);
             layout.put("config", scfg);
-            layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
+//            layout.put("manifestUrl", "https://cdn.openfin.co/services/openfin/layouts/1.0.0/app.json");
             serviceConfig.put(0, layout);
 
             JSONObject notification = new JSONObject();
@@ -209,8 +223,8 @@ public class LauncherBusDemo extends JFrame {
             cfg.addConfigurationItem("services", serviceConfig);
 
             JSONObject startupApp = new JSONObject();
-            startupApp.put("uuid", appUuid);
-            startupApp.put("name", appUuid);
+            startupApp.put("uuid", appStartupUuid);
+            startupApp.put("name", appStartupUuid);
             startupApp.put("url", "about:blank");
             startupApp.put("autoShow", false);
             cfg.setStartupApp(startupApp);
@@ -223,6 +237,7 @@ public class LauncherBusDemo extends JFrame {
                         logger.info("Connected to OpenFin Runtime");
                         interApplicationBus = new InterApplicationBus(desktopConnection);
                         btnOFApp1.setEnabled(true);
+                        btnTabOFApp1.setEnabled(true);
                         btnOFApp2.setEnabled(true);
                         configAppEventListener();
                         createEmbddedApp();
@@ -300,24 +315,23 @@ public class LauncherBusDemo extends JFrame {
             // only needs to happen once
             return;
         }
-        String windowName = appUuid + "-Java-Window";
         try {
             // ExternalWindowObserver forwards window events to Runtime & Layout Service.  Currently ExternalWindowObserver requires UUID of an
             // existing OpenFin app.  So here we are using UUID of the startup app in manifest.
-            this.externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), appUuid, windowName, this,
+            this.externalWindowObserver = new ExternalWindowObserver(desktopConnection.getPort(), appStartupUuid, javaWindowName, this,
                     new AckListener() {
                         @Override
                         public void onSuccess(Ack ack) {
                             btnUndock.addActionListener(new ActionListener() {
                                 @Override
                                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                                    LauncherBusDemo.this.layoutClient.undockWindow(appUuid, windowName, null);
+                                    LauncherBusDemo.this.layoutClient.undockWindow(appStartupUuid, javaWindowName, null);
                                 }
                             });
                         }
                         @Override
                         public void onError(Ack ack) {
-                            System.out.println(windowName + ": unable to register external window, " + ack.getReason());
+                            System.out.println(javaWindowName + ": unable to register external window, " + ack.getReason());
                         }
                     });
         } catch (Exception ex) {
@@ -326,7 +340,7 @@ public class LauncherBusDemo extends JFrame {
 
         // when this Java window is docked or undocked by layout service, "group-changed" is fired.
         // calling getGroup to determine if btnUndock should enabled.
-        Window w = Window.wrap(appUuid, windowName, desktopConnection);
+        Window w = Window.wrap(appStartupUuid, javaWindowName, desktopConnection);
         w.addEventListener("group-changed", new EventListener() {
             @Override
             public void eventReceived(com.openfin.desktop.ActionEvent actionEvent) {
@@ -530,14 +544,36 @@ public class LauncherBusDemo extends JFrame {
         }
     }
 
+    /**
+     * Tab this Java window to an OpenFin windowq
+     * @param appUuid
+     * @param windowName
+     */
+    public void tabToWindow(String appUuid, String windowName) {
+        WindowIdentity target = new WindowIdentity();
+        target.setUuid(appUuid);
+        target.setName(windowName);
+        WindowIdentity me = new WindowIdentity();
+        // this Java window is registered as appStartupUuid/javaWindowName, as in createExternalWindowObserver
+        me.setUuid(appStartupUuid);
+        me.setName(javaWindowName);
+        this.layoutClient.tabWindows(target, me, null);
+    }
+
     public void cleanup() {
         try {
             if (this.externalWindowObserver != null) {
                 this.externalWindowObserver.dispose();
             }
             if (this.desktopConnection != null) {
-                OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
-                runtime.exit();
+                // shut down startup app
+                Application app = Application.wrap(appStartupUuid, desktopConnection);
+                app.close(true, null);
+
+                Application app2 = Application.wrap(embedUuid, desktopConnection);
+                app2.close(true, null);
+
+                this.desktopConnection.disconnect();
                 Thread.sleep(1000);
                 java.lang.System.exit(0);
             }

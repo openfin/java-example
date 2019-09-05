@@ -54,7 +54,7 @@ public class ChannelTest {
 	@Test
 	public void createChannelProvider() throws Exception {
 		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create("createChannelProviderTest", new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel("createChannelProviderTest").create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
 				latch.countDown();
@@ -70,10 +70,10 @@ public class ChannelTest {
 	public void createChannelClient() throws Exception {
 		CountDownLatch latch = new CountDownLatch(1);
 		final String channelName = "createChannelClientTest";
-		desktopConnection.getChannel().create(channelName, new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel().connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient result) {
 						latch.countDown();
@@ -92,7 +92,7 @@ public class ChannelTest {
 	public void registerAction() throws Exception {
 		final String channelName = "registerActionTest";
 		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName, new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
 				provider.register("currentTime", new ChannelAction() {
@@ -118,7 +118,7 @@ public class ChannelTest {
 		final AtomicInteger resultValue = new AtomicInteger(-1);
 
 		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName, new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
 				provider.register(actionName, new ChannelAction() {
@@ -129,7 +129,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel().connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
@@ -166,10 +166,10 @@ public class ChannelTest {
 		final String actionMessage = "actionMessage";
 
 		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName, new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel().addChannelListener(new ChannelListener() {
+				desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
 					@Override
 					public void onChannelConnect(ConnectionEvent connectionEvent) {
 						// once the channel is connected, invoke publish method
@@ -184,7 +184,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel().connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
@@ -214,10 +214,10 @@ public class ChannelTest {
 		final String channelName = "connectionListenerTest";
 		CountDownLatch latch = new CountDownLatch(2);
 
-		desktopConnection.getChannel().create(channelName, new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel().addChannelListener(new ChannelListener() {
+				desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
 					@Override
 					public void onChannelConnect(ConnectionEvent connectionEvent) {
 						latch.countDown();
@@ -229,10 +229,10 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel().connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient client) {
-						desktopConnection.getChannel().disconnect(client, null);
+						desktopConnection.getChannel(channelName).disconnect(client, null);
 					}
 
 				});
@@ -253,7 +253,7 @@ public class ChannelTest {
 		final AtomicInteger resultValue = new AtomicInteger(-1);
 
 		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel().create(channelName, new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
 				provider.setBeforeAction(new Middleware() {
@@ -275,7 +275,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel().connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {

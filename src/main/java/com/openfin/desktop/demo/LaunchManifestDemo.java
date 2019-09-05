@@ -25,6 +25,7 @@ public class LaunchManifestDemo extends Application implements DesktopStateListe
     private final static Logger logger = LoggerFactory.getLogger(LaunchManifestDemo.class.getName());
     private final static String WINDOW_TITLE = "Launch Manifest Demo";
 
+    private static String LayoutServiceChannelName = "of-layouts-service-v1";
     private static String appUuid = "LaunchManifestDemo";  // App UUID for startup app in manifest
     private final static String javaConnectUuid = "LaunchManifestDemo-Java"; // connection UUID for Java app
     private DesktopConnection desktopConnection;
@@ -175,7 +176,7 @@ public class LaunchManifestDemo extends Application implements DesktopStateListe
                         @Override
                         public void onSuccess(Ack ack) {
                             ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-                            observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
+                            observer.getDesktopConnection().getChannel(LayoutServiceChannelName).connect(LayoutServiceChannelName,
                                     new AsyncCallback<ChannelClient>() {
                                         @Override
                                         public void onSuccess(ChannelClient client) {
