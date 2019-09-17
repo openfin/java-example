@@ -47,7 +47,7 @@ public class ChannelExample implements DesktopStateListener {
      * Create a provider that supports "getValue", "increment" and "incrementBy n" actions
      */
     public void createChannelProvider() {
-        desktopConnection.getChannel().addChannelListener(new ChannelListener() {
+        desktopConnection.getChannel(CHANNEL_NAME).addChannelListener(new ChannelListener() {
             @Override
             public void onChannelConnect(ConnectionEvent connectionEvent) {
                 logger.info(String.format("provider receives channel connect event from %s ", connectionEvent.getUuid()));
@@ -57,7 +57,7 @@ public class ChannelExample implements DesktopStateListener {
                 logger.info(String.format("provider receives channel disconnect event from %s ", connectionEvent.getUuid()));
             }
         });
-        desktopConnection.getChannel().create(CHANNEL_NAME, new AsyncCallback<ChannelProvider>() {
+        desktopConnection.getChannel(CHANNEL_NAME).create(new AsyncCallback<ChannelProvider>() {
             @Override
             public void onSuccess(ChannelProvider provider) {
                 //provider created, register actions.
@@ -78,6 +78,7 @@ public class ChannelExample implements DesktopStateListener {
                         logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
                         JSONObject obj = new JSONObject();
                         obj.put("value", x.incrementAndGet());
+                        provider.publish("event", obj, null);
                         return obj;
                     }
                 });
@@ -99,9 +100,18 @@ public class ChannelExample implements DesktopStateListener {
      * Create a channel client that invokes "getValue", "increment" and "incrementBy n" actions
      */
     public void createChannelClient() {
-        desktopConnection.getChannel().connect(CHANNEL_NAME, new AsyncCallback<ChannelClient>() {
+        desktopConnection.getChannel(CHANNEL_NAME).connect(CHANNEL_NAME + "Client", new AsyncCallback<ChannelClient>() {
             @Override
             public void onSuccess(ChannelClient client) {
+                // register a channel event
+                client.register("event", new ChannelAction() {
+                    @Override
+                    public JSONObject invoke(String action, JSONObject payload) {
+                        logger.info("channel event {}", action);
+                        return null;
+                    }
+                });
+
                 //connected to provider, invoke actions provided by the provider.
                 //get current value
                 client.dispatch("getValue", null, new AckListener() {
@@ -148,7 +158,6 @@ public class ChannelExample implements DesktopStateListener {
                     }
                 });
             }
-
         });
     }
 
@@ -164,12 +173,13 @@ public class ChannelExample implements DesktopStateListener {
 
     @Override
     public void onClose(String error) {
+        logger.info("onClose, value={}", error);
         latch.countDown();
     }
 
     @Override
     public void onError(String reason) {
-
+        logger.info("onError, value={}", reason);
     }
 
     @Override
@@ -194,5 +204,7 @@ public class ChannelExample implements DesktopStateListener {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+
+        java.lang.System.exit(0);
     }
 }

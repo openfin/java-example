@@ -16,6 +16,7 @@ import java.lang.System;
 import java.util.List;
 
 public class FxLayoutFrame {
+    private static String LayoutServiceChannelName = "of-layouts-service-v1";
     private ExternalWindowObserver externalWindowObserver;
     private String windowName;
     private Stage stage;
@@ -57,7 +58,7 @@ public class FxLayoutFrame {
                                 @Override
                                 public void onSuccess(Ack ack) {
                                     ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-                                    observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
+                                    observer.getDesktopConnection().getChannel(LayoutServiceChannelName).connect(LayoutServiceChannelName,
                                             new AsyncCallback<ChannelClient>() {
                                                 @Override
                                                 public void onSuccess(ChannelClient client) {

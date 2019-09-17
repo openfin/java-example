@@ -25,6 +25,7 @@ import java.awt.event.WindowEvent;
 import java.lang.System;
 
 public class LayoutFrame extends JFrame {
+	private static String LayoutServiceChannelName = "of-layouts-service-v1";
 	private ExternalWindowObserver externalWindowObserver;
 	private JLabel labelName;
 	private JButton btnUndock;
@@ -112,7 +113,7 @@ public class LayoutFrame extends JFrame {
 					@Override
 					public void onSuccess(Ack ack) {
 						ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-						observer.getDesktopConnection().getChannel().connect("of-layouts-service-v1",
+						observer.getDesktopConnection().getChannel(LayoutServiceChannelName).connect(LayoutServiceChannelName,
 								new AsyncCallback<ChannelClient>() {
 									@Override
 									public void onSuccess(ChannelClient client) {
