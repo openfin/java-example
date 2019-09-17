@@ -164,6 +164,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		serviceConfig = new JSONArray();
 		JSONObject layout = new JSONObject();
 		layout.put("name", "layouts");
+//		layout.put("manifestUrl", "http://localhost:8081/app3.json");
 		JSONObject scfg = new JSONObject();
 		JSONObject sfeatures = new JSONObject();
 		sfeatures.put("dock", true);

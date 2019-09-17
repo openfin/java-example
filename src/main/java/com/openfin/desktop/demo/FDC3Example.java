@@ -28,6 +28,9 @@ public class FDC3Example implements DesktopStateListener {
     private JButton btnBroadcast;
     private JButton btnIntentListener;
 
+    private JTextArea output;  // show output of API
+    private String ticker = "IBM";
+
     private FDC3Client fdc3Client;
 
     private JSONArray serviceConfig = new JSONArray();
@@ -125,12 +128,28 @@ public class FDC3Example implements DesktopStateListener {
         this.btnIntentListener.setEnabled(false);
         pnl.add(btnIntentListener);
 
+        pnl.add(layoutOutputPanel());
+
         contentPnl.add(pnl, BorderLayout.CENTER);
 
         this.mainWindow.getContentPane().add(contentPnl);
         this.mainWindow.setLocationRelativeTo(null);
         this.mainWindow.setSize(400, 400);
         this.mainWindow.setVisible(true);
+    }
+
+    protected JScrollPane layoutOutputPanel() {
+        output = new JTextArea(100, 40);
+        output.setEditable(false);
+        output.setAutoscrolls(true);
+        output.setLineWrap(true);
+        output.setMinimumSize(new Dimension(40, 100));
+        output.setPreferredSize(new Dimension(40, 100));
+        JScrollPane statusPane = new JScrollPane(output);
+        statusPane.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        statusPane.setPreferredSize(new Dimension(500, 650));
+        return statusPane;
     }
 
     void launchOpenfin() throws DesktopException, DesktopIOException, IOException, InterruptedException {
@@ -168,11 +187,11 @@ public class FDC3Example implements DesktopStateListener {
                 btnBroadcast.setEnabled(true);
                 btnIntentListener.setEnabled(true);
                 addContextListener();
-                System.out.println(String.format("Connected to FDC3 service"));
+                output.setText(String.format("Connected to FDC3 service"));
             }
             @Override
             public void onError(Ack ack) {
-                System.out.println(String.format("Failed t0 Connect to FDC3 service"));
+                output.setText(String.format("Failed t0 Connect to FDC3 service"));
             }
         });
     }
@@ -181,19 +200,20 @@ public class FDC3Example implements DesktopStateListener {
         fdc3Client.open("charts-red", null, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
-                System.out.printf(String.format("FDC3 started %b", ack.isSuccessful()));
+                output.setText(String.format("FDC3 started %b", ack.isSuccessful()));
             }
             @Override
             public void onError(Ack ack) {
-                System.out.printf(String.format("FDC3 started failed %s", ack.getReason()));
+                output.setText(String.format("FDC3 started failed %s", ack.getReason()));
             }
         });
     }
 
     private void sendTickerToReds() {
-        Context context = new Context("fdc3.instrument", "IBM");
+        String ticker = getTicker();
+        Context context = new Context("fdc3.instrument", ticker);
         JSONObject id = new JSONObject();
-        id.put("ticker", "ibm");
+        id.put("ticker", ticker.toLowerCase());
         context.setId(id);
         fdc3Client.raiseIntent("fdc3.ViewChart", context, "charts-red", new AsyncCallback<IntentResolution>() {
             @Override
@@ -207,7 +227,7 @@ public class FDC3Example implements DesktopStateListener {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {
-                    System.out.printf(String.format("Intent found: %s", ack.getJsonObject().getJSONObject("data").getJSONObject("result")));
+                    output.setText(String.format("Intent found: %s", ack.getJsonObject().getJSONObject("data").getJSONObject("result")));
                 }
             }
             @Override
@@ -217,12 +237,13 @@ public class FDC3Example implements DesktopStateListener {
     }
 
     private void findContextIntent() {
-        Context context = new Context("fdc3.instrument", "IBM");
+        String ticker = getTicker();
+        Context context = new Context("fdc3.instrument", ticker);
 
         fdc3Client.findIntentsByContext(context, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
-                System.out.printf(String.format("Intent found: %s", ack.getJsonObject().getJSONObject("data").getJSONArray("result")));
+                output.setText(String.format("Intent found: %s", ack.getJsonObject().getJSONObject("data").getJSONArray("result")));
             }
             @Override
             public void onError(Ack ack) {
@@ -231,9 +252,10 @@ public class FDC3Example implements DesktopStateListener {
     }
 
     private void broadcast() {
-        Context context = new Context("fdc3.security", "IBM");
+        String ticker = getTicker();
+        Context context = new Context("fdc3.security", ticker);
         JSONObject id = new JSONObject();
-        id.put("ticker", "ibm");
+        id.put("ticker", ticker.toLowerCase());
         context.setId(id);
 
         fdc3Client.broadcast(context, new AckListener() {
@@ -251,20 +273,40 @@ public class FDC3Example implements DesktopStateListener {
         fdc3Client.addIntentListener("fdc3.ViewChart", new IntentListener() {
             @Override
             public JSONObject onIntent(Context context) {
-                System.out.println(String.format("Received Intent: %s", context.toString()));
-                context.put("comment",  "Java rules");
+                output.setText(String.format("Received Intent: %s", context.toString()));
+                context.put("comment", "Java rules");
                 return context;
             }
-        },null);
+        }, new AckListener() {
+            @Override
+            public void onSuccess(Ack ack) {
+                if (ack.isSuccessful()) {
+                    output.setText("Registered intent listener");
+                } else {
+                    output.setText(String.format("Failed to register intent listener %s", ack.getReason()));
+                }
+            }
+
+            @Override
+            public void onError(Ack ack) {
+                output.setText(String.format("Failed to register intent listener %s", ack.getReason()));
+            }
+        });
     }
 
     private void addContextListener() {
         fdc3Client.addContextListener(new ContextListener() {
             @Override
-            public void onContext(Context result) {
-                System.out.println(String.format("Received context: %s", result.toString()));
+            public JSONObject onContext(Context result) {
+                output.setText(String.format("Received context: %s", result.toString()));
+                return null;
             }
         });
+    }
+
+    private String getTicker() {
+        this.ticker = this.ticker.equals("IBM") ? "GS" : "IBM";
+        return this.ticker;
     }
 
     @Override
