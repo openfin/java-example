@@ -199,7 +199,6 @@ public class FDC3Example implements DesktopStateListener {
                 output.setText(String.format("Failed to Connect to FDC3 service"));
             }
         });
-
     }
 
     private void startReds() {
@@ -226,7 +225,6 @@ public class FDC3Example implements DesktopStateListener {
             public void onSuccess(IntentResolution result) {
             }
         });
-
     }
 
     private void findIntent() {
