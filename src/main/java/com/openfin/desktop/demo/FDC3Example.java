@@ -26,6 +26,7 @@ public class FDC3Example implements DesktopStateListener {
     private JButton btnFindIntent;
     private JButton btnFindContextIntent;
     private JButton btnBroadcast;
+    private JButton btnJoinRed;
     private JButton btnIntentListener;
 
     private JTextArea output;  // show output of API
@@ -118,6 +119,16 @@ public class FDC3Example implements DesktopStateListener {
         this.btnBroadcast.setEnabled(false);
         pnl.add(btnBroadcast);
 
+        this.btnJoinRed = new JButton("Join Red channel");
+        this.btnJoinRed.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                joinRed();
+            }
+        });
+        this.btnJoinRed.setEnabled(false);
+        pnl.add(btnJoinRed);
+
         this.btnIntentListener = new JButton("Register an intent listener");
         this.btnIntentListener.addActionListener(new ActionListener() {
             @Override
@@ -163,20 +174,13 @@ public class FDC3Example implements DesktopStateListener {
 //        serviceConfig.put(0, layout);
 //        config.addConfigurationItem("services", serviceConfig);
 
-//        JSONObject startupApp = new JSONObject();
-//        startupApp.put("uuid", appUuid);
-//        startupApp.put("name", appUuid);
-//        startupApp.put("url", "about:blank");
-//        startupApp.put("autoShow", false);
-//        config.setStartupApp(startupApp);
-
         this.desktopConnection = new DesktopConnection(javaConnectUuid);
         this.desktopConnection.connect(config, this, 60);
     }
 
     @Override
     public void onReady() {
-        this.fdc3Client = new FDC3Client(this.desktopConnection);
+        this.fdc3Client = FDC3Client.getInstance(this.desktopConnection);
         this.fdc3Client.connect("JavaFDC3Demo", new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
@@ -185,15 +189,17 @@ public class FDC3Example implements DesktopStateListener {
                 btnFindIntent.setEnabled(true);
                 btnFindContextIntent.setEnabled(true);
                 btnBroadcast.setEnabled(true);
+                btnJoinRed.setEnabled(true);
                 btnIntentListener.setEnabled(true);
                 addContextListener();
                 output.setText(String.format("Connected to FDC3 service"));
             }
             @Override
             public void onError(Ack ack) {
-                output.setText(String.format("Failed t0 Connect to FDC3 service"));
+                output.setText(String.format("Failed to Connect to FDC3 service"));
             }
         });
+
     }
 
     private void startReds() {
@@ -220,6 +226,7 @@ public class FDC3Example implements DesktopStateListener {
             public void onSuccess(IntentResolution result) {
             }
         });
+
     }
 
     private void findIntent() {
@@ -265,6 +272,31 @@ public class FDC3Example implements DesktopStateListener {
             }
             @Override
             public void onError(Ack ack) {
+            }
+        });
+    }
+
+    private void joinRed() {
+
+        this.fdc3Client.getChannelById("red", new AsyncCallback<Channel>() {
+            @Override
+            public void onSuccess(Channel channel) {
+                if (channel != null) {
+                    channel.join(new AckListener() {
+                        @Override
+                        public void onSuccess(Ack ack) {
+                            if (ack.isSuccessful()) {
+                                output.setText(String.format("Joined red channel"));
+                            } else {
+                                output.setText(String.format("Failed to join red channel %s", ack.getReason()));
+                            }
+                        }
+                        @Override
+                        public void onError(Ack ack) {
+                            output.setText(String.format("Failed to join red channel %s", ack.getReason()));
+                        }
+                    });
+                }
             }
         });
     }
