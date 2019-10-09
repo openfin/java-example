@@ -6,6 +6,9 @@ import com.openfin.desktop.Window;
 import com.openfin.desktop.animation.AnimationTransitions;
 import com.openfin.desktop.animation.OpacityTransition;
 import com.openfin.desktop.animation.PositionTransition;
+import com.openfin.desktop.channel.ChannelAction;
+import com.openfin.desktop.channel.ChannelProvider;
+
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
@@ -16,8 +19,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -213,6 +218,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Window", layoutWindowControlPanel());
 		tabbedPane.addTab("IAB", layoutIABControlPanel());
+		tabbedPane.addTab("Channel", layoutChannelControlPanel());
 
 		panel.add(tabbedPane, "0,1,0,1");
 		panel.add(layoutStatusPanel(), "0,2,0,2");
@@ -239,13 +245,13 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 	}
 
 	private JPanel layoutIABControlPanel() {
-		JPanel pnl = new JPanel(new BorderLayout());
+		JPanel pnl = new JPanel(new GridLayout(2, 1));
 
 		JPanel pnlPublish = new JPanel(new GridBagLayout());
 		pnlPublish.setBorder(BorderFactory.createTitledBorder("Publish"));
-		
+
 		GridBagConstraints gbConstraints = new GridBagConstraints(0, 0, 1, 1, 0, 0, GridBagConstraints.WEST,
-				GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0);
+				GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0);
 		pnlPublish.add(new JLabel("Topic"), gbConstraints);
 
 		gbConstraints.gridx = 1;
@@ -284,13 +290,13 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
 		pnlPublish.add(btnPublish, gbConstraints);
 
-		pnl.add(pnlPublish, BorderLayout.NORTH);
+		pnl.add(pnlPublish);
 
 		JPanel pnlSubscribe = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		pnlSubscribe.setBorder(BorderFactory.createTitledBorder("Subscribe"));
 
 		pnlSubscribe.add(new JLabel("Topic"));
-		
+
 		JTextField tfSubTopic = new JTextField();
 		tfSubTopic.setPreferredSize(new Dimension(150, tfSubTopic.getPreferredSize().height));
 		pnlSubscribe.add(tfSubTopic);
@@ -323,13 +329,169 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 					}
 					catch (DesktopException e) {
 						e.printStackTrace();
-					};
+					}
+					;
 				}
 			}
 		});
 
 		pnlSubscribe.add(btnSubscribe);
-		pnl.add(pnlSubscribe, BorderLayout.SOUTH);
+		pnl.add(pnlSubscribe);
+
+		return pnl;
+	}
+
+	private int getCounterValue(JTextField textField) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			return Integer.parseInt(textField.getText());
+		}
+		else {
+			AtomicInteger value = new AtomicInteger(0);
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+
+					@Override
+					public void run() {
+						value.set(Integer.parseInt(textField.getText())); 
+					}
+				});
+			}
+			catch (InvocationTargetException | InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			return value.get();
+		}
+	}
+
+	private void setCounterValue(JTextField textField, int value) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			textField.setText(Integer.toString(value));
+		}
+		else {
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+
+					@Override
+					public void run() {
+						textField.setText(Integer.toString(value));
+					}
+				});
+			}
+			catch (InvocationTargetException | InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private JPanel layoutChannelProviderControlPanel() {
+		JPanel pnlProvider = new JPanel(new GridBagLayout());
+		pnlProvider.setBorder(BorderFactory.createTitledBorder("Provider"));
+		GridBagConstraints gbConstraints = new GridBagConstraints(0, 0, 1, 1, 0, 0, GridBagConstraints.WEST,
+				GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0);
+
+		pnlProvider.add(new JLabel("Provider Name"), gbConstraints);
+
+		gbConstraints.gridx = 1;
+		gbConstraints.weightx = 0.5;
+		JTextField tfProviderName = new JTextField("CounterJavaProvider");
+		tfProviderName.setPreferredSize(new Dimension(150, tfProviderName.getPreferredSize().height));
+		pnlProvider.add(tfProviderName, gbConstraints);
+
+		gbConstraints.gridx = 3;
+		gbConstraints.weightx = 0;
+		pnlProvider.add(new JLabel("Count"), gbConstraints);
+
+		gbConstraints.gridx = 4;
+		gbConstraints.weightx = 0.5;
+		JTextField tfCount = new JTextField("0");
+		tfCount.setEditable(false);
+		tfCount.setPreferredSize(new Dimension(150, tfProviderName.getPreferredSize().height));
+		pnlProvider.add(tfCount, gbConstraints);
+
+		gbConstraints.gridx = 2;
+		gbConstraints.weightx = 0;
+		JToggleButton tbProvider = new JToggleButton("Enable");
+		tbProvider.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tfProviderName.setEditable(!tbProvider.isSelected());
+				String channelName = tfProviderName.getText();
+				if (tbProvider.isSelected()) {
+					// see below
+					tbProvider.setEnabled(false);
+
+					desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
+						@Override
+						public void onSuccess(ChannelProvider provider) {
+							// provider created, register actions.
+
+							provider.register("getValue", new ChannelAction() {
+								@Override
+								public JSONObject invoke(String action, JSONObject payload) {
+									logger.info(String.format("provider processing action %s, payload=%s", action,
+											payload.toString()));
+									JSONObject obj = new JSONObject();
+									obj.put("value", getCounterValue(tfCount));
+									return obj;
+								}
+							});
+							provider.register("increment", new ChannelAction() {
+								@Override
+								public JSONObject invoke(String action, JSONObject payload) {
+									logger.info(String.format("provider processing action %s, payload=%s", action,
+											payload.toString()));
+									JSONObject obj = new JSONObject();
+									int currentValue = getCounterValue(tfCount);
+									int newValue = currentValue + 1;
+									setCounterValue(tfCount, newValue);
+									obj.put("value", newValue);
+									return obj;
+								}
+							});
+							provider.register("incrementBy", new ChannelAction() {
+								@Override
+								public JSONObject invoke(String action, JSONObject payload) {
+									logger.info(String.format("provider processing action %s, payload=%s", action,
+											payload.toString()));
+									int delta = payload.getInt("delta");
+									JSONObject obj = new JSONObject();
+									int currentValue = getCounterValue(tfCount);
+									int newValue = currentValue + delta;
+									setCounterValue(tfCount, newValue);
+									obj.put("value", newValue);
+									return obj;
+								}
+							});
+
+						}
+					});
+				}
+				else {
+					// currently, provider doesn't have the "destroy" method, otherwise should
+					// destroy the provider and re-enable the toggle button.
+				}
+			}
+		});
+		pnlProvider.add(tbProvider, gbConstraints);
+
+		return pnlProvider;
+	}
+
+	private JPanel layoutChannelClientControlPanel() {
+		JPanel pnlClient = new JPanel();
+		pnlClient.setBorder(BorderFactory.createTitledBorder("Client"));
+
+		return pnlClient;
+	}
+
+	private JPanel layoutChannelControlPanel() {
+
+		JPanel pnl = new JPanel(new GridLayout(2, 1));
+		pnl.setBorder(BorderFactory.createTitledBorder("Counter Demo with Channel API"));
+		pnl.add(layoutChannelProviderControlPanel());
+		//pnl.add(layoutChannelClientControlPanel());
 
 		return pnl;
 	}

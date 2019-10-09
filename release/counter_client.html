@@ -1,0 +1,53 @@
+<html>
+
+<head>
+	<script>
+		let channelClient;
+
+		async function makeClient() {
+			const connectPayload = { payload: 'place connection payload here' };
+			const client = await fin.InterApplicationBus.Channel.connect('CounterJavaProvider', connectPayload);
+
+			return {
+				getValue: () => client.dispatch('getValue'),
+				increment: () => client.dispatch('increment'),
+				incrementBy: (x) => client.dispatch('incrementBy', { delta: x }),
+			}
+		}
+
+		function getCounterValue() {
+			channelClient.getValue().then(v => { document.getElementById("count").textContent = v.value; });
+		}
+
+		function incrementCounterValue() {
+			channelClient.increment().then(v => { document.getElementById("count").textContent = v.value; });
+		}
+
+		function incrementCounterValueBy(delta) {
+			channelClient.incrementBy(delta).then(v => { document.getElementById("count").textContent = v.value; });
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			fin.desktop.main(() => {
+				makeClient().then(async (clientBus) => {
+					channelClient = clientBus;
+				});
+			});
+		});
+
+	</script>
+</head>
+
+<body>
+	count: <span id="count">N/A</span>
+	<button onclick="getCounterValue()">Get</button>
+	<br>
+	<br>
+	<button onclick="incrementCounterValue()">Increment</button>
+	<br>
+	<br>
+	<input id="deltaValue"></input>
+	<button onclick="incrementCounterValueBy(document.getElementById('deltaValue').value)">IncrementBy</button>
+</body>
+
+</html>
