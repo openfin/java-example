@@ -7,8 +7,10 @@ import com.openfin.desktop.animation.AnimationTransitions;
 import com.openfin.desktop.animation.OpacityTransition;
 import com.openfin.desktop.animation.PositionTransition;
 import com.openfin.desktop.channel.ChannelAction;
+import com.openfin.desktop.channel.ChannelListener;
 import com.openfin.desktop.channel.ChannelProvider;
 
+import com.openfin.desktop.channel.ConnectionEvent;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
@@ -422,6 +424,17 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 					// see below
 					tbProvider.setEnabled(false);
 
+					desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
+						@Override
+						public void onChannelConnect(ConnectionEvent connectionEvent) {
+							logger.info(String.format("provider receives channel connect event from %s ", connectionEvent.getUuid()));
+						}
+						@Override
+						public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+							logger.info(String.format("provider receives channel disconnect event from %s ", connectionEvent.getUuid()));
+						}
+					});
+
 					desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 						@Override
 						public void onSuccess(ChannelProvider provider) {
@@ -711,7 +724,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 		updateMessagePanel("Creating InterAppBus");
 		bus = desktopConnection.getInterApplicationBus();
 		openfinSystem = new System(desktopConnection);
-		updateMessagePanel("Connected to Desktop");
+		updateMessagePanel("Connected to Runtime");
 		setMainButtonsEnabled(true);
 
 		openfinSystem.addEventListener("desktop-icon-clicked", new EventListener() {
