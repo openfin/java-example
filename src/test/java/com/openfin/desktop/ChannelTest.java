@@ -73,7 +73,7 @@ public class ChannelTest {
 		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient result) {
 						latch.countDown();
@@ -129,7 +129,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
@@ -184,7 +184,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
@@ -229,10 +229,10 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient client) {
-						desktopConnection.getChannel(channelName).disconnect(client, null);
+						client.disconnect(null);
 					}
 
 				});
@@ -275,7 +275,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
