@@ -202,7 +202,7 @@ public class FDC3Example implements DesktopStateListener {
     }
 
     private void startReds() {
-        fdc3Client.open("charts-red", null, new AckListener() {
+        fdc3Client.open("fdc3-charts-red", null, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 output.setText(String.format("FDC3 started %b", ack.isSuccessful()));
@@ -220,7 +220,7 @@ public class FDC3Example implements DesktopStateListener {
         JSONObject id = new JSONObject();
         id.put("ticker", ticker.toLowerCase());
         context.setId(id);
-        fdc3Client.raiseIntent("fdc3.ViewChart", context, "charts-red", new AsyncCallback<IntentResolution>() {
+        fdc3Client.raiseIntent("fdc3.ViewChart", context, "fdc3-charts-red", new AsyncCallback<IntentResolution>() {
             @Override
             public void onSuccess(IntentResolution result) {
             }
@@ -258,7 +258,7 @@ public class FDC3Example implements DesktopStateListener {
 
     private void broadcast() {
         String ticker = getTicker();
-        Context context = new Context("fdc3.security", ticker);
+        Context context = new Context("fdc3.instrument", ticker);
         JSONObject id = new JSONObject();
         id.put("ticker", ticker.toLowerCase());
         context.setId(id);
@@ -331,7 +331,7 @@ public class FDC3Example implements DesktopStateListener {
                 output.setText(String.format("Received context: %s", result.toString()));
                 return null;
             }
-        });
+        }, null);
     }
 
     private String getTicker() {
