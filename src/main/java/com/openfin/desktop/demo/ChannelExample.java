@@ -100,7 +100,7 @@ public class ChannelExample implements DesktopStateListener {
      * Create a channel client that invokes "getValue", "increment" and "incrementBy n" actions
      */
     public void createChannelClient() {
-        desktopConnection.getChannel(CHANNEL_NAME).connect(new AsyncCallback<ChannelClient>() {
+        desktopConnection.getChannel(CHANNEL_NAME).connect(CHANNEL_NAME + "Client", new AsyncCallback<ChannelClient>() {
             @Override
             public void onSuccess(ChannelClient client) {
                 // register a channel event

@@ -13,6 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.lang.System;
+import java.util.List;
 import java.util.UUID;
 
 public class FDC3Example implements DesktopStateListener {
@@ -181,7 +182,7 @@ public class FDC3Example implements DesktopStateListener {
     @Override
     public void onReady() {
         this.fdc3Client = FDC3Client.getInstance(this.desktopConnection);
-        this.fdc3Client.connect(new AckListener() {
+        this.fdc3Client.connect("JavaFDC3Demo", new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 btnLaunchRed.setEnabled(true);
@@ -223,38 +224,35 @@ public class FDC3Example implements DesktopStateListener {
         fdc3Client.raiseIntent("fdc3.ViewChart", context, "fdc3-charts-red", new AsyncCallback<IntentResolution>() {
             @Override
             public void onSuccess(IntentResolution result) {
+            	output.setText(String.format("IntentResolution source=%s, version=%s", result.getSource(), result.getVersion()));
             }
         });
     }
 
     private void findIntent() {
-        fdc3Client.findIntent("fdc3.ViewChart", null, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                if (ack.isSuccessful()) {
-                    output.setText(String.format("Intent found: %s", ack.getJsonObject().getJSONObject("data").getJSONObject("result")));
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
+        fdc3Client.findIntent("fdc3.ViewChart", null, new AsyncCallback<AppIntent>() {
+			@Override
+			public void onSuccess(AppIntent result) {
+				output.setText(result.toString());
+				
+			}
         });
     }
 
-    private void findContextIntent() {
-        String ticker = getTicker();
-        Context context = new Context("fdc3.instrument", ticker);
+	private void findContextIntent() {
+		String ticker = getTicker();
+		Context context = new Context("fdc3.instrument", ticker);
 
-        fdc3Client.findIntentsByContext(context, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                output.setText(String.format("Intent found: %s", ack.getJsonObject().getJSONObject("data").getJSONArray("result")));
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
-        });
-    }
+		fdc3Client.findIntentsByContext(context, new AsyncCallback<List<AppIntent>>() {
+
+			@Override
+			public void onSuccess(List<AppIntent> result) {
+				for (int i=0; i<result.size(); i++) {
+					output.setText(i + ":" + result.get(i).toString());
+				}
+			}
+		});
+	}
 
     private void broadcast() {
         String ticker = getTicker();
