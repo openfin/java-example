@@ -534,4 +534,27 @@ public class OpenFinRuntimeTest {
         Thread.sleep(5000);
         assertEquals("Duplicate connection UUID should not be allowed", setupFailed, true);
     }
+    
+    @Test
+    public void getEntityInfo() throws Exception {
+		CountDownLatch latch = new CountDownLatch(1);
+		runtime.getEntityInfo(DESKTOP_UUID, DESKTOP_UUID, new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				JSONObject jsonData = (JSONObject) ack.getData();
+				String uuid = jsonData.getString("uuid");
+				String entityType = jsonData.getString("entityType");
+				if (DESKTOP_UUID.equals(uuid) && "external connection".equals(entityType)) {
+					latch.countDown();
+				}
+			}
+
+			@Override
+			public void onError(Ack ack) {
+			}
+		});
+		latch.await(5, TimeUnit.SECONDS);
+		assertEquals("getEntityInfo timeout", latch.getCount(), 0);
+    }
 }
