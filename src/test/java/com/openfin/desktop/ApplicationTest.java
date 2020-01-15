@@ -553,4 +553,43 @@ public class ApplicationTest {
 
 		assertEquals(0, latch.getCount());
 	}
+	
+	@Test
+	public void errorStack() throws Exception {
+		Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		application.close(true, new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				application.getChildWindows(new AsyncCallback<List<Window>>() {
+
+					@Override
+					public void onSuccess(List<Window> result) {
+					}
+				}, new AckListener() {
+
+					@Override
+					public void onSuccess(Ack ack) {
+					}
+
+					@Override
+					public void onError(Ack ack) {
+						if (ack.getErrorStack() != null) {
+							latch.countDown();
+						}
+					}
+				});
+			}
+
+			@Override
+			public void onError(Ack ack) {
+			}
+		});
+
+		latch.await(5, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
+	}
 }
