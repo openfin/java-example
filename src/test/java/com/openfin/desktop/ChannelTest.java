@@ -232,7 +232,7 @@ public class ChannelTest {
 				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient client) {
-						desktopConnection.getChannel(channelName).disconnect(client, null);
+						client.disconnect(null);
 					}
 
 				});
