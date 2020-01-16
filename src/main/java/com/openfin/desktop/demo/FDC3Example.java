@@ -221,7 +221,7 @@ public class FDC3Example implements DesktopStateListener {
         JSONObject id = new JSONObject();
         id.put("ticker", ticker.toLowerCase());
         context.setId(id);
-        fdc3Client.raiseIntent("fdc3.ViewChart", context, "fdc3-charts-red", new AsyncCallback<IntentResolution>() {
+        fdc3Client.raiseIntent("ViewChart", context, "fdc3-charts-red", new AsyncCallback<IntentResolution>() {
             @Override
             public void onSuccess(IntentResolution result) {
             	output.setText(String.format("IntentResolution source=%s, version=%s", result.getSource(), result.getVersion()));
@@ -230,7 +230,7 @@ public class FDC3Example implements DesktopStateListener {
     }
 
     private void findIntent() {
-        fdc3Client.findIntent("fdc3.ViewChart", null, new AsyncCallback<AppIntent>() {
+        fdc3Client.findIntent("ViewChart", null, new AsyncCallback<AppIntent>() {
 			@Override
 			public void onSuccess(AppIntent result) {
 				output.setText(result.toString());
@@ -298,7 +298,7 @@ public class FDC3Example implements DesktopStateListener {
     }
 
     private void addIntentListener() {
-        fdc3Client.addIntentListener("fdc3.ViewChart", new IntentListener() {
+        fdc3Client.addIntentListener("ViewChartByJava", new IntentListener() {
             @Override
             public JSONObject onIntent(Context context) {
                 output.setText(String.format("Received Intent: %s", context.toString()));
