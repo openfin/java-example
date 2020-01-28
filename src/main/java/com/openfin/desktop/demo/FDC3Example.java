@@ -182,7 +182,7 @@ public class FDC3Example implements DesktopStateListener {
     @Override
     public void onReady() {
         this.fdc3Client = FDC3Client.getInstance(this.desktopConnection);
-        this.fdc3Client.connect("JavaFDC3Demo", new AckListener() {
+        this.fdc3Client.connect(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 btnLaunchRed.setEnabled(true);

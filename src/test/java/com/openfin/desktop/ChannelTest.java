@@ -73,12 +73,11 @@ public class ChannelTest {
 		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient result) {
 						latch.countDown();
 					}
-
 				});
 			}
 		});
@@ -86,6 +85,71 @@ public class ChannelTest {
 		latch.await(10, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
+	}
+	
+	@Test
+	public void multipleChannelClients() throws Exception {
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(1);
+		final String channelName = "createMultipleChannelClientTest";
+		final String clientActionName = "clientAction";
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
+			@Override
+			public void onSuccess(ChannelProvider provider) {
+				
+				desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
+
+					@Override
+					public void onChannelConnect(ConnectionEvent connectionEvent) {
+						JSONObject identity = new JSONObject();
+						identity.put("uuid", connectionEvent.getUuid());
+						identity.put("channelId", connectionEvent.getChannelId());
+						identity.put("channelName", connectionEvent.getChannelName());
+						identity.put("name", connectionEvent.getName());
+						identity.put("endpointId", connectionEvent.getEndpointId());
+						
+						provider.dispatch(identity, clientActionName, null, null);
+					}
+
+					@Override
+					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+					}
+				});
+
+				//first channel client
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
+					@Override
+					public void onSuccess(ChannelClient client) {
+						client.register(clientActionName, new ChannelAction() {
+							@Override
+							public JSONObject invoke(String action, JSONObject payload) {
+								latch1.countDown();
+								return null;
+							}
+						});
+					}
+				});
+				//second channel client
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
+					@Override
+					public void onSuccess(ChannelClient client) {
+						client.register(clientActionName, new ChannelAction() {
+							@Override
+							public JSONObject invoke(String action, JSONObject payload) {
+								latch2.countDown();
+								return null;
+							}
+						});
+					}
+				});
+			}
+		});
+
+		latch1.await(10, TimeUnit.SECONDS);
+		latch2.await(10, TimeUnit.SECONDS);
+
+		assertEquals(0, latch1.getCount());
+		assertEquals(0, latch2.getCount());
 	}
 
 	@Test
@@ -129,7 +193,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
@@ -184,7 +248,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
@@ -229,7 +293,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient client) {
 						client.disconnect(null);
@@ -275,7 +339,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {

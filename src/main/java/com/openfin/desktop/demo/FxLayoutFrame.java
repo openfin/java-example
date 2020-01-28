@@ -58,7 +58,7 @@ public class FxLayoutFrame {
                                 @Override
                                 public void onSuccess(Ack ack) {
                                     ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-                                    observer.getDesktopConnection().getChannel(LayoutServiceChannelName).connect(LayoutServiceChannelName,
+                                    observer.getDesktopConnection().getChannel(LayoutServiceChannelName).connect(
                                             new AsyncCallback<ChannelClient>() {
                                                 @Override
                                                 public void onSuccess(ChannelClient client) {
