@@ -184,7 +184,7 @@ public class LaunchManifestDemo extends Application implements DesktopStateListe
 
                                             client.register("event", new ChannelAction() {
                                                 @Override
-                                                public JSONObject invoke(String action, JSONObject payload) {
+                                                public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
                                                     System.out.printf("channel event " + action);
                                                     return null;
                                                 }

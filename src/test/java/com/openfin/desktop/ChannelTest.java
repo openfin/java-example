@@ -87,7 +87,7 @@ public class ChannelTest {
 		assertEquals(0, latch.getCount());
 	}
 	
-	@Ignore
+	//@Ignore
 	@Test
 	public void multipleChannelClients() throws Exception {
 		CountDownLatch latch1 = new CountDownLatch(1);
@@ -102,7 +102,7 @@ public class ChannelTest {
 				provider.register(providerActionName, new ChannelAction() {
 
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						return null;
 					}
 				});
@@ -115,7 +115,7 @@ public class ChannelTest {
 						
 						client.register(clientActionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload) {
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 								logger.info("invoked client 1");
 								latch1.countDown();
 								return null;
@@ -129,7 +129,7 @@ public class ChannelTest {
 					public void onSuccess(ChannelClient client) {
 						client.register(clientActionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload) {
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 								logger.info("invoked client 2");
 								latch2.countDown();
 								return null;
@@ -158,7 +158,7 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register("currentTime", new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						return payload.put("currentTime", java.lang.System.currentTimeMillis());
 					}
 				});
@@ -184,7 +184,7 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register(actionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						int currentValue = payload.getInt("value");
 						return payload.put("value", currentValue + 1);
 					}
@@ -232,9 +232,9 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register(providerActionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						logger.info("invoke provider action, payload: {}", payload);
-						provider.dispatch(payload, clientActionName, new JSONObject(), null);
+						provider.dispatch(senderIdentity, clientActionName, new JSONObject(), null);
 						return null;
 					}
 				});
@@ -244,13 +244,13 @@ public class ChannelTest {
 					public void onSuccess(ChannelClient client) {
 						client.register(clientActionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload) {
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 								latch.countDown();
 								return null;
 							}
 						});
 
-						client.dispatch(providerActionName, client.getEndpointIdentity().toJSON(), null);
+						client.dispatch(providerActionName, new JSONObject(), null);
 					}
 				});
 			}
@@ -277,7 +277,7 @@ public class ChannelTest {
 
 						client.register(actionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload) {
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 								if (actionName.equals(action) && actionMessage.equals(payload.getString("message"))) {
 									latch.countDown();
 								}
@@ -358,7 +358,7 @@ public class ChannelTest {
 				
 				provider.register(actionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						int currentValue = payload.getInt("value");
 						return payload.put("value", currentValue + 1);
 					}
