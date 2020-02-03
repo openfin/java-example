@@ -87,7 +87,7 @@ public class ChannelTest {
 		assertEquals(0, latch.getCount());
 	}
 	
-	//@Ignore
+	@Ignore
 	@Test
 	public void multipleChannelClients() throws Exception {
 		CountDownLatch latch1 = new CountDownLatch(1);
@@ -116,7 +116,6 @@ public class ChannelTest {
 						client.register(clientActionName, new ChannelAction() {
 							@Override
 							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
-								logger.info("invoked client 1");
 								latch1.countDown();
 								return null;
 							}
@@ -130,7 +129,6 @@ public class ChannelTest {
 						client.register(clientActionName, new ChannelAction() {
 							@Override
 							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
-								logger.info("invoked client 2");
 								latch2.countDown();
 								return null;
 							}
@@ -233,7 +231,6 @@ public class ChannelTest {
 				provider.register(providerActionName, new ChannelAction() {
 					@Override
 					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
-						logger.info("invoke provider action, payload: {}", payload);
 						provider.dispatch(senderIdentity, clientActionName, new JSONObject(), null);
 						return null;
 					}
