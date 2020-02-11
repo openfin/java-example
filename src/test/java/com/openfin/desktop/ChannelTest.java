@@ -73,12 +73,11 @@ public class ChannelTest {
 		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient result) {
 						latch.countDown();
 					}
-
 				});
 			}
 		});
@@ -86,6 +85,66 @@ public class ChannelTest {
 		latch.await(10, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
+	}
+	
+	@Ignore
+	@Test
+	public void multipleChannelClients() throws Exception {
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(1);
+		final String channelName = "createMultipleChannelClientTest";
+		final String clientActionName = "clientAction";
+		final String providerActionName = "providerAction";
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
+			@Override
+			public void onSuccess(ChannelProvider provider) {
+				
+				provider.register(providerActionName, new ChannelAction() {
+
+					@Override
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+						return null;
+					}
+				});
+
+				//first channel client
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
+					@Override
+					public void onSuccess(ChannelClient client) {
+						client.dispatch(providerActionName, new JSONObject(), null);
+						
+						client.register(clientActionName, new ChannelAction() {
+							@Override
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+								latch1.countDown();
+								return null;
+							}
+						});
+					}
+				});
+				//second channel client
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
+					@Override
+					public void onSuccess(ChannelClient client) {
+						client.register(clientActionName, new ChannelAction() {
+							@Override
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+								latch2.countDown();
+								return null;
+							}
+						});
+						
+						provider.publish(clientActionName, new JSONObject(), null);
+					}
+				});
+			}
+		});
+
+		latch1.await(10, TimeUnit.SECONDS);
+		latch2.await(10, TimeUnit.SECONDS);
+
+		assertEquals(0, latch1.getCount());
+		assertEquals(0, latch2.getCount());
 	}
 
 	@Test
@@ -97,7 +156,7 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register("currentTime", new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						return payload.put("currentTime", java.lang.System.currentTimeMillis());
 					}
 				});
@@ -123,13 +182,13 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register(actionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						int currentValue = payload.getInt("value");
 						return payload.put("value", currentValue + 1);
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {
@@ -158,6 +217,46 @@ public class ChannelTest {
 		assertEquals(0, latch.getCount());
 		assertEquals(initValue + 1, resultValue.get());
 	}
+	
+	@Test
+	public void invokeClientAction() throws Exception {
+		final String channelName = "invokeClientActionTest";
+		final String providerActionName = "invokeClientAction";
+		final String clientActionName = "clientAction";
+
+		CountDownLatch latch = new CountDownLatch(1);
+		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
+			@Override
+			public void onSuccess(ChannelProvider provider) {
+				provider.register(providerActionName, new ChannelAction() {
+					@Override
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+						provider.dispatch(senderIdentity, clientActionName, new JSONObject(), null);
+						return null;
+					}
+				});
+
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
+					@Override
+					public void onSuccess(ChannelClient client) {
+						client.register(clientActionName, new ChannelAction() {
+							@Override
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+								latch.countDown();
+								return null;
+							}
+						});
+
+						client.dispatch(providerActionName, new JSONObject(), null);
+					}
+				});
+			}
+		});
+
+		latch.await(10, TimeUnit.SECONDS);
+
+		assertEquals(0, latch.getCount());
+	}
 
 	@Test
 	public void publishToClient() throws Exception {
@@ -169,37 +268,24 @@ public class ChannelTest {
 		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
-					@Override
-					public void onChannelConnect(ConnectionEvent connectionEvent) {
-						// once the channel is connected, invoke publish method
-						JSONObject payload = new JSONObject();
-						payload.put("message", actionMessage);
-						provider.publish(actionName, payload, null);
-					}
-
-					@Override
-					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
-
-					}
-				});
-
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
-
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient client) {
 
 						client.register(actionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload) {
+							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 								if (actionName.equals(action) && actionMessage.equals(payload.getString("message"))) {
 									latch.countDown();
 								}
 								return null;
 							}
 						});
+						
+						JSONObject payload = new JSONObject();
+						payload.put("message", actionMessage);
+						provider.publish(actionName, payload, null);
 					}
-
 				});
 			}
 		});
@@ -229,7 +315,7 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 					@Override
 					public void onSuccess(ChannelClient client) {
 						client.disconnect(null);
@@ -269,13 +355,13 @@ public class ChannelTest {
 				
 				provider.register(actionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload) {
+					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 						int currentValue = payload.getInt("value");
 						return payload.put("value", currentValue + 1);
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(channelName, new AsyncCallback<ChannelClient>() {
+				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
 
 					@Override
 					public void onSuccess(ChannelClient client) {

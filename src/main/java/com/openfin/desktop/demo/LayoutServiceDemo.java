@@ -159,7 +159,7 @@ public class LayoutServiceDemo implements DesktopStateListener {
 		if (rvm != null) {
 			config.setLaunchRVMPath(rvm);
 		}
-		config.setRuntimeVersion("stable");
+		config.setRuntimeVersion("alpha");
 		config.setAdditionalRuntimeArguments("--v=1 ");
 		serviceConfig = new JSONArray();
 		JSONObject layout = new JSONObject();

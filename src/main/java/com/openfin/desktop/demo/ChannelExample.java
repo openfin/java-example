@@ -65,7 +65,7 @@ public class ChannelExample implements DesktopStateListener {
 
                 provider.register("getValue", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload) {
+                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
                         logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
                         JSONObject obj = new JSONObject();
                         obj.put("value", x.get());
@@ -74,7 +74,7 @@ public class ChannelExample implements DesktopStateListener {
                 });
                 provider.register("increment", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload) {
+                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
                         logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
                         JSONObject obj = new JSONObject();
                         obj.put("value", x.incrementAndGet());
@@ -84,7 +84,7 @@ public class ChannelExample implements DesktopStateListener {
                 });
                 provider.register("incrementBy", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload) {
+                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
                         logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
                         int delta = payload.getInt("delta");
                         JSONObject obj = new JSONObject();
@@ -100,13 +100,13 @@ public class ChannelExample implements DesktopStateListener {
      * Create a channel client that invokes "getValue", "increment" and "incrementBy n" actions
      */
     public void createChannelClient() {
-        desktopConnection.getChannel(CHANNEL_NAME).connect(CHANNEL_NAME + "Client", new AsyncCallback<ChannelClient>() {
+        desktopConnection.getChannel(CHANNEL_NAME).connect(new AsyncCallback<ChannelClient>() {
             @Override
             public void onSuccess(ChannelClient client) {
                 // register a channel event
                 client.register("event", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload) {
+                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
                         logger.info("channel event {}", action);
                         return null;
                     }

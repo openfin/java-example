@@ -19,7 +19,7 @@ import java.util.UUID;
 public class FDC3Example implements DesktopStateListener {
 
     private final static String javaConnectUuid = "JavaFDC3Demo";
-
+    private OpenFinRuntime openFinRuntime;
     private DesktopConnection desktopConnection;
     private JFrame mainWindow;
     private JButton btnLaunchRed;
@@ -166,17 +166,18 @@ public class FDC3Example implements DesktopStateListener {
 
     void launchOpenfin() throws DesktopException, DesktopIOException, IOException, InterruptedException {
         RuntimeConfiguration config = new RuntimeConfiguration();
-//        config.setRuntimeVersion("stable");
-        config.setRuntimeVersion("10.66.41.18");
+        config.setRuntimeVersion("stable");
+//        config.setRuntimeVersion("10.66.41.18");
         config.setAdditionalRuntimeArguments("--v=1 ");
 //        serviceConfig = new JSONArray();
-//        JSONObject layout = new JSONObject();
-//        layout.put("name", "fdc3");
-//        serviceConfig.put(0, layout);
-//        config.addConfigurationItem("services", serviceConfig);
+        JSONObject serviceItem = new JSONObject();
+        serviceItem.put("name", "fdc3");
+        serviceConfig.put(0, serviceItem);
+        config.addConfigurationItem("services", serviceConfig);
 
         this.desktopConnection = new DesktopConnection(javaConnectUuid);
         this.desktopConnection.connect(config, this, 60);
+        this.openFinRuntime = new OpenFinRuntime(this.desktopConnection);
     }
 
     @Override
