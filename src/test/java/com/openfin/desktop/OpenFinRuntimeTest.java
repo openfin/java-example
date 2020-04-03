@@ -28,7 +28,6 @@ public class OpenFinRuntimeTest {
     private static final String DESKTOP_UUID = OpenFinRuntimeTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static OpenFinRuntime runtime;
-    private static final String openfin_app_url = "http://test.openf.in/test.html";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -552,6 +551,25 @@ public class OpenFinRuntimeTest {
 
 			@Override
 			public void onError(Ack ack) {
+			}
+		});
+		latch.await(5, TimeUnit.SECONDS);
+		assertEquals("getEntityInfo timeout", latch.getCount(), 0);
+    }
+    
+    @Test
+    public void setCookie() throws Exception {
+		CountDownLatch latch = new CountDownLatch(1);
+		runtime.setCookie("http://localhost", "cookieName", "cookieValue", 0, false, true, new AckListener() {
+
+			@Override
+			public void onSuccess(Ack ack) {
+				latch.countDown();
+			}
+
+			@Override
+			public void onError(Ack ack) {
+				java.lang.System.out.println("error setting cookie, reason: " + ack.getReason());
 			}
 		});
 		latch.await(5, TimeUnit.SECONDS);
