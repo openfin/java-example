@@ -788,10 +788,10 @@ public class WindowTest {
 	public void acceleratorSetting() throws Exception {
 		ApplicationOptions options = TestUtils.getAppOptions(null);
 		AcceleratorOptions acceleratorOptions = new AcceleratorOptions();
-		acceleratorOptions.setDevTools(false);
-		acceleratorOptions.setReload(true);
-		acceleratorOptions.setReloadIgnoringCache(false);
-		acceleratorOptions.setZoom(true);
+		acceleratorOptions.setDevtools(true);
+		acceleratorOptions.setReload(false);
+		acceleratorOptions.setReloadIgnoringCache(true);
+		acceleratorOptions.setZoom(false);
 		options.getMainWindowOptions().setAccelerator(acceleratorOptions);
 		
 		Application application = TestUtils.runApplication(options, desktopConnection);
@@ -800,7 +800,7 @@ public class WindowTest {
 
 		window.getOptions(winOpts -> {
 			AcceleratorOptions opt = winOpts.getAccelerator();
-			if (opt.isReload() && opt.isZoom()) {
+			if (opt.isDevtools() && !opt.isReload() && opt.isReloadIgnoringCache() && !opt.isZoom()) {
 				latch.countDown();
 			}
 		}, null);
