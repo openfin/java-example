@@ -783,4 +783,28 @@ public class WindowTest {
 		latch.await(10, TimeUnit.SECONDS);
 		assertEquals("reload test timeout", 0, latch.getCount());
 	}
+	
+	@Test
+	public void acceleratorSetting() throws Exception {
+		ApplicationOptions options = TestUtils.getAppOptions(null);
+		AcceleratorOptions acceleratorOptions = new AcceleratorOptions();
+		acceleratorOptions.setDevTools(false);
+		acceleratorOptions.setReload(true);
+		acceleratorOptions.setReloadIgnoringCache(false);
+		acceleratorOptions.setZoom(true);
+		options.getMainWindowOptions().setAccelerator(acceleratorOptions);
+		
+		Application application = TestUtils.runApplication(options, desktopConnection);
+		Window window = application.getWindow();
+		CountDownLatch latch = new CountDownLatch(1);
+
+		window.getOptions(winOpts -> {
+			AcceleratorOptions opt = winOpts.getAccelerator();
+			if (opt.isReload() && opt.isZoom()) {
+				latch.countDown();
+			}
+		}, null);
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals("acceleratorSetting test timeout", 0, latch.getCount());
+	}
 }
