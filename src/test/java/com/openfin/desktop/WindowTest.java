@@ -800,7 +800,7 @@ public class WindowTest {
 
 		window.getOptions(winOpts -> {
 			AcceleratorOptions opt = winOpts.getAccelerator();
-			if (opt.isDevtools() && !opt.isReload() && opt.isReloadIgnoringCache() && !opt.isZoom()) {
+			if (opt != null && opt.isDevtools() && !opt.isReload() && opt.isReloadIgnoringCache() && !opt.isZoom()) {
 				latch.countDown();
 			}
 		}, null);
