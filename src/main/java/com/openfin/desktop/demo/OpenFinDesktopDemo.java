@@ -660,7 +660,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         this.selectedApplication.getWindow().getOptions(new AsyncCallback<WindowOptions>() {
             @Override
             public void onSuccess(WindowOptions result) {
-                java.lang.System.out.println("getOptions: " + result.toJsonObject().toString());
+                java.lang.System.out.println("getOptions: " + result.getJson().toString());
                 double opacity = result.getOpacity() > 0.5 ? 0.5 : 1;
                 WindowOptions options = new WindowOptions();
                 options.setOpacity(opacity);
@@ -689,7 +689,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         this.selectedApplication.getWindow().getOptions(new AsyncCallback<WindowOptions>() {
             @Override
             public void onSuccess(WindowOptions result) {
-                java.lang.System.out.println("getOptions: " + result.toJsonObject().toString());
+                java.lang.System.out.println("getOptions: " + result.getJson().toString());
                 int width = result.getCornerRoundingWidth() > 0 ? 0 : 10;
                 WindowOptions options = new WindowOptions();
                 options.setCornerRounding(width, width);
