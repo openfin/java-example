@@ -113,7 +113,7 @@ public class LayoutFrame extends JFrame {
 					@Override
 					public void onSuccess(Ack ack) {
 						ExternalWindowObserver observer = (ExternalWindowObserver) ack.getSource();
-						observer.getDesktopConnection().getChannel(LayoutServiceChannelName).connect(LayoutServiceChannelName,
+						observer.getDesktopConnection().getChannel(LayoutServiceChannelName).connect(
 								new AsyncCallback<ChannelClient>() {
 									@Override
 									public void onSuccess(ChannelClient client) {
@@ -130,7 +130,7 @@ public class LayoutFrame extends JFrame {
 
 										client.register("event", new ChannelAction() {
 											@Override
-											public JSONObject invoke(String action, JSONObject payload) {
+											public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
 												System.out.printf("channel event " + action);
 												return null;
 											}

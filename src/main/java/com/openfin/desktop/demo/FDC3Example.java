@@ -166,8 +166,8 @@ public class FDC3Example implements DesktopStateListener {
 
     void launchOpenfin() throws DesktopException, DesktopIOException, IOException, InterruptedException {
         RuntimeConfiguration config = new RuntimeConfiguration();
-//        config.setRuntimeVersion("stable");
-        config.setRuntimeVersion("10.66.41.18");
+        config.setRuntimeVersion("alpha");
+//        config.setRuntimeVersion("10.66.41.18");
         config.setAdditionalRuntimeArguments("--v=1 ");
 //        serviceConfig = new JSONArray();
 //        JSONObject layout = new JSONObject();
@@ -182,7 +182,7 @@ public class FDC3Example implements DesktopStateListener {
     @Override
     public void onReady() {
         this.fdc3Client = FDC3Client.getInstance(this.desktopConnection);
-        this.fdc3Client.connect("JavaFDC3Demo", new AckListener() {
+        this.fdc3Client.connect(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 btnLaunchRed.setEnabled(true);
