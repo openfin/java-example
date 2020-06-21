@@ -94,11 +94,13 @@ Source code for the example is located in /src/main/java/com/openfin/desktop/dem
 
 1. Clone this repository
 
-2. Go to release directory and start embed.bat
+2. Go to release directory and start embed.bat ( the default embedded url is https://openfin.co. Pass the url you wish to load if you want something different e.g. embed.bat https://www.mydomain.com )
 
-3. Once the java app starts, click on "Launch OpenFin" button, which should start OpenFin Runtime and embed the OpenFin application that points to https://openfin.co
+3. Once the java app starts, click on "Launch OpenFin" button, which should start OpenFin Runtime and embed the OpenFin application that points to https://openfin.co (or your custom url if you specified one)
 
 4. Click "Shutdown OpenFin" button to close HTML5 application and the Java Swing window
+
+If there is a problem rendering the url please check your windows display settings to see ensure scaling is set to 100%.
 
 ## Source Code Review for embedded OpenFin application
 
