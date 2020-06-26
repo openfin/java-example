@@ -63,7 +63,9 @@ public class JNLPExample extends JFrame {
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    desktopConnection.connectToVersion("stable", listener, 100000);
+                    RuntimeConfiguration configuration = new RuntimeConfiguration();
+                    configuration.setRuntimeVersion("stable");
+                    desktopConnection.connect(configuration, listener, 60);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

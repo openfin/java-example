@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <jnlp spec="1.0+" href="http://openfin.github.io/java-example/webstart/JNLPExample.jnlp">
+  <jnlp spec="1.0+" href="https://s3.amazonaws.com/testing-assets.openfin.co/webstart/JNLPExample.jnlp">
      <information>
-       <title>JNLP Example of OpenFin Runtime</title>
+       <title>JNLP Example of OpenFin Application</title>
           <vendor>OpenFin</vendor>
           <homepage href="https://openfin.co/" />
           <description>JNLP Example to start OpenFin Runtime</description>
@@ -10,12 +10,21 @@
           <all-permissions/>
      </security>
      <resources>
-          <j2se version="1.6+" />
-          <jar href="openfin-desktop-java-example-5.44.2.0.jar" main="true"/>
-          <jar href="openfin-desktop-java-adapter-5.44.2.0.jar"/>
-          <jar href="json-20140107.jar"/>
-          <jar href="jna-4.1.0.jar"/>
-          <jar href="jna-platform-4.1.0.jar"/>
+          <j2se version="1.8+" />
+          <jar href="openfin-desktop-java-example-7.1.1.jar" main="true"/>
+          <jar href="openfin-desktop-java-adapter-8.0.8.jar"/>
+          <jar href="jetty-client-9.4.18.v20190429.jar"/>
+          <jar href="jetty-http-9.4.18.v20190429.jar"/>
+          <jar href="jetty-io-9.4.18.v20190429.jar"/>
+          <jar href="jetty-util-9.4.18.v20190429.jar"/>
+          <jar href="jetty-xml-9.4.18.v20190429.jar"/>
+          <jar href="jna-4.5.1.jar"/>
+          <jar href="jna-platform-4.5.1.jar"/>
+          <jar href="websocket-api-9.4.18.v20190429.jar"/>
+          <jar href="websocket-client-9.4.18.v20190429.jar"/>
+          <jar href="websocket-common-9.4.18.v20190429.jar"/>
+          <jar href="json-20160810.jar"/>
+          <jar href="slf4j-api-1.7.21.jar"/>
      </resources>
      <application-desc main-class="com.openfin.desktop.demo.JNLPExample" />
 </jnlp>
