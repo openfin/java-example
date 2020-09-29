@@ -31,7 +31,7 @@ public class FDC3Example implements DesktopStateListener {
     private JButton btnIntentListener;
 
     private JTextArea output;  // show output of API
-    private String ticker = "IBM";
+    private String ticker = "AAPL";
 
     private FDC3Client fdc3Client;
 
@@ -333,7 +333,7 @@ public class FDC3Example implements DesktopStateListener {
     }
 
     private String getTicker() {
-        this.ticker = this.ticker.equals("IBM") ? "GS" : "IBM";
+        this.ticker = this.ticker.equals("AAPL") ? "MSFT" : "AAPL";
         return this.ticker;
     }
 
