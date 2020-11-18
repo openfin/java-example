@@ -121,6 +121,7 @@ public class TestUtils {
         configuration.setRdmURL(rdmUrl);
         configuration.setRuntimeAssetURL(assetsUrl);
         configuration.setLicenseKey("JavaAdapterJUnitTests");
+        configuration.addService("notifications", null);
         desktopConnection.connect(configuration, new DesktopStateListener() {
             @Override
             public void onReady() {
