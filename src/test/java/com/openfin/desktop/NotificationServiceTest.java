@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
@@ -16,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.openfin.desktop.channel.NotificationOpts;
 import com.openfin.desktop.channel.Notifications;
+import com.openfin.desktop.notifications.NotificationEventListener;
+import com.openfin.desktop.notifications.events.NotificationCreatedEvent;
 
 public class NotificationServiceTest {
 	private static Logger logger = LoggerFactory.getLogger(NotificationServiceTest.class.getName());
@@ -34,8 +37,30 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void addEventListener() throws Exception {
+	public void addThenRemoveEventListener() throws Exception {
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(2);
+		Notifications n = new Notifications(desktopConnection);
+		
+		NotificationEventListener listener = e -> {
+			latch1.countDown();
+			latch2.countDown();
+		};
+		n.addEventListener(Notifications.EVENT_TYPE_CREATED, listener);
+		
+		n.create(new NotificationOpts("Title", "Body", "Category"));
+		
+		latch1.await(10, TimeUnit.SECONDS);
 
+		assertEquals(0, latch1.getCount());
+		
+		n.removeEventListener(Notifications.EVENT_TYPE_CREATED, listener);
+
+		n.create(new NotificationOpts("Title", "Body", "Category"));
+		
+		latch2.await(10, TimeUnit.SECONDS);
+
+		assertEquals(1, latch2.getCount());
 	}
 
 	@Test
@@ -108,11 +133,6 @@ public class NotificationServiceTest {
 		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
 
 		assertEquals(cnt, opts.size());
-	}
-
-	@Test
-	public void removeEventListener() throws Exception {
-
 	}
 
 	@Test
