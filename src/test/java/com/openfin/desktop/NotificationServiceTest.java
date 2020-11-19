@@ -1,6 +1,7 @@
 package com.openfin.desktop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -18,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import com.openfin.desktop.channel.NotificationOpts;
 import com.openfin.desktop.channel.Notifications;
 import com.openfin.desktop.notifications.NotificationEventListener;
-import com.openfin.desktop.notifications.events.NotificationCreatedEvent;
 
 public class NotificationServiceTest {
 	private static Logger logger = LoggerFactory.getLogger(NotificationServiceTest.class.getName());
@@ -43,14 +43,16 @@ public class NotificationServiceTest {
 		Notifications n = new Notifications(desktopConnection);
 		
 		NotificationEventListener listener = e -> {
-			latch1.countDown();
-			latch2.countDown();
+			if (Notifications.EVENT_TYPE_CREATED.equals(e.getType())) {
+				latch1.countDown();
+				latch2.countDown();
+			}
 		};
 		n.addEventListener(Notifications.EVENT_TYPE_CREATED, listener);
 		
 		n.create(new NotificationOpts("Title", "Body", "Category"));
 		
-		latch1.await(10, TimeUnit.SECONDS);
+		latch1.await(5, TimeUnit.SECONDS);
 
 		assertEquals(0, latch1.getCount());
 		
@@ -58,7 +60,7 @@ public class NotificationServiceTest {
 
 		n.create(new NotificationOpts("Title", "Body", "Category"));
 		
-		latch2.await(10, TimeUnit.SECONDS);
+		latch2.await(5, TimeUnit.SECONDS);
 
 		assertEquals(1, latch2.getCount());
 	}
@@ -95,7 +97,8 @@ public class NotificationServiceTest {
 			return n.clearAll();
 
 		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
-		assertEquals(cnt, cleared.intValue());
+		
+		assertTrue(cleared >= cnt);
 	}
 
 	@Test
@@ -104,6 +107,15 @@ public class NotificationServiceTest {
 		NotificationOpts opt = n.create(new NotificationOpts("Title", "Body", "Category")).toCompletableFuture().get(10,
 				TimeUnit.SECONDS);
 		assertNotNull(opt.getId());
+		java.lang.System.out.println("body: " + opt.getBody());
+		java.lang.System.out.println("category: " + opt.getCategory());
+		java.lang.System.out.println("date: " + opt.getDate());
+		java.lang.System.out.println("expires: " + opt.getExpires());
+		java.lang.System.out.println("icon: " + opt.getIcon());
+		java.lang.System.out.println("id: " + opt.getId());
+		java.lang.System.out.println("indicator: " + opt.getIndicator());
+		java.lang.System.out.println("sticky: " + opt.getSticky());
+		java.lang.System.out.println("title: " + opt.getTitle());
 	}
 
 	@Test
