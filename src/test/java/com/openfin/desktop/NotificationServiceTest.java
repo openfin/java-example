@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
@@ -16,9 +17,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.openfin.desktop.channel.NotificationIndicator;
 import com.openfin.desktop.channel.NotificationOpts;
 import com.openfin.desktop.channel.Notifications;
+import com.openfin.desktop.notifications.ButtonOptions;
+import com.openfin.desktop.notifications.NotificationActionResult;
 import com.openfin.desktop.notifications.NotificationEventListener;
+import com.openfin.desktop.notifications.ProviderStatus;
 
 public class NotificationServiceTest {
 	private static Logger logger = LoggerFactory.getLogger(NotificationServiceTest.class.getName());
@@ -66,6 +71,39 @@ public class NotificationServiceTest {
 	}
 
 	@Test
+	public void buttonAction() throws Exception {
+		CountDownLatch latch1 = new CountDownLatch(1);
+		Notifications n = new Notifications(desktopConnection);
+		
+		NotificationEventListener listener = e -> {
+			if (Notifications.EVENT_TYPE_ACTION.equals(e.getType())) {
+				latch1.countDown();
+			}
+		};
+		n.addEventListener(Notifications.EVENT_TYPE_ACTION, listener);
+		
+		NotificationOpts opts = new NotificationOpts("Title", "Body", "Category");
+
+		ButtonOptions btn1 = new ButtonOptions("btn 1");
+		NotificationActionResult btn1Action = new NotificationActionResult();
+		btn1Action.setString("type", "GotIt");
+		btn1.setOnClick(btn1Action);
+		
+		opts.setButtons(btn1);
+
+		NotificationActionResult onClose = new NotificationActionResult();
+		onClose.setString("action", "notification_onClose");
+		opts.setOnClose(onClose);
+		
+		n.create(opts);
+				
+		latch1.await(10, TimeUnit.SECONDS);
+
+		assertEquals(0, latch1.getCount());
+	}
+	
+	
+	@Test
 	public void clear() throws Exception {
 		Notifications n = new Notifications(desktopConnection);
 		Boolean b = n.create(new NotificationOpts("AAA", "Body", "Category")).thenCompose(nn -> {
@@ -104,10 +142,32 @@ public class NotificationServiceTest {
 	@Test
 	public void create() throws Exception {
 		Notifications n = new Notifications(desktopConnection);
-		NotificationOpts opt = n.create(new NotificationOpts("Title", "Body", "Category")).toCompletableFuture().get(10,
+		NotificationOpts opts = new NotificationOpts("Title", "Body", "Category");
+
+		ButtonOptions btn1 = new ButtonOptions("btn 1");
+		NotificationActionResult btn1Action = new NotificationActionResult();
+		btn1Action.setString("type", "GotIt");
+		btn1.setOnClick(btn1Action);
+		
+		opts.setButtons(btn1);
+		
+		NotificationIndicator indicator = new NotificationIndicator(NotificationIndicator.TYPE_SUCCESS);
+		
+		opts.setIndicator(indicator);
+		
+		opts.setSticky(NotificationOpts.STICKY_STICKY);
+		
+		opts.setExpires(new Date(java.lang.System.currentTimeMillis() + (10*1000)));
+		
+		NotificationActionResult onClose = new NotificationActionResult();
+		onClose.setString("action", "notification_onClose");
+		opts.setOnClose(onClose);
+		
+		NotificationOpts opt = n.create(opts).toCompletableFuture().get(10,
 				TimeUnit.SECONDS);
 		assertNotNull(opt.getId());
 		java.lang.System.out.println("body: " + opt.getBody());
+		java.lang.System.out.println("buttons: " + opt.getButtons());
 		java.lang.System.out.println("category: " + opt.getCategory());
 		java.lang.System.out.println("date: " + opt.getDate());
 		java.lang.System.out.println("expires: " + opt.getExpires());
@@ -153,6 +213,13 @@ public class NotificationServiceTest {
 		n.create(new NotificationOpts("Title", "Body", "Category")).thenCompose(nOpts -> {
 			return n.toggleNotificationCenter();
 		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
+	}
+
+	@Test
+	public void getProviderStatus() throws Exception {
+		Notifications n = new Notifications(desktopConnection);
+		ProviderStatus providerStatus = n.getProviderStatus().toCompletableFuture().get(10, TimeUnit.SECONDS);
+		assertTrue(providerStatus.isConnected());
 	}
 
 }
