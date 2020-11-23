@@ -24,6 +24,7 @@ import com.openfin.desktop.notifications.ButtonOptions;
 import com.openfin.desktop.notifications.NotificationActionResult;
 import com.openfin.desktop.notifications.NotificationEventListener;
 import com.openfin.desktop.notifications.ProviderStatus;
+import com.openfin.desktop.notifications.events.NotificationActionEvent;
 
 public class NotificationServiceTest {
 	private static Logger logger = LoggerFactory.getLogger(NotificationServiceTest.class.getName());
@@ -77,6 +78,8 @@ public class NotificationServiceTest {
 		
 		NotificationEventListener listener = e -> {
 			if (Notifications.EVENT_TYPE_ACTION.equals(e.getType())) {
+				java.lang.System.out.println("event source: " + ((NotificationActionEvent)e).getSource());
+				java.lang.System.out.println("event result: " + ((NotificationActionEvent)e).getResult());
 				latch1.countDown();
 			}
 		};
