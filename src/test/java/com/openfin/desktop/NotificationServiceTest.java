@@ -13,16 +13,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.openfin.desktop.channel.NotificationIndicator;
-import com.openfin.desktop.channel.NotificationOpts;
-import com.openfin.desktop.channel.Notifications;
 import com.openfin.desktop.notifications.ButtonOptions;
 import com.openfin.desktop.notifications.NotificationActionResult;
 import com.openfin.desktop.notifications.NotificationEventListener;
+import com.openfin.desktop.notifications.NotificationIndicator;
+import com.openfin.desktop.notifications.NotificationOptions;
+import com.openfin.desktop.notifications.Notifications;
 import com.openfin.desktop.notifications.ProviderStatus;
 import com.openfin.desktop.notifications.events.NotificationActionEvent;
 
@@ -56,7 +57,7 @@ public class NotificationServiceTest {
 		};
 		n.addEventListener(Notifications.EVENT_TYPE_CREATED, listener);
 		
-		n.create(new NotificationOpts("Title", "Body", "Category"));
+		n.create(new NotificationOptions("Title", "Body", "Category"));
 		
 		latch1.await(5, TimeUnit.SECONDS);
 
@@ -64,13 +65,14 @@ public class NotificationServiceTest {
 		
 		n.removeEventListener(Notifications.EVENT_TYPE_CREATED, listener);
 
-		n.create(new NotificationOpts("Title", "Body", "Category"));
+		n.create(new NotificationOptions("Title", "Body", "Category"));
 		
 		latch2.await(5, TimeUnit.SECONDS);
 
 		assertEquals(1, latch2.getCount());
 	}
 
+	@Ignore
 	@Test
 	public void buttonAction() throws Exception {
 		CountDownLatch latch1 = new CountDownLatch(1);
@@ -85,7 +87,7 @@ public class NotificationServiceTest {
 		};
 		n.addEventListener(Notifications.EVENT_TYPE_ACTION, listener);
 		
-		NotificationOpts opts = new NotificationOpts("Title", "Body", "Category");
+		NotificationOptions opts = new NotificationOptions("Title", "Body", "Category");
 
 		ButtonOptions btn1 = new ButtonOptions("btn 1");
 		NotificationActionResult btn1Action = new NotificationActionResult();
@@ -109,7 +111,7 @@ public class NotificationServiceTest {
 	@Test
 	public void clear() throws Exception {
 		Notifications n = new Notifications(desktopConnection);
-		Boolean b = n.create(new NotificationOpts("AAA", "Body", "Category")).thenCompose(nn -> {
+		Boolean b = n.create(new NotificationOptions("AAA", "Body", "Category")).thenCompose(nn -> {
 			return n.clear(nn.getId());
 		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
 
@@ -120,16 +122,16 @@ public class NotificationServiceTest {
 	public void clearAll() throws Exception {
 		Notifications n = new Notifications(desktopConnection);
 		final int cnt = 5;
-		CompletionStage<NotificationOpts> opt = null;
+		CompletionStage<NotificationOptions> opt = null;
 		for (int i = 0; i < cnt; i++) {
 			String title = "Title-" + i;
 			if (opt != null) {
 				opt = opt.thenCompose(v -> {
-					return n.create(new NotificationOpts(title, "Body", "Category"));
+					return n.create(new NotificationOptions(title, "Body", "Category"));
 				});
 			}
 			else {
-				opt = n.create(new NotificationOpts(title, "Body", "Category"));
+				opt = n.create(new NotificationOptions(title, "Body", "Category"));
 			}
 
 		}
@@ -145,7 +147,7 @@ public class NotificationServiceTest {
 	@Test
 	public void create() throws Exception {
 		Notifications n = new Notifications(desktopConnection);
-		NotificationOpts opts = new NotificationOpts("Title", "Body", "Category");
+		NotificationOptions opts = new NotificationOptions("Title", "Body", "Category");
 
 		ButtonOptions btn1 = new ButtonOptions("btn 1");
 		NotificationActionResult btn1Action = new NotificationActionResult();
@@ -158,7 +160,7 @@ public class NotificationServiceTest {
 		
 		opts.setIndicator(indicator);
 		
-		opts.setSticky(NotificationOpts.STICKY_STICKY);
+		opts.setSticky(NotificationOptions.STICKY_STICKY);
 		
 		opts.setExpires(new Date(java.lang.System.currentTimeMillis() + (10*1000)));
 		
@@ -166,7 +168,7 @@ public class NotificationServiceTest {
 		onClose.setString("action", "notification_onClose");
 		opts.setOnClose(onClose);
 		
-		NotificationOpts opt = n.create(opts).toCompletableFuture().get(10,
+		NotificationOptions opt = n.create(opts).toCompletableFuture().get(10,
 				TimeUnit.SECONDS);
 		assertNotNull(opt.getId());
 		java.lang.System.out.println("body: " + opt.getBody());
@@ -188,22 +190,22 @@ public class NotificationServiceTest {
 		CompletionStage<Integer> clearAllFuture = n.clearAll();
 
 		final int cnt = 5;
-		CompletionStage<NotificationOpts> opt = null;
+		CompletionStage<NotificationOptions> opt = null;
 		for (int i = 0; i < cnt; i++) {
 			String title = "Title-" + i;
 			if (opt != null) {
 				opt = opt.thenCompose(v -> {
-					return n.create(new NotificationOpts(title, "Body", "Category"));
+					return n.create(new NotificationOptions(title, "Body", "Category"));
 				});
 			}
 			else {
 				opt = clearAllFuture.thenCompose(ii -> {
-					return n.create(new NotificationOpts(title, "Body", "Category"));
+					return n.create(new NotificationOptions(title, "Body", "Category"));
 				});
 			}
 		}
 
-		List<NotificationOpts> opts = opt.thenCompose(v -> {
+		List<NotificationOptions> opts = opt.thenCompose(v -> {
 			return n.getAll();
 		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
 
@@ -213,7 +215,7 @@ public class NotificationServiceTest {
 	@Test
 	public void toggleNotificationCenter() throws Exception {
 		Notifications n = new Notifications(desktopConnection);
-		n.create(new NotificationOpts("Title", "Body", "Category")).thenCompose(nOpts -> {
+		n.create(new NotificationOptions("Title", "Body", "Category")).thenCompose(nOpts -> {
 			return n.toggleNotificationCenter();
 		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
 	}
