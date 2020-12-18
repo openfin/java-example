@@ -1,7 +1,11 @@
 package com.openfin.desktop.demo;
 
 import com.openfin.desktop.*;
+import com.openfin.desktop.fdc3.context.Context;
+import com.openfin.desktop.fdc3.context.InstrumentContext;
 import com.openfin.desktop.fdc3.*;
+import com.openfin.desktop.fdc3.channel.ChannelBase;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -217,7 +221,7 @@ public class FDC3Example implements DesktopStateListener {
 
     private void sendTickerToReds() {
         String ticker = getTicker();
-        Context context = new Context("fdc3.instrument", ticker);
+        Context context = new InstrumentContext();
         JSONObject id = new JSONObject();
         id.put("ticker", ticker.toLowerCase());
         context.setId(id);
@@ -241,7 +245,7 @@ public class FDC3Example implements DesktopStateListener {
 
 	private void findContextIntent() {
 		String ticker = getTicker();
-		Context context = new Context("fdc3.instrument", ticker);
+		Context context = new InstrumentContext();
 
 		fdc3Client.findIntentsByContext(context, new AsyncCallback<List<AppIntent>>() {
 
@@ -256,7 +260,7 @@ public class FDC3Example implements DesktopStateListener {
 
     private void broadcast() {
         String ticker = getTicker();
-        Context context = new Context("fdc3.instrument", ticker);
+        Context context = new InstrumentContext();
         JSONObject id = new JSONObject();
         id.put("ticker", ticker.toLowerCase());
         context.setId(id);
@@ -274,27 +278,27 @@ public class FDC3Example implements DesktopStateListener {
 
     private void joinRed() {
 
-        this.fdc3Client.getChannelById("red", new AsyncCallback<Channel>() {
-            @Override
-            public void onSuccess(Channel channel) {
-                if (channel != null) {
-                    channel.join(new AckListener() {
-                        @Override
-                        public void onSuccess(Ack ack) {
-                            if (ack.isSuccessful()) {
-                                output.setText(String.format("Joined red channel"));
-                            } else {
-                                output.setText(String.format("Failed to join red channel %s", ack.getReason()));
-                            }
-                        }
-                        @Override
-                        public void onError(Ack ack) {
-                            output.setText(String.format("Failed to join red channel %s", ack.getReason()));
-                        }
-                    });
-                }
-            }
-        });
+//        this.fdc3Client.getChannelById("red", new AsyncCallback<ChannelBase>() {
+//            @Override
+//            public void onSuccess(ChannelBase channel) {
+//                if (channel != null) {
+//                    channel.join(new AckListener() {
+//                        @Override
+//                        public void onSuccess(Ack ack) {
+//                            if (ack.isSuccessful()) {
+//                                output.setText(String.format("Joined red channel"));
+//                            } else {
+//                                output.setText(String.format("Failed to join red channel %s", ack.getReason()));
+//                            }
+//                        }
+//                        @Override
+//                        public void onError(Ack ack) {
+//                            output.setText(String.format("Failed to join red channel %s", ack.getReason()));
+//                        }
+//                    });
+//                }
+//            }
+//        });
     }
 
     private void addIntentListener() {
@@ -303,7 +307,7 @@ public class FDC3Example implements DesktopStateListener {
             public JSONObject onIntent(Context context) {
                 output.setText(String.format("Received Intent: %s", context.toString()));
                 context.put("comment", "Java rules");
-                return context;
+                return context.getJson();
             }
         }, new AckListener() {
             @Override

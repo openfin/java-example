@@ -117,6 +117,7 @@ public class TestUtils {
         if (args != null) {
             configuration.setAdditionalRuntimeArguments(args);
         }
+        configuration.addService("fdc3", null);
         configuration.setDevToolsPort(9090);
         configuration.setRdmURL(rdmUrl);
         configuration.setRuntimeAssetURL(assetsUrl);
