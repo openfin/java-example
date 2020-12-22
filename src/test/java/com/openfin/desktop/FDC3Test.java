@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.openfin.desktop.fdc3.DesktopAgent;
 import com.openfin.desktop.fdc3.context.ContactContext;
 import com.openfin.desktop.fdc3.context.Context;
-import com.openfin.desktop.fdc3.context.InstrumentContext;
 
 public class FDC3Test {
 	private static Logger logger = LoggerFactory.getLogger(FDC3Test.class.getName());
@@ -97,4 +96,46 @@ public class FDC3Test {
 			
 		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
 	}
+	
+	@Test
+	public void broadcast() throws Exception {
+		DesktopAgent fdc3 = new DesktopAgent(desktopConnection);
+
+		Context context = new Context("testContext");
+		
+		fdc3.broadcast(context).toCompletableFuture().get(10, TimeUnit.SECONDS);
+	}
+	
+	@Test
+	public void getCurrentChannel() throws Exception {
+		DesktopAgent fdc3 = new DesktopAgent(desktopConnection);
+		fdc3.getCurrentChannel(null).thenAccept(c->{
+			java.lang.System.out.println("currentChannel: " + c);
+		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
+	}
+	
+	@Test
+	public void getChannelById() throws Exception {
+		AtomicBoolean gotDefaultChannel = new AtomicBoolean(false);
+		DesktopAgent fdc3 = new DesktopAgent(desktopConnection);
+		fdc3.getChannelById("default").thenAccept(c->{
+			gotDefaultChannel.set("default".equals(c.getId()));
+		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
+		
+		assertTrue(gotDefaultChannel.get());
+	}
+	
+	@Test
+	public void getOrCreateAppChannel() throws Exception {
+		String appChannelName = "whatever";
+		AtomicBoolean gotChannel = new AtomicBoolean(false);
+		DesktopAgent fdc3 = new DesktopAgent(desktopConnection);
+		fdc3.getOrCreateAppChannel(appChannelName).thenAccept(c->{
+			java.lang.System.out.println("app channel: " + c);
+			gotChannel.set(appChannelName.equals(c.getName()));
+		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
+		
+		assertTrue(gotChannel.get());
+	}
+	
 }
