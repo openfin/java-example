@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.openfin.desktop.fdc3.DesktopAgent;
 import com.openfin.desktop.fdc3.context.ContactContext;
 import com.openfin.desktop.fdc3.context.Context;
+import com.openfin.desktop.fdc3.context.InstrumentContext;
 
 public class FDC3Test {
 	private static Logger logger = LoggerFactory.getLogger(FDC3Test.class.getName());
@@ -137,5 +139,27 @@ public class FDC3Test {
 		
 		assertTrue(gotChannel.get());
 	}
+	
+	@Test
+	public void raiseIntent() throws Exception {
+		AtomicBoolean gotIntentResolution = new AtomicBoolean(false);
+		DesktopAgent fdc3 = new DesktopAgent(desktopConnection);
+		InstrumentContext context = new InstrumentContext();
+		JSONObject id = new JSONObject();
+		id.put("ticker", "MSFT");
+		context.setId(id);
+		context.setName("Microsoft");
+		
+		fdc3.raiseIntent("ViewChart", context, "fdc3-charts-red").thenAccept(ir->{
+			java.lang.System.out.println("intent resolution: " + ir);
+			if (ir != null) {
+				gotIntentResolution.set(true);
+			}
+		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
+		
+		assertTrue(gotIntentResolution.get());
+	}
+	
+	
 	
 }
