@@ -6,6 +6,9 @@ import com.openfin.desktop.Window;
 import com.openfin.desktop.animation.AnimationTransitions;
 import com.openfin.desktop.animation.OpacityTransition;
 import com.openfin.desktop.animation.PositionTransition;
+import com.openfin.desktop.notifications.*;
+import com.openfin.desktop.notifications.NotificationOptions;
+import com.openfin.desktop.notifications.events.NotificationActionEvent;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
@@ -62,6 +65,7 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
 
     protected JButton createApplication;
     protected JButton createNotification;
+    private Notifications notifications;
 
     protected JList activeApplications;
     protected java.util.List<ApplicationOptions> appOptionsList;
@@ -451,6 +455,14 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         updateMessagePanel("Creating InterAppBus");
         bus = desktopConnection.getInterApplicationBus();
         openfinSystem = new System(desktopConnection);
+
+        this.notifications = new Notifications(desktopConnection);
+        this.notifications.addEventListener(Notifications.EVENT_TYPE_ACTION, ne ->{
+            NotificationActionEvent actionEvent = (NotificationActionEvent) ne;
+            NotificationActionResult actionResult = actionEvent.getResult();
+            java.lang.System.out.println("actionResult: notificationId: " + actionEvent.getNotificationOptions().getId() + ", user clicked on btn: " + actionResult.getString("btn"));
+        });
+
         updateMessagePanel("Connected to Desktop");
         setMainButtonsEnabled(true);
 
@@ -616,44 +628,17 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
     }
 
     private void createNotification() throws Exception {
-        NotificationOptions options = new NotificationOptions("http://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/views/notification.html");
-        options.setTimeout(5000);
-        options.setMessageText("Unit test for notification");
-        new Notification(options, new NotificationListener() {
-            @Override
-            public void onClick(Ack ack) {
-                logger.debug("onClick for notification");
-            }
-            @Override
-            public void onClose(Ack ack) {
-                logger.debug("onClose for notification");
-            }
-            @Override
-            public void onDismiss(Ack ack) {
-                logger.debug("onDismiss for notification");
-            }
-            @Override
-            public void onError(Ack ack) {
-                logger.error("onError for notification");
-            }
-            @Override
-            public void onMessage(Ack ack) {
-                logger.debug("onMessage for notification");
-            }
-            @Override
-            public void onShow(Ack ack) {
-                // Known issue: this event is not being fired.
-                // logger.debug("onShow for notification");
-            }
-        }, desktopConnection, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-            }
-            @Override
-            public void onError(Ack ack) {
-                logger.error(ack.getReason());
-            }
-        });
+        NotificationOptions opt = new NotificationOptions("Notification from Java", "Write once, run everywhere", "Category");
+        opt.setSticky(NotificationOptions.STICKY_STICKY);
+        opt.setIndicator(new NotificationIndicator(NotificationIndicator.TYPE_SUCCESS));
+        ButtonOptions bo1 = new ButtonOptions("Button 1");
+        bo1.setOnClick(new NotificationActionResult(new JSONObject().put("btn", "btn1")));
+        ButtonOptions bo2 = new ButtonOptions("Button 2");
+        bo2.setOnClick(new NotificationActionResult(new JSONObject().put("btn", "btn2")));
+        bo2.setCta(true);
+        opt.setButtons(bo1, bo2);
+
+        this.notifications.create(opt);
     }
 
     private void testOpacity() {
@@ -684,18 +669,6 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         } catch (DesktopException e) {
             e.printStackTrace();
         }
-    }
-    private void testRoundedCorners2() {
-        this.selectedApplication.getWindow().getOptions(new AsyncCallback<WindowOptions>() {
-            @Override
-            public void onSuccess(WindowOptions result) {
-                java.lang.System.out.println("getOptions: " + result.getJson().toString());
-                int width = result.getCornerRoundingWidth() > 0 ? 0 : 10;
-                WindowOptions options = new WindowOptions();
-                options.setCornerRounding(width, width);
-                selectedApplication.getWindow().updateOptions(options, null);
-            }
-        }, null);
     }
 
     private void testOpacityAnimation() {
