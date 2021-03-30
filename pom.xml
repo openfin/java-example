@@ -6,7 +6,7 @@
 
     <groupId>co.openfin</groupId>
     <artifactId>openfin-desktop-java-example</artifactId>
-    <version>7.1.1</version>
+    <version>7.1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>openfin-desktop-java-example</name>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-            <version>8.0.8</version>
+            <version>8.0.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>co.openfin</groupId>
@@ -95,12 +95,18 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.21</version>
         </dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
+			<scope>test</scope>
+		</dependency>
+        <!-- to use log4j and comment out slf4j-jdk14
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
             <version>1.6.1</version>
         </dependency>
-        <!-- to use log4j and comment out slf4j-jdk14
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>

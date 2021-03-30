@@ -1,7 +1,12 @@
 package com.openfin.desktop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,6 +21,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.openfin.desktop.channel.Channel;
 import com.openfin.desktop.channel.ChannelAction;
 import com.openfin.desktop.channel.ChannelClient;
 import com.openfin.desktop.channel.ChannelListener;
@@ -390,5 +396,188 @@ public class ChannelTest {
 		assertEquals(0, latch.getCount());
 		assertEquals(initValue + 3, resultValue.get());
 	}
+	
+	@Test
+	public void channelClientPendingConnection() throws Exception {
+		String channelName = UUID.randomUUID().toString();
+		Channel c = desktopConnection.getChannel(channelName);
+		
+		CompletableFuture<ChannelClient> channelClientFuture = new CompletableFuture<>();
+		
+		//connect to provider before the provider is created/ready.
+		c.connectAsync().thenAccept(client->{
+			channelClientFuture.complete(client);
+		});
+		
+		Thread.sleep(3000);
+		
+		ChannelProvider provider = c.createAsync().toCompletableFuture().get(10, TimeUnit.SECONDS);
+		
+		ChannelClient channelClient = channelClientFuture.toCompletableFuture().get(10, TimeUnit.SECONDS);
+		
+		assertNotNull(channelClient);
+		
+		provider.destroy(null);
+	}
 
+	@Test
+	public void channelClientFailImmediately() throws Exception {
+		String channelName = UUID.randomUUID().toString();
+		Channel c = desktopConnection.getChannel(channelName);
+		
+		ChannelClient channelClient = c.connectAsync(true).exceptionally(e->{
+			logger.debug("error connecting to channel", e);
+			return null;
+		}).toCompletableFuture().get(10, TimeUnit.SECONDS);
+		
+		assertNull(channelClient);
+	}
+	
+	@Test
+	public void channelConnectionEventListener() throws Exception {
+		String channelName = UUID.randomUUID().toString();
+		Channel c = desktopConnection.getChannel(channelName);
+		CompletableFuture<ConnectionEvent> connectedEventFuture = new CompletableFuture<>();
+		CompletableFuture<ConnectionEvent> disconnectedEventFuture = new CompletableFuture<>();
+		
+		c.addChannelListener(new ChannelListener() {
+
+			@Override
+			public void onChannelConnect(ConnectionEvent connectionEvent) {
+				connectedEventFuture.complete(connectionEvent);
+			}
+
+			@Override
+			public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+				disconnectedEventFuture.complete(connectionEvent);
+			}
+		});
+		
+		c.createAsync().thenAccept(provider->{
+			try {
+				Thread.sleep(3000);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			provider.destroy(null);
+		});
+		
+		ConnectionEvent connectedEvent = connectedEventFuture.get(10, TimeUnit.SECONDS);
+		ConnectionEvent disconnectedEvent = disconnectedEventFuture.get(10, TimeUnit.SECONDS);
+		
+		assertNotNull(connectedEvent);
+		assertNotNull(disconnectedEvent);
+	}
+	
+	@Test
+	public void channelClientDisconnectDisconnectEvent() throws Exception {
+		String channelName = UUID.randomUUID().toString();
+		Channel c = desktopConnection.getChannel(channelName);
+		CompletableFuture<ConnectionEvent> disconnectedEventFuture = new CompletableFuture<>();
+		
+		c.createAsync().thenAccept(provider->{
+			c.connectAsync().thenAccept(client->{
+				client.addChannelListener(new ChannelListener() {
+					@Override
+					public void onChannelConnect(ConnectionEvent connectionEvent) {
+					}
+
+					@Override
+					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+						disconnectedEventFuture.complete(connectionEvent);
+					}});
+				
+				try {
+					Thread.sleep(1000);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				client.disconnect(null);
+			});
+		});
+
+		ConnectionEvent disconnectedEvent = disconnectedEventFuture.get(10, TimeUnit.SECONDS);
+		
+		assertNotNull(disconnectedEvent);
+		
+	}
+
+	@Test
+	public void channelClientProviderDestroytDisconnectEvent() throws Exception {
+		String channelName = UUID.randomUUID().toString();
+		Channel c = desktopConnection.getChannel(channelName);
+		CompletableFuture<ConnectionEvent> disconnectedEventFuture = new CompletableFuture<>();
+		
+		c.createAsync().thenAccept(provider->{
+			c.connectAsync().thenAccept(client->{
+				client.addChannelListener(new ChannelListener() {
+					@Override
+					public void onChannelConnect(ConnectionEvent connectionEvent) {
+					}
+
+					@Override
+					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+						disconnectedEventFuture.complete(connectionEvent);
+					}});
+				
+				try {
+					Thread.sleep(1000);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				provider.destroy(null);
+			});
+		});
+
+		ConnectionEvent disconnectedEvent = disconnectedEventFuture.get(10, TimeUnit.SECONDS);
+		
+		assertNotNull(disconnectedEvent);
+		
+	}
+
+	@Test
+	public void channelClientProviderRecreateConnectionEvent() throws Exception {
+		String channelName = UUID.randomUUID().toString();
+		Channel c = desktopConnection.getChannel(channelName);
+		CompletableFuture<ConnectionEvent> disconnectedEventFuture = new CompletableFuture<>();
+		CompletableFuture<ConnectionEvent> connectedEventFuture = new CompletableFuture<>();
+		
+		c.createAsync().thenAccept(provider->{
+			c.connectAsync().thenAccept(client->{
+				client.addChannelListener(new ChannelListener() {
+					@Override
+					public void onChannelConnect(ConnectionEvent connectionEvent) {
+						connectedEventFuture.complete(connectionEvent);
+					}
+
+					@Override
+					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+						disconnectedEventFuture.complete(connectionEvent);
+					}});
+				
+				try {
+					Thread.sleep(1000);
+					provider.destroy(null);
+					Thread.sleep(1000);
+					//create the provider again.
+					c.createAsync();
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				
+				
+			});
+		});
+
+		ConnectionEvent disconnectedEvent = disconnectedEventFuture.get(10, TimeUnit.SECONDS);
+		ConnectionEvent connectedEvent = connectedEventFuture.get(10, TimeUnit.SECONDS);
+		
+		assertNotNull(disconnectedEvent);
+		assertNotNull(connectedEvent);
+		
+	}
 }
