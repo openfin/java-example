@@ -1,9 +1,0 @@
-Implementation-Version: ${project.version}
-Implementation-Title: ${project.name}
-groupId: ${project.groupId}
-artifactId: ${project.artifactId}
-Build-Jdk: ${java.version}
-Built-By: OpenFin
-Created-By: OpenFin
-Application-Name: JNLP Example of OpenFin Runtime
-Permissions: all-permissions
