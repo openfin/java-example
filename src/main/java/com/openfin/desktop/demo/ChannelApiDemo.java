@@ -1,6 +1,9 @@
 package com.openfin.desktop.demo;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
@@ -58,13 +61,12 @@ public class ChannelApiDemo {
 					logger.info("client got value \"{}\" from provider after invoking incrementBy", ((JsonNumber)v2).intValue());
 				});
 			}).thenAccept(v->{
-				client.dispatch("quitProvider"); //probably won't get response
 				try {
-					Thread.sleep(500);
+					client.dispatch("quitProvider").toCompletableFuture().get(500, TimeUnit.MILLISECONDS);
 				}
-				catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				catch (InterruptedException | ExecutionException | TimeoutException e) {
+					//probably won't get response and don't care.
+				} 
 				fin.disconnect();
 			});
 		});
