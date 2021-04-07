@@ -25,7 +25,7 @@ import com.openfin.desktop.bean.Identity;
 import com.openfin.desktop.bean.RuntimeConfig;
 import com.openfin.desktop.bean.WindowOptions;
 
-public class EmbeddedWindow implements FinRuntimeConnectionListener {
+public class EmbeddedWindowDemo implements FinRuntimeConnectionListener {
 	
 	private JFrame frame;
 	private JPanel glassPane;
@@ -34,7 +34,7 @@ public class EmbeddedWindow implements FinRuntimeConnectionListener {
 	private FinRuntime fin;
 	private String appUuid;
 
-	public EmbeddedWindow() {
+	public EmbeddedWindowDemo() {
 		this.frame = new JFrame("OpenFin Embedded Window Demo");
 		this.initGui();
 		this.initOpenFin();
@@ -137,7 +137,7 @@ public class EmbeddedWindow implements FinRuntimeConnectionListener {
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(()->{
-			new EmbeddedWindow();
+			new EmbeddedWindowDemo();
 		});
 	}
 }
