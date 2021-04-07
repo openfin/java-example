@@ -38,16 +38,17 @@ public class ChannelApiDemo {
 				}
 			}).build().launch().thenAccept(fin->{
 				this.fin = fin;
-				if ("client".equals(type)) {
+				if ("client".equals(type) || type == null) {
 					this.createChannelClient();
 				}
-				else {
+				if ("provider".equals(type) || type == null) {
 					this.createChannelProvider();
 				}
 			});
 	}
 	
 	private void createChannelClient( ) {
+		logger.info("creating channel client");
 		fin.Channel.connect(CHANNEL_NAME).thenAccept(client->{
 			logger.info("channel client connected");
 			client.dispatch("getValue").thenAccept(v->{
@@ -73,6 +74,7 @@ public class ChannelApiDemo {
 	}
 	
 	private void createChannelProvider() {
+		logger.info("creating channel provider");
 		fin.Channel.addChannelDisconnectListener(e->{
 			if (Objects.equals(CHANNEL_NAME, e.getString("channelName"))) {
 				logger.info("provider disconnected");
