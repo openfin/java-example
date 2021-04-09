@@ -47,7 +47,11 @@ public class ChannelApiDemo {
 			});
 	}
 	
-	private void createChannelClient( ) {
+	/**
+	 * Create a channel client that invokes "getValue", "increment" and "incrementBy
+	 * n" actions
+	 */
+	private void createChannelClient() {
 		logger.info("creating channel client");
 		fin.Channel.connect(CHANNEL_NAME).thenAccept(client->{
 			logger.info("channel client connected");
@@ -73,10 +77,14 @@ public class ChannelApiDemo {
 		});
 	}
 	
+	/**
+	 * Create a provider that supports "getValue", "increment" and "incrementBy n"
+	 * actions
+	 */
 	private void createChannelProvider() {
 		logger.info("creating channel provider");
 		fin.Channel.addChannelDisconnectListener(e->{
-			if (Objects.equals(CHANNEL_NAME, e.getString("channelName"))) {
+			if (Objects.equals(CHANNEL_NAME, e.getEventObject().getString("channelName"))) {
 				logger.info("provider disconnected");
 				fin.disconnect();
 			}

@@ -50,6 +50,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import com.openfin.desktop.FinEvent;
 import com.openfin.desktop.FinEventListener;
 import com.openfin.desktop.FinLauncher;
 import com.openfin.desktop.FinLayoutObject;
@@ -666,7 +667,7 @@ public class PlatformApiDemo {
 			FinWindowObject window = (FinWindowObject) winNode.getUserObject();
 			DefaultMutableTreeNode viewNode = new DefaultMutableTreeNode(view);
 			window.addEventListener("view-detached", e -> {
-				JsonObject vId = e.getJsonObject("viewIdentity");
+				JsonObject vId = e.getEventObject().getJsonObject("viewIdentity");
 				if (Objects.equals(viewIdentity.getUuid(), vId.getString("uuid"))
 						&& Objects.equals(viewIdentity.getName(), vId.getString("name"))) {
 					this.deleteViewNode(viewNode);
@@ -691,15 +692,15 @@ public class PlatformApiDemo {
 			DefaultMutableTreeNode node = new DefaultMutableTreeNode(window);
 			platform.addEventListener("window-closed", e -> {
 				System.out.println("window-closed: " + e);
-				String uuid = e.getString("uuid");
-				String name = e.getString("name");
+				String uuid = e.getEventObject().getString("uuid");
+				String name = e.getEventObject().getString("name");
 				if (Objects.equals(winIdentity.getUuid(), uuid) && Objects.equals(winIdentity.getName(), name)) {
 					deleteWindowNode(node);
 				}
 			});
 			window.addEventListener("view-attached", e -> {
 				System.out.println("view-attached: " + e);
-				addViewNode(node, FinBeanUtils.fromJsonObject(e.getJsonObject("viewIdentity"), Identity.class));
+				addViewNode(node, FinBeanUtils.fromJsonObject(e.getEventObject().getJsonObject("viewIdentity"), Identity.class));
 			});
 			SwingUtilities.invokeLater(() -> {
 				this.platformTreeModel.insertNodeInto(node, platformNode, platformNode.getChildCount());
@@ -723,9 +724,9 @@ public class PlatformApiDemo {
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(platform);
 				FinEventListener listener = new FinEventListener() { 
 					@Override
-					public void onEvent(JsonObject e) {
+					public void onEvent(FinEvent e) {
 						System.out.println("application-closed: " + e);
-						String eUuid = e.getString("uuid");
+						String eUuid = e.getEventObject().getString("uuid");
 						if (Objects.equals(uuid, eUuid)) {
 							deletePlatformNode(node);
 							fin.System.removeEventListener("application-closed", this);
@@ -735,8 +736,8 @@ public class PlatformApiDemo {
 				fin.System.addEventListener("application-closed", listener);
 				platform.addEventListener("window-created", e -> {
 					System.out.println("window-created: " + e);
-					String eUuid = e.getString("uuid");
-					String eName = e.getString("name");
+					String eUuid = e.getEventObject().getString("uuid");
+					String eName = e.getEventObject().getString("name");
 					addWindowNode(node, new Identity(eUuid, eName));
 				});
 				this.platformTreeModel.insertNodeInto(node, this.rootNode, this.rootNode.getChildCount());
@@ -759,14 +760,14 @@ public class PlatformApiDemo {
 			this.fin = fin;
 			fin.System.addEventListener("application-platform-api-ready", e -> {
 				System.out.println("application-platform-api-ready: " + e);
-				String uuid = e.getString("uuid");
+				String uuid = e.getEventObject().getString("uuid");
 				addPlatformNode(uuid);
 			});
 
 			fin.System.addEventListener("window-created", e -> {
 				System.out.println("system::window-created: " + e);
-				String uuid = e.getString("uuid");
-				String name = e.getString("name");
+				String uuid = e.getEventObject().getString("uuid");
+				String name = e.getEventObject().getString("name");
 			});
 
 			SwingUtilities.invokeLater(() -> {
