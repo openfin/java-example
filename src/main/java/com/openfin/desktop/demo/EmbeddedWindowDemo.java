@@ -24,6 +24,7 @@ import com.openfin.desktop.bean.ApplicationOptions;
 import com.openfin.desktop.bean.Identity;
 import com.openfin.desktop.bean.RuntimeConfig;
 import com.openfin.desktop.bean.WindowOptions;
+import com.sun.jna.Platform;
 
 public class EmbeddedWindowDemo implements FinRuntimeConnectionListener {
 	
@@ -136,8 +137,13 @@ public class EmbeddedWindowDemo implements FinRuntimeConnectionListener {
 	}
 
 	public static void main(String[] args) {
-		SwingUtilities.invokeLater(()->{
-			new EmbeddedWindowDemo();
-		});
+		if (Platform.isWindows()) {
+			SwingUtilities.invokeLater(()->{
+				new EmbeddedWindowDemo();
+			});
+		}
+		else {
+			System.out.println("OpenFin Embedded NOT supported on this platform.");
+		}
 	}
 }
