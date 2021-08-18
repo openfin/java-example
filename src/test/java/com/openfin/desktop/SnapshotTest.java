@@ -73,8 +73,7 @@ public class SnapshotTest implements SnapshotSourceProvider {
         });
 
         snapshotSource.createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
-            client.getSnapshotAsync().thenAccept(ack -> {
-                JSONObject snapshot = ((JSONObject) ack.getData()).getJSONObject("result");
+            client.getSnapshotAsync().thenAccept(snapshot -> {
                 if (SNAPSHOT_CONTENT.toString().equals(snapshot.toString())) {
                     latch.countDown();
                 }
@@ -97,8 +96,7 @@ public class SnapshotTest implements SnapshotSourceProvider {
 
         snapshotSource.createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
             client.applySnapshotAsync(random).thenAccept(ack -> {
-                client.getSnapshotAsync().thenAccept(ack1 -> {
-                    JSONObject snapshot = ((JSONObject) ack1.getData()).getJSONObject("result");
+                client.getSnapshotAsync().thenAccept(snapshot -> {
                     if (random.toString().equals(snapshot.toString())) {
                         latch.countDown();
                     }
