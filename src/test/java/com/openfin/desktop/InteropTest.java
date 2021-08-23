@@ -9,6 +9,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -91,7 +92,7 @@ public class InteropTest {
 	@Test
 	public void clientSetContext() throws Exception {
 		Context context = new Context();
-		context.setId("MyId");
+		context.setId(new JSONObject("{\"ticker\": \"ABC\"}"));
 		context.setName("MyName");
 		context.setType("MyType");
 		CompletionStage<Void> setContextFuture = desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
@@ -108,10 +109,10 @@ public class InteropTest {
 	@Test
 	public void clientAddContextListener() throws Exception {
 		Context context = new Context();
-		context.setId("MyId");
+		context.setId(new JSONObject("{\"ticker\": \"ABC\"}"));
 		context.setName("MyName");
 		context.setType("MyType");
-		
+
 		CompletableFuture<Context> listenerInvokedFuture = new CompletableFuture<>();
 		
 		desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
