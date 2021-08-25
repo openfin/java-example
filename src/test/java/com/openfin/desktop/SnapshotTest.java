@@ -25,7 +25,6 @@ public class SnapshotTest implements SnapshotSourceProvider {
     private static final String DESKTOP_UUID = SnapshotTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static OpenFinRuntime runtime;
-    private static SnapshotSource snapshotSource;
     private static final JSONObject SNAPSHOT_CONTENT = new JSONObject("{width: 123}");
 
     private JSONObject randomSnapshot;
@@ -36,7 +35,6 @@ public class SnapshotTest implements SnapshotSourceProvider {
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
         if (desktopConnection != null) {
             runtime = new OpenFinRuntime(desktopConnection);
-            snapshotSource = new SnapshotSource(desktopConnection);
         }
     }
 
@@ -49,11 +47,11 @@ public class SnapshotTest implements SnapshotSourceProvider {
     public void initProviderThenCreateClient() throws Exception {
         CountDownLatch latch = new CountDownLatch(2);
         final String appUuid = "initProviderThenCreateClient";
-        snapshotSource.initSnapshotSourceProviderAsync(appUuid, this).thenAccept(provider -> {
+        desktopConnection.getSnapshotSource().initSnapshotSourceProviderAsync(appUuid, this).thenAccept(provider -> {
             logger.debug("Snapshot provider created");
             latch.countDown();
         });
-        snapshotSource.createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
+        desktopConnection.getSnapshotSource().createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
             logger.debug("Snapshot client created");
             latch.countDown();
         });
@@ -67,12 +65,12 @@ public class SnapshotTest implements SnapshotSourceProvider {
     public void initProviderThenCreateClientThenGetSnapshot() throws Exception {
         CountDownLatch latch = new CountDownLatch(2);
         final String appUuid = "initProviderThenCreateClientThenGetSnapshot";
-        snapshotSource.initSnapshotSourceProviderAsync(appUuid, this).thenAccept(provider -> {
+        desktopConnection.getSnapshotSource().initSnapshotSourceProviderAsync(appUuid, this).thenAccept(provider -> {
             logger.debug("Snapshot provider created");
                 latch.countDown();
         });
 
-        snapshotSource.createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
+        desktopConnection.getSnapshotSource().createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
             client.getSnapshotAsync().thenAccept(snapshot -> {
                 if (SNAPSHOT_CONTENT.toString().equals(snapshot.toString())) {
                     latch.countDown();
@@ -90,11 +88,11 @@ public class SnapshotTest implements SnapshotSourceProvider {
         CountDownLatch latch = new CountDownLatch(2);
         final JSONObject random = new JSONObject(String.format("{value: %f}", Math.random()));
         final String appUuid = "initProviderThenCreateClientThenApplySnapshot";
-        snapshotSource.initSnapshotSourceProviderAsync(appUuid, this).thenAccept(provider -> {
+        desktopConnection.getSnapshotSource().initSnapshotSourceProviderAsync(appUuid, this).thenAccept(provider -> {
             latch.countDown();
         });
 
-        snapshotSource.createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
+        desktopConnection.getSnapshotSource().createSnapshotSourceClientAsync(appUuid).thenAccept(client -> {
             client.applySnapshotAsync(random).thenAccept(ack -> {
                 client.getSnapshotAsync().thenAccept(snapshot -> {
                     if (random.toString().equals(snapshot.toString())) {
