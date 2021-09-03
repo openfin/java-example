@@ -514,34 +514,6 @@ public class SystemTest {
     }
 
     @Test
-    public void customRdmAssetUrls() throws Exception {
-        TestUtils.teardownDesktopConnection(desktopConnection);
-        String rdmUrl    = "https://rdm.openfin.co/services";
-        String assetsUrl = "https://cdn.openfin.co/release";
-        desktopConnection = TestUtils.setupConnection(DESKTOP_UUID, rdmUrl, assetsUrl);
-        runtime = new OpenFinRuntime(desktopConnection);
-        CountDownLatch latch = new CountDownLatch(1);
-        runtime.getConfig(null, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                if (ack.isSuccessful()) {
-                    JSONObject data = (JSONObject) ack.getData();
-                    if (rdmUrl.equals(data.getString("rdmUrl")) && assetsUrl.equals(data.getString("assetsUrl"))) {
-                        latch.countDown();
-                    }
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-                logger.error(ack.getReason());
-            }
-        });
-        latch.await(5, TimeUnit.SECONDS);
-        assertEquals("getConfig timeout", latch.getCount(), 0);
-
-    }
-
-    @Test
     public void getRuntimeInfo() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         runtime.getRuntimeInfo(new AckListener() {

@@ -38,9 +38,6 @@ public class TestUtils {
         logger.debug(String.format("Runtime version %s", runtimeVersion));
     }
 
-    public static DesktopConnection setupConnection(String connectionUuid) throws Exception {
-        return setupConnection(connectionUuid, null, null);
-    }
     public static DesktopConnection setupConnection(String connectionUuid, RuntimeConfiguration configuration) throws Exception {
         logger.debug("starting from Runtime configuration");
         CountDownLatch connectedLatch = new CountDownLatch(1);
@@ -99,7 +96,7 @@ public class TestUtils {
         return desktopConnection;
     }
 
-    public static DesktopConnection setupConnection(String connectionUuid, String rdmUrl, String assetsUrl) throws Exception {
+    public static DesktopConnection setupConnection(String connectionUuid) throws Exception {
         logger.debug("starting");
         CountDownLatch connectedLatch = new CountDownLatch(1);
         disconnectedLatch = new CountDownLatch(1);
@@ -118,8 +115,6 @@ public class TestUtils {
             configuration.setAdditionalRuntimeArguments(args);
         }
         configuration.setDevToolsPort(9090);
-        configuration.setRdmURL(rdmUrl);
-        configuration.setRuntimeAssetURL(assetsUrl);
         configuration.setLicenseKey("JavaAdapterJUnitTests");
         desktopConnection.connect(configuration, new DesktopStateListener() {
             @Override

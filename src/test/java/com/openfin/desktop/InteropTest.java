@@ -9,7 +9,10 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.openfin.desktop.interop.Intent;
+import com.openfin.desktop.interop.InteropClient;
 import org.json.JSONObject;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -22,17 +25,26 @@ public class InteropTest {
 	private static Logger logger = LoggerFactory.getLogger(InteropTest.class.getName());
 
 	private static final String DESKTOP_UUID = InteropTest.class.getName();
+	private static final String BROKER_NANE = "AdapterInteropTest";  // created by javascript side
 	private static DesktopConnection desktopConnection;
 
 	@BeforeClass
 	public static void setup() throws Exception {
 		logger.debug("starting");
-		desktopConnection = TestUtils.setupConnection(DESKTOP_UUID);
+		RuntimeConfiguration cfg = new RuntimeConfiguration();
+		cfg.setManifestLocation("https://testing-assets.openfin.co/adapters/interop/app.json");
+		desktopConnection = TestUtils.setupConnection(DESKTOP_UUID, cfg);
 	}
-	
+
+	@AfterClass
+	public static void teardown() throws Exception {
+		OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
+		runtime.exit();
+	}
+
 	@Test
 	public void clientGetContextGroupInfo() throws Exception {
-		CompletionStage<ContextGroupInfo[]> getContextFuture = desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
+		CompletionStage<ContextGroupInfo[]> getContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.getContextGroups();
 		});
 		
@@ -44,7 +56,7 @@ public class InteropTest {
 
 	@Test
 	public void clientGetInfoForContextGroup() throws Exception {
-		CompletionStage<ContextGroupInfo> getContextFuture = desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
+		CompletionStage<ContextGroupInfo> getContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.getInfoForContextGroup("red");
 		});
 		
@@ -55,7 +67,7 @@ public class InteropTest {
 	
 	@Test
 	public void clientGetAllClientsInContextGroup() throws Exception {
-		CompletionStage<ClientIdentity[]> getContextFuture = desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
+		CompletionStage<ClientIdentity[]> getContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.joinContextGroup("red").thenCompose(v->{
 				return client.getAllClientsInContextGroup("red");
 			});
@@ -71,7 +83,7 @@ public class InteropTest {
 	public void clientJoinThenRemoveFromContextGroup() throws Exception {
 		AtomicInteger clientCntAfterJoin = new AtomicInteger(0);
 		AtomicInteger clientCntAfterRemove = new AtomicInteger(0);
-		CompletionStage<?> testFuture = desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
+		CompletionStage<?> testFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.joinContextGroup("red").thenCompose(v->{
 				return client.getAllClientsInContextGroup("red");
 			}).thenAccept(clients->{
@@ -91,11 +103,8 @@ public class InteropTest {
 
 	@Test
 	public void clientSetContext() throws Exception {
-		Context context = new Context();
-		context.setId(new JSONObject("{\"ticker\": \"ABC\"}"));
-		context.setName("MyName");
-		context.setType("MyType");
-		CompletionStage<Void> setContextFuture = desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
+		final Context context = getRandomContext();
+		CompletionStage<Void> setContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.getContextGroups().thenCompose(groups->{
 				return client.joinContextGroup("red").thenCompose(v->{
 					return client.setContext(context);
@@ -108,16 +117,16 @@ public class InteropTest {
 
 	@Test
 	public void clientAddContextListener() throws Exception {
-		Context context = new Context();
-		context.setId(new JSONObject("{\"ticker\": \"ABC\"}"));
-		context.setName("MyName");
-		context.setType("MyType");
+		final Context context = getRandomContext();
 
 		CompletableFuture<Context> listenerInvokedFuture = new CompletableFuture<>();
 		
-		desktopConnection.getInterop().connect("InteropTest").thenCompose(client->{
+		desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.addContextListener(ctx->{
-				listenerInvokedFuture.complete(ctx);
+				long ticker = ctx.getId().optLong("ticker", -1);
+				if (ticker == (context.getId().getLong("ticker") + 1)) {
+					listenerInvokedFuture.complete(ctx);
+				}
 			}).thenApply(v->{
 				return client;
 			});
@@ -129,5 +138,50 @@ public class InteropTest {
 		
 		Context ctx = listenerInvokedFuture.toCompletableFuture().get(10, TimeUnit.SECONDS);
 		assertNotNull(ctx);
+	}
+
+	@Test
+	public void clientFireIntent() throws Exception {
+		final Context context = getRandomContext();
+		Intent intent = new Intent();
+		intent.setName("JavaIntent");
+		intent.setContext(context);
+		CompletionStage<Void> fireIntentFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+			return client.fireIntent(intent);
+		});
+
+		fireIntentFuture.toCompletableFuture().get(10, TimeUnit.SECONDS);
+	}
+
+	@Test
+	public void clientFireAndRegisterIntentListener() throws Exception {
+		final Context context = getRandomContext();
+
+		CompletableFuture<Intent> listenerInvokedFuture = new CompletableFuture<>();
+		desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+			return client.registerIntentListener("JavaIntent", intentReceived->{
+				long ticker = intentReceived.getContext().getId().optLong("ticker", -1);
+				if (ticker == (context.getId().getLong("ticker") + 1)) {
+					listenerInvokedFuture.complete(intentReceived);
+				}
+			}).thenCompose(v -> {
+				Intent intent = new Intent();
+				intent.setName("JsTestIntent");
+				intent.setContext(context);
+				return client.fireIntent(intent);
+			});
+		});
+
+		Intent intent = listenerInvokedFuture.toCompletableFuture().get(60, TimeUnit.SECONDS);
+		assertNotNull(intent);
+	}
+
+	private Context getRandomContext() {
+		Long randomTicker = Math.round(Math.random() * 100);
+		final Context context = new Context();
+		JSONObject id = new JSONObject();
+		id.put("ticker", randomTicker);
+		context.setId(id);
+		return context;
 	}
 }
