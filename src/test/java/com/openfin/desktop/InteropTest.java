@@ -33,6 +33,7 @@ public class InteropTest {
 		logger.debug("starting");
 		RuntimeConfiguration cfg = new RuntimeConfiguration();
 		cfg.setManifestLocation("https://testing-assets.openfin.co/adapters/interop/app.json");
+//		cfg.setManifestLocation("http://localhost:5555/app.json");
 		desktopConnection = TestUtils.setupConnection(DESKTOP_UUID, cfg);
 	}
 
@@ -123,8 +124,9 @@ public class InteropTest {
 		
 		desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.addContextListener(ctx->{
-				long ticker = ctx.getId().optLong("ticker", -1);
-				if (ticker == (context.getId().getLong("ticker") + 1)) {
+				String ticker = ctx.getId().optString("ticker", "");
+				StringBuilder sb = new StringBuilder(context.getId().getString("ticker"));
+				if (ticker.equals(sb.append("1").toString())) {
 					listenerInvokedFuture.complete(ctx);
 				}
 			}).thenApply(v->{
@@ -160,8 +162,9 @@ public class InteropTest {
 		CompletableFuture<Intent> listenerInvokedFuture = new CompletableFuture<>();
 		desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.registerIntentListener("JavaIntent", intentReceived->{
-				long ticker = intentReceived.getContext().getId().optLong("ticker", -1);
-				if (ticker == (context.getId().getLong("ticker") + 1)) {
+				String ticker = intentReceived.getContext().getId().optString("ticker", "");
+				StringBuilder sb = new StringBuilder(context.getId().getString("ticker"));
+				if (ticker.equals(sb.append("1").toString())) {
 					listenerInvokedFuture.complete(intentReceived);
 				}
 			}).thenCompose(v -> {
@@ -180,8 +183,10 @@ public class InteropTest {
 		Long randomTicker = Math.round(Math.random() * 100);
 		final Context context = new Context();
 		JSONObject id = new JSONObject();
-		id.put("ticker", randomTicker);
+		id.put("ticker", String.format("%d", randomTicker));
 		context.setId(id);
+		context.setType("java");
+		context.setName("java");
 		return context;
 	}
 }
