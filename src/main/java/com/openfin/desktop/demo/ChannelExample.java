@@ -65,7 +65,7 @@ public class ChannelExample implements DesktopStateListener {
 
                 provider.register("getValue", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+                    public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
                         logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
                         JSONObject obj = new JSONObject();
                         obj.put("value", x.get());
@@ -74,7 +74,7 @@ public class ChannelExample implements DesktopStateListener {
                 });
                 provider.register("increment", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+                    public Object invoke(String action, Object payload, JSONObject senderIdentity) {
                         logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
                         JSONObject obj = new JSONObject();
                         obj.put("value", x.incrementAndGet());
@@ -84,9 +84,9 @@ public class ChannelExample implements DesktopStateListener {
                 });
                 provider.register("incrementBy", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+                    public Object invoke(String action, Object payload, JSONObject senderIdentity) {
                         logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
-                        int delta = payload.getInt("delta");
+                        int delta = ((JSONObject)payload).getInt("delta");
                         JSONObject obj = new JSONObject();
                         obj.put("value", x.addAndGet(delta));
                         return obj;
@@ -106,7 +106,7 @@ public class ChannelExample implements DesktopStateListener {
                 // register a channel event
                 client.register("event", new ChannelAction() {
                     @Override
-                    public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+                    public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
                         logger.info("channel event {}", action);
                         return null;
                     }
@@ -114,9 +114,10 @@ public class ChannelExample implements DesktopStateListener {
 
                 //connected to provider, invoke actions provided by the provider.
                 //get current value
-                client.dispatch("getValue", null, new AckListener() {
+                client.dispatch("getValue3", null, new AckListener() {
                     @Override
                     public void onSuccess(Ack ack) {
+                        Object result = ack.getJsonObject().getJSONObject("data").opt("result");
                         logger.info("current value={}", ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value"));
 
                         //got current value, do increment
@@ -132,13 +133,6 @@ public class ChannelExample implements DesktopStateListener {
                                     @Override
                                     public void onSuccess(Ack ack) {
                                         logger.info("after invoking incrementBy, value={}", ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value"));
-
-                                        try {
-                                            desktopConnection.disconnect();
-                                        }
-                                        catch (DesktopException e) {
-                                            e.printStackTrace();
-                                        }
                                     }
 
                                     @Override

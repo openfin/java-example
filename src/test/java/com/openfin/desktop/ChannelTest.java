@@ -23,6 +23,8 @@ import com.openfin.desktop.channel.ChannelProvider;
 import com.openfin.desktop.channel.ConnectionEvent;
 import com.openfin.desktop.channel.Middleware;
 
+import javax.jws.Oneway;
+
 /**
  * JUnit tests for com.openfin.desktop.InterApplicationBus class
  *
@@ -102,7 +104,7 @@ public class ChannelTest {
 				provider.register(providerActionName, new ChannelAction() {
 
 					@Override
-					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+					public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
 						return null;
 					}
 				});
@@ -115,7 +117,7 @@ public class ChannelTest {
 						
 						client.register(clientActionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+							public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
 								latch1.countDown();
 								return null;
 							}
@@ -128,7 +130,7 @@ public class ChannelTest {
 					public void onSuccess(ChannelClient client) {
 						client.register(clientActionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+							public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
 								latch2.countDown();
 								return null;
 							}
@@ -156,8 +158,9 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register("currentTime", new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
-						return payload.put("currentTime", java.lang.System.currentTimeMillis());
+					public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+						JSONObject jsonPayload =  (JSONObject) payload;
+						return jsonPayload.put("currentTime", java.lang.System.currentTimeMillis());
 					}
 				});
 				latch.countDown();
@@ -182,9 +185,10 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register(actionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
-						int currentValue = payload.getInt("value");
-						return payload.put("value", currentValue + 1);
+					public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+						JSONObject jsonPayload =  (JSONObject) payload;
+						int currentValue = jsonPayload.getInt("value");
+						return jsonPayload.put("value", currentValue + 1);
 					}
 				});
 
@@ -230,7 +234,7 @@ public class ChannelTest {
 			public void onSuccess(ChannelProvider provider) {
 				provider.register(providerActionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+					public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
 						provider.dispatch(senderIdentity, clientActionName, new JSONObject(), null);
 						return null;
 					}
@@ -241,7 +245,7 @@ public class ChannelTest {
 					public void onSuccess(ChannelClient client) {
 						client.register(clientActionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+							public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
 								latch.countDown();
 								return null;
 							}
@@ -274,8 +278,9 @@ public class ChannelTest {
 
 						client.register(actionName, new ChannelAction() {
 							@Override
-							public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
-								if (actionName.equals(action) && actionMessage.equals(payload.getString("message"))) {
+							public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+								JSONObject jsonPayload =  (JSONObject) payload;
+								if (actionName.equals(action) && actionMessage.equals(jsonPayload.getString("message"))) {
 									latch.countDown();
 								}
 								return null;
@@ -343,21 +348,22 @@ public class ChannelTest {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
 				provider.setBeforeAction(new Middleware() {
-
 					@Override
-					public JSONObject invoke(String action, JSONObject payload, JSONObject senderId) {
+					public Object invoke(String action, Object payload, JSONObject senderId) {
 						if (actionName.equals(action)) {
-							int value = payload.getInt("value");
-							payload.put("value", value + middlewareIncrement);
+							JSONObject jsonPayload =  (JSONObject) payload;
+							int value = jsonPayload.getInt("value");
+							jsonPayload.put("value", value + middlewareIncrement);
 						}
 						return payload;
 					}});
 				
 				provider.register(actionName, new ChannelAction() {
 					@Override
-					public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
-						int currentValue = payload.getInt("value");
-						return payload.put("value", currentValue + 1);
+					public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+						JSONObject jsonPayload =  (JSONObject) payload;
+						int currentValue = jsonPayload.getInt("value");
+						return jsonPayload.put("value", currentValue + 1);
 					}
 				});
 
