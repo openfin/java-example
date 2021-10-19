@@ -214,85 +214,6 @@ public class WindowTest {
     }
 
     @Test
-    public void dockAndUndock() throws Exception {
-        String childName = "docking test";
-        Application application = TestUtils.runApplication(TestUtils.getAppOptions(null), desktopConnection);
-        Window mainWindow = application.getWindow();
-        WindowOptions childOptions = TestUtils.getWindowOptions(childName, guest_url);
-        Window childWindow = TestUtils.createChildWindow(application, childOptions, desktopConnection);
-        WindowBounds beforeMoveBounds = TestUtils.getBounds(childWindow);
-        CountDownLatch joinLatch = new CountDownLatch(1);
-        childWindow.joinGroup(mainWindow, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                if (ack.isSuccessful()) {
-                    joinLatch.countDown();
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-                logger.error(String.format("onError %s", ack.getReason()));
-            }
-        });
-        joinLatch.await(3, TimeUnit.SECONDS);
-        assertEquals(joinLatch.getCount(), 0);
-
-        CountDownLatch groupInfoLatch = new CountDownLatch(2);
-        mainWindow.getGroup(result -> {
-            for (Window window : result) {
-                if (window.getUuid().equals(mainWindow.getUuid()) && window.getName().equals(mainWindow.getName())) {
-                    groupInfoLatch.countDown();
-                }
-                else if (window.getUuid().equals(childWindow.getUuid()) && window.getName().equals(childWindow.getName())) {
-                    groupInfoLatch.countDown();
-                }
-            }
-        }, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-            }
-            @Override
-            public void onError(Ack ack) {
-            }
-        });
-        groupInfoLatch.await(3, TimeUnit.SECONDS);
-        assertEquals(groupInfoLatch.getCount(), 0);
-
-        int leftBy = 20, topBy = 30;
-        TestUtils.moveWindowBy(mainWindow, leftBy, topBy);
-        // child window sohuld move with main window since they are docked
-        WindowBounds afterMoveBounds = TestUtils.getBounds(childWindow);
-        int topAfterDockMove = afterMoveBounds.getTop(), leftAfterDockMove = afterMoveBounds.getLeft();
-        assertEquals(afterMoveBounds.getTop() - beforeMoveBounds.getTop(), topBy);
-        assertEquals(afterMoveBounds.getLeft() - beforeMoveBounds.getLeft(), leftBy);
-
-        // undock by leaving the group
-        CountDownLatch undockLatch = new CountDownLatch(1);
-        childWindow.leaveGroup(new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                if (ack.isSuccessful()) {
-                    undockLatch.countDown();
-                }
-            }
-            @Override
-            public void onError(Ack ack) {
-                logger.error(String.format("onError %s", ack.getReason()));
-            }
-        });
-        undockLatch.await(5, TimeUnit.SECONDS);
-        assertEquals(undockLatch.getCount(), 0);
-        TestUtils.moveWindowBy(mainWindow, leftBy, topBy);
-        // child window should not move afer leaving group
-        afterMoveBounds = TestUtils.getBounds(childWindow);
-        assertEquals(afterMoveBounds.getLeft().intValue(), leftAfterDockMove);
-        assertEquals(afterMoveBounds.getTop().intValue(), topAfterDockMove);
-
-        TestUtils.closeApplication(application);
-    }
-
-
-    @Test
     public void animateMove() throws Exception {
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
@@ -721,7 +642,6 @@ public class WindowTest {
 		TestUtils.closeApplication(application);
 	}
 
-	@Ignore
 	@Test
 	public void getSetZoomLevel() throws Exception {
 		double level = -1.5;

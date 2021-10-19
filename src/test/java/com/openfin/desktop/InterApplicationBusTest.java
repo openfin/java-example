@@ -277,50 +277,6 @@ public class InterApplicationBusTest {
 
     @Ignore
     @Test
-    public void wildCardTopic() throws Exception {
-
-        CountDownLatch latch = new CountDownLatch(1);
-        BusListener busListener = (sourceUuid, receivingTopic, payload) -> {
-            logger.debug(String.format("Receiving %s", payload.toString()));
-            // PubSubExample.html sends the following
-            // fin.desktop.InterApplicationBus.publish('check-in', {name: 'Pub/Sub example app'});
-            if (receivingTopic.equals("check-in")) {
-                latch.countDown();
-            }
-        };
-        subscribeToTopic("*", "*", busListener);
-
-        ApplicationOptions options = TestUtils.getAppOptions(openfin_app_url);
-        Application application = TestUtils.createApplication(options, desktopConnection);
-        TestUtils.runApplication(application, true);
-
-        latch.await(5, TimeUnit.SECONDS);
-        assertEquals(latch.getCount(), 0);
-    }
-
-    @Ignore
-    @Test
-    public void wildCardTopicSelf() throws Exception {
-
-        CountDownLatch latch = new CountDownLatch(1);
-        BusListener busListener = (sourceUuid, receivingTopic, payload) -> {
-            logger.debug(String.format("Receiving %s", payload.toString()));
-            if (receivingTopic.equals("wildcard-self")) {
-                latch.countDown();
-            }
-        };
-        subscribeToTopic("*", "*", busListener);
-
-        JSONObject msg = new JSONObject();
-        msg.put("name", "wildCardTopicSelf");
-        desktopConnection.getInterApplicationBus().publish("wildcard-self", msg);
-
-        latch.await(5, TimeUnit.SECONDS);
-        assertEquals(latch.getCount(), 0);
-    }
-
-    @Ignore
-    @Test
     public void topicWithSpecialCharacters() throws Exception {
     	final String topic = ":/\\;@#[]{}<>+=&^%$£\"?¬";
     	//final String topic = "whatever";

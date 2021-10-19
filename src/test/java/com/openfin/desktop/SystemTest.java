@@ -463,7 +463,6 @@ public class SystemTest {
         assertEquals("getEnvironmentVariables timeout", latch.getCount(), 0);
     }
 
-    @Ignore
     @Test
     public void deleteCacheOnRestart() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
