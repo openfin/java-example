@@ -22,6 +22,8 @@ import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import jdk.nashorn.internal.scripts.JO;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,11 +142,48 @@ public class OpenFinDesktopDemo extends JPanel implements ActionListener, Window
         }
         this.runtimeConfiguration.setAdditionalRuntimeArguments("--v=1  ");  // enable additional logging
         this.runtimeConfiguration.setDevToolsPort(9090);
-        this.runtimeConfiguration.setLicenseKey("my-license-key");
+
+        JSONObject startupApp = new JSONObject();
+        startupApp.put("uuid", "DEMO-JAVA");
+        startupApp.put("name", "DEMO-JAVA");
+        startupApp.put("url", "https://cdn.openfin.co/process-manager/index.html");
+        startupApp.put("autoShow", true);
+
+        String licenseKey = java.lang.System.getProperty("com.openfin.demo.licenseKey");
+        if (licenseKey != null) {
+            this.runtimeConfiguration.setLicenseKey(licenseKey);
+        }
         JSONObject myconfig = new JSONObject();
-        myconfig.put("key1", "value1");
-        myconfig.put("PI", 3.14);
+//        this.runtimeConfiguration.setManifestLocation("https://cdn.openfin.co/process-manager/app.json");
+//        myconfig.put("key1", "value1");
+//        myconfig.put("PI", 3.14);
         this.runtimeConfiguration.addConfigurationItem("myconfig", myconfig);
+    }
+
+    private void addCustomConfig(JSONObject startupApp) {
+        JSONObject defaultDomainSettings = new JSONObject();
+        JSONArray rules = new JSONArray();
+        JSONObject rule1 = new JSONObject();
+        JSONArray matchList = new JSONArray();
+        matchList.put("*/*.example.com");
+        rule1.put("match", matchList);
+        JSONObject options = new JSONObject();
+        JSONObject downloadSettings = new JSONObject();
+        JSONArray downloadSettingsRules = new JSONArray();
+        JSONObject downloadSettingsRule1 = new JSONObject();
+        JSONArray matchList1 = new JSONArray();
+        matchList1.put("*://*/*.png");
+        matchList1.put("*://*/*.jpg");
+        downloadSettingsRule1.put("match", matchList1);
+        downloadSettingsRule1.put("behavior", "no-prompt");
+        downloadSettingsRules.put(downloadSettingsRule1);
+        downloadSettings.put("rules", downloadSettingsRules);
+        options.put("downloadSettings", downloadSettings);
+        rule1.put("options", options);
+        rules.put(rule1);
+        defaultDomainSettings.put("rules", rules);
+        startupApp.put("defaultDomainSettings", defaultDomainSettings);
+        this.runtimeConfiguration.setStartupApp(startupApp);
     }
 
     private JPanel layoutLeftPanel() {
