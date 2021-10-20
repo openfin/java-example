@@ -85,15 +85,17 @@ public class InteropTest {
 		AtomicInteger clientCntAfterJoin = new AtomicInteger(0);
 		AtomicInteger clientCntAfterRemove = new AtomicInteger(0);
 		CompletionStage<?> testFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
-			return client.joinContextGroup("red").thenCompose(v->{
-				return client.getAllClientsInContextGroup("red");
+			return client.joinContextGroup("green").thenCompose(v->{
+				return client.getAllClientsInContextGroup("green");
 			}).thenAccept(clients->{
+				logger.info(String.format("clientJoinThenRemoveFromContextGroup after join %d", clients.length));
 				clientCntAfterJoin.set(clients.length);
 			}).thenCompose(v->{
 				return client.removeFromContextGroup();
 			}).thenCompose(v->{
-				return client.getAllClientsInContextGroup("red");
+				return client.getAllClientsInContextGroup("green");
 			}).thenAccept(clients->{
+				logger.info(String.format("clientJoinThenRemoveFromContextGroup after remove %d", clients.length));
 				clientCntAfterRemove.set(clients.length);
 			});
 		});
