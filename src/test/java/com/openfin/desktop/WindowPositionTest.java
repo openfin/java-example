@@ -59,10 +59,9 @@ public class WindowPositionTest {
         TestUtils.teardownDesktopConnection(desktopConnection);
     }
 
-    @Ignore("for now")
     @Test
     public void saveWindowStateWithRuntimeRestart() throws Exception {
-        int repeat = 30;
+        int repeat = 3;
         String value = java.lang.System.getProperty("com.openfin.desktop.WindowPositionTest.repeat");
         if (value != null) {
             repeat = Integer.parseInt(value);

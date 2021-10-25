@@ -130,7 +130,7 @@ public class LayoutFrame extends JFrame {
 
 										client.register("event", new ChannelAction() {
 											@Override
-											public JSONObject invoke(String action, JSONObject payload, JSONObject senderIdentity) {
+											public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
 												System.out.printf("channel event " + action);
 												return null;
 											}
