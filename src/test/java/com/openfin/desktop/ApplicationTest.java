@@ -1,7 +1,6 @@
 package com.openfin.desktop;
 
-import static org.junit.Assert.assertEquals;
-
+import java.io.InvalidClassException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +13,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -44,6 +45,7 @@ public class ApplicationTest {
         logger.debug("runAndClose");
         ApplicationOptions options = TestUtils.getAppOptions(null);
         Application application = TestUtils.runApplication(options, desktopConnection);
+
 
         // duplicate UUID is not allowed
         ApplicationOptions options2 = TestUtils.getAppOptions(options.getUUID(), null);
@@ -261,6 +263,68 @@ public class ApplicationTest {
 		latch.await(10, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
+	}
+
+	@Test
+	public void launchManifest_Application_Success() throws InvalidClassException, InterruptedException {
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		 desktopConnection.launchManifest(
+				"https://demoappdirectory.openf.in/desktop/config/apps/OpenFin/HelloOpenFin/app.json",
+				Application.class,
+				null).thenApply(app ->{
+					assertTrue(app.getClass().getSimpleName() == "Application");
+
+					assertNotNull(app);
+			 try {
+				 app.close();
+			 } catch (DesktopException e) {
+				 e.printStackTrace();
+			 }
+			 return app;
+		});
+
+		latch.await(10, TimeUnit.SECONDS);
+	}
+
+	@Test
+	public void launchManifest_Platform_Success() throws InvalidClassException, InterruptedException {
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		desktopConnection.launchManifest(
+				"https://openfin.github.io/platform-api-project-seed/public.json",
+				com.openfin.desktop.platform.Platform.class,
+				null).thenApply(app ->{
+			assertTrue(app.getClass().getSimpleName() == "Platform");
+
+			assertNotNull(app);
+
+				app.quit();
+
+			return app;
+		});
+
+		latch.await(10, TimeUnit.SECONDS);
+	}
+
+	@Test
+	public void launchManifest_Manifest_Success() throws InvalidClassException, InterruptedException {
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		desktopConnection.launchManifest(
+				"https://openfin.github.io/platform-api-project-seed/public.json",
+				com.openfin.desktop.platform.Platform.class,
+				null).thenApply(app ->{
+			assertTrue(app.getClass().getSimpleName() == "JSONObject");
+
+			assertNotNull(app);
+
+			app.quit();
+
+			return app;
+		});
+
+		latch.await(10, TimeUnit.SECONDS);
 	}
 	
 	@Test 
