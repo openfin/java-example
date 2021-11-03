@@ -6,7 +6,7 @@
 
     <groupId>co.openfin</groupId>
     <artifactId>openfin-desktop-java-example</artifactId>
-    <version>9.0.1</version>
+    <version>10.0.1</version>
     <packaging>jar</packaging>
 
     <name>openfin-desktop-java-example</name>
@@ -15,8 +15,8 @@
 
     <properties>
         <user.name>support@openfin.co</user.name>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <skipTests>true</skipTests>
     </properties>
 
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>co.openfin</groupId>
             <artifactId>openfin-desktop-java-adapter</artifactId>
-            <version>9.0.1-SNAPSHOT</version>
+            <version>10.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>co.openfin</groupId>

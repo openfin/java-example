@@ -176,40 +176,32 @@ public class ChannelTest {
 		final AtomicInteger resultValue = new AtomicInteger(-1);
 
 		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
-			@Override
-			public void onSuccess(ChannelProvider provider) {
-				provider.register(actionName, new ChannelAction() {
+		desktopConnection.getChannel(channelName).createAsync().thenAccept(provider -> {
+			provider.register(actionName, new ChannelAction() {
+				@Override
+				public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+					int currentValue = ((JSONObject)payload).getInt("value");
+					return ((JSONObject)payload).put("value", currentValue + 1);
+				}
+			});
+			desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
+				JSONObject payload = new JSONObject();
+				payload.put("value", initValue);
+				client.dispatch(actionName, payload, new AckListener() {
 					@Override
-					public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
-						int currentValue = ((JSONObject)payload).getInt("value");
-						return ((JSONObject)payload).put("value", currentValue + 1);
+					public void onSuccess(Ack ack) {
+						resultValue.set(ack.getJsonObject().getJSONObject("data").getJSONObject("result")
+								.getInt("value"));
+						latch.countDown();
+					}
+					@Override
+					public void onError(Ack ack) {
 					}
 				});
-
-				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
-
-					@Override
-					public void onSuccess(ChannelClient client) {
-						JSONObject payload = new JSONObject();
-						payload.put("value", initValue);
-						client.dispatch(actionName, payload, new AckListener() {
-							@Override
-							public void onSuccess(Ack ack) {
-								resultValue.set(ack.getJsonObject().getJSONObject("data").getJSONObject("result")
-										.getInt("value"));
-								latch.countDown();
-							}
-
-							@Override
-							public void onError(Ack ack) {
-							}
-						});
-					}
-
-				});
-			}
+			});
 		});
+
+
 
 		latch.await(10, TimeUnit.SECONDS);
 
@@ -314,12 +306,8 @@ public class ChannelTest {
 					}
 				});
 
-				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
-					@Override
-					public void onSuccess(ChannelClient client) {
-						client.disconnect(null);
-					}
-
+				desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
+					client.disconnect();
 				});
 			}
 		});

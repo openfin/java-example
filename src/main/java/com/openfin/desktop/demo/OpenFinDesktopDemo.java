@@ -22,7 +22,6 @@ import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import jdk.nashorn.internal.scripts.JO;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
