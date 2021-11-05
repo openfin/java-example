@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.openfin.desktop.interop.Intent;
-import com.openfin.desktop.interop.InteropClient;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -25,7 +24,7 @@ public class InteropTest {
 	private static Logger logger = LoggerFactory.getLogger(InteropTest.class.getName());
 
 	private static final String DESKTOP_UUID = InteropTest.class.getName();
-	private static final String BROKER_NANE = "AdapterInteropTest";  // created by javascript side
+	private static final String BROKER_NAME = "AdapterInteropTest";  // created by javascript side
 	private static DesktopConnection desktopConnection;
 
 	@BeforeClass
@@ -45,7 +44,7 @@ public class InteropTest {
 
 	@Test
 	public void clientGetContextGroupInfo() throws Exception {
-		CompletionStage<ContextGroupInfo[]> getContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		CompletionStage<ContextGroupInfo[]> getContextFuture = desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.getContextGroups();
 		});
 		
@@ -57,7 +56,7 @@ public class InteropTest {
 
 	@Test
 	public void clientGetInfoForContextGroup() throws Exception {
-		CompletionStage<ContextGroupInfo> getContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		CompletionStage<ContextGroupInfo> getContextFuture = desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.getInfoForContextGroup("red");
 		});
 		
@@ -68,7 +67,7 @@ public class InteropTest {
 	
 	@Test
 	public void clientGetAllClientsInContextGroup() throws Exception {
-		CompletionStage<ClientIdentity[]> getContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		CompletionStage<ClientIdentity[]> getContextFuture = desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.joinContextGroup("red").thenCompose(v->{
 				return client.getAllClientsInContextGroup("red");
 			});
@@ -84,7 +83,7 @@ public class InteropTest {
 	public void clientJoinThenRemoveFromContextGroup() throws Exception {
 		AtomicInteger clientCntAfterJoin = new AtomicInteger(0);
 		AtomicInteger clientCntAfterRemove = new AtomicInteger(0);
-		CompletionStage<?> testFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		CompletionStage<?> testFuture = desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.joinContextGroup("green").thenCompose(v->{
 				return client.getAllClientsInContextGroup("green");
 			}).thenAccept(clients->{
@@ -107,7 +106,7 @@ public class InteropTest {
 	@Test
 	public void clientSetContext() throws Exception {
 		final Context context = getRandomContext();
-		CompletionStage<Void> setContextFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		CompletionStage<Void> setContextFuture = desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.getContextGroups().thenCompose(groups->{
 				return client.joinContextGroup("red").thenCompose(v->{
 					return client.setContext(context);
@@ -124,7 +123,7 @@ public class InteropTest {
 
 		CompletableFuture<Context> listenerInvokedFuture = new CompletableFuture<>();
 		
-		desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.addContextListener(ctx->{
 				String ticker = ctx.getId().optString("ticker", "");
 				StringBuilder sb = new StringBuilder(context.getId().getString("ticker"));
@@ -150,7 +149,7 @@ public class InteropTest {
 		Intent intent = new Intent();
 		intent.setName("JavaIntent");
 		intent.setContext(context);
-		CompletionStage<Void> fireIntentFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		CompletionStage<Void> fireIntentFuture = desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.fireIntent(intent);
 		});
 
@@ -162,7 +161,7 @@ public class InteropTest {
 		final Context context = getRandomContext();
 
 		CompletableFuture<Intent> listenerInvokedFuture = new CompletableFuture<>();
-		desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+		desktopConnection.getInterop().connect(BROKER_NAME).thenCompose(client->{
 			return client.registerIntentListener("JavaIntent", intentReceived->{
 				String ticker = intentReceived.getContext().getId().optString("ticker", "");
 				StringBuilder sb = new StringBuilder(context.getId().getString("ticker"));
