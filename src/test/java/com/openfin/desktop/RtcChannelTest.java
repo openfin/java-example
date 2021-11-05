@@ -43,8 +43,8 @@ public class RtcChannelTest {
     public static void setup() throws Exception {
         logger.debug("starting");
         RuntimeConfiguration cfg = new RuntimeConfiguration();
-//        cfg.setManifestLocation("https://testing-assets.openfin.co/adapters/channel/app.json");
-		cfg.setManifestLocation("http://localhost:5555/app.json");
+        cfg.setManifestLocation("https://testing-assets.openfin.co/adapters/channel/app.json");
+//		cfg.setManifestLocation("http://localhost:5555/app.json");
         desktopConnection = TestUtils.setupConnection(DESKTOP_UUID, cfg);
     }
 
