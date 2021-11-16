@@ -1,5 +1,6 @@
 package com.openfin.desktop.demo;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,42 +58,36 @@ public class ChannelExample implements DesktopStateListener {
                 logger.info(String.format("provider receives channel disconnect event from %s ", connectionEvent.getUuid()));
             }
         });
-        desktopConnection.getChannel(CHANNEL_NAME).create(new AsyncCallback<ChannelProvider>() {
-            @Override
-            public void onSuccess(ChannelProvider provider) {
-                //provider created, register actions.
-                AtomicInteger x = new AtomicInteger(0);
-
-                provider.register("getValue", new ChannelAction() {
-                    @Override
-                    public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
-                        logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
-                        JSONObject obj = new JSONObject();
-                        obj.put("value", x.get());
-                        return obj;
-                    }
-                });
-                provider.register("increment", new ChannelAction() {
-                    @Override
-                    public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
-                        logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
-                        JSONObject obj = new JSONObject();
-                        obj.put("value", x.incrementAndGet());
-                        provider.publish("event", obj, null);
-                        return obj;
-                    }
-                });
-                provider.register("incrementBy", new ChannelAction() {
-                    @Override
-                    public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
-                        logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
-                        int delta = ((JSONObject)payload).getInt("delta");
-                        JSONObject obj = new JSONObject();
-                        obj.put("value", x.addAndGet(delta));
-                        return obj;
-                    }
-                });
-            }
+        desktopConnection.getChannel(CHANNEL_NAME).createAsync(Arrays.asList(Channel.RTC_PROTOCOL, Channel.CLASSIC_PROTOCOL)).thenAccept(provider -> {
+            AtomicInteger x = new AtomicInteger(0);
+            provider.register("getValue", new ChannelAction() {
+                @Override
+                public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+                    logger.info(String.format("provider processing action %s", action));
+                    JSONObject obj = new JSONObject();
+                    obj.put("value", x.get());
+                    return obj;
+                }
+            });
+            provider.register("increment", new ChannelAction() {
+                @Override
+                public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+                    logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
+                    JSONObject obj = new JSONObject();
+                    obj.put("value", x.incrementAndGet());
+                    return obj;
+                }
+            });
+            provider.register("incrementBy", new ChannelAction() {
+                @Override
+                public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+                    logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
+                    int delta = ((JSONObject)payload).getInt("delta");
+                    JSONObject obj = new JSONObject();
+                    obj.put("value", x.addAndGet(delta));
+                    return obj;
+                }
+            });
         });
     }
 
@@ -100,64 +95,27 @@ public class ChannelExample implements DesktopStateListener {
      * Create a channel client that invokes "getValue", "increment" and "incrementBy n" actions
      */
     public void createChannelClient() {
-        desktopConnection.getChannel(CHANNEL_NAME).connect(new AsyncCallback<ChannelClient>() {
-            @Override
-            public void onSuccess(ChannelClient client) {
-                // register a channel event
-                client.register("event", new ChannelAction() {
-                    @Override
-                    public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
-                        logger.info("channel event {}", action);
-                        return null;
-                    }
-                });
-
-                //connected to provider, invoke actions provided by the provider.
-                //get current value
-                client.dispatch("getValue", null, new AckListener() {
-                    @Override
-                    public void onSuccess(Ack ack) {
-                        logger.info("current value={}", ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value"));
-
-                        //got current value, do increment
-                        client.dispatch("increment", null, new AckListener() {
-                            @Override
-                            public void onSuccess(Ack ack) {
-                                logger.info("after invoking increment, value={}", ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value"));
-
-                                //let's do increatmentBy 10
-                                JSONObject payload = new JSONObject();
-                                payload.put("delta", 10);
-                                client.dispatch("incrementBy", payload, new AckListener() {
-                                    @Override
-                                    public void onSuccess(Ack ack) {
-                                        logger.info("after invoking incrementBy, value={}", ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value"));
-
-                                        try {
-                                            desktopConnection.disconnect();
-                                        }
-                                        catch (DesktopException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onError(Ack ack) {
-                                    }
-                                });
-                            }
-
-                            @Override
-                            public void onError(Ack ack) {
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(Ack ack) {
-                    }
-                });
-            }
+        desktopConnection.getChannel(CHANNEL_NAME).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+            client.register("event", new ChannelAction() {
+                @Override
+                public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+                    logger.info("channel event {}", action);
+                    return null;
+                }
+            });
+            client.dispatchAsync("getValue", null).thenAccept(ack -> {
+                if (ack.isSuccessful()) {
+                    logger.info("current value={}", ack.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value"));
+                    //let's do increment by 10
+                    JSONObject payload = new JSONObject();
+                    payload.put("delta", 10);
+                    client.dispatchAsync("increment", payload).thenAccept(incAck -> {
+                        if (incAck.isSuccessful()) {
+                            logger.info("after invoking incrementBy, value={}", incAck.getJsonObject().getJSONObject("data").getJSONObject("result").getInt("value"));
+                        }
+                    });
+                }
+            });
         });
     }
 
