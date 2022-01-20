@@ -76,7 +76,9 @@ public class NoGui {
                     System.out.println("Main.onOutgoingMessage");
                 }
             };
-            desktopConnection.connectToVersion("6.49.12.17", listener, 5000);
+            RuntimeConfiguration cfg = new RuntimeConfiguration();
+            cfg.setRuntimeVersion("stable");
+            desktopConnection.connect(cfg, listener, 50);
 
             try {
                 // keep Runtime running for 10 seconds

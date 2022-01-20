@@ -9,8 +9,6 @@ package com.openfin.desktop.demo;
 import com.openfin.desktop.*;
 import com.openfin.desktop.Window;
 import com.openfin.desktop.channel.*;
-import com.openfin.desktop.channel.NotificationListener;
-import com.openfin.desktop.channel.NotificationOptions;
 import com.openfin.desktop.win32.ExternalWindowObserver;
 import com.sun.jna.Native;
 import info.clearthought.layout.TableLayout;
@@ -30,10 +28,8 @@ public class LauncherBusDemo extends JFrame {
 
     private DesktopConnection desktopConnection;
     private InterApplicationBus interApplicationBus;
-    private NotificationClient notificationClient;
     private JButton btnOFApp1, btnOFApp2;
     private JButton btnTabOFApp1;
-    private JButton btnNotification, btnToggleNotification;   // button to create notifications
     private JButton btnUndock;   // button to undock this Java window
     private JButton btnOFSendApp1, btnOFSendApp2;  // send messages to OpenFin app via Inter App Bus
     private JButton btnGenerateWorkSpace, btnRestoreWorkSpace;
@@ -104,26 +100,6 @@ public class LauncherBusDemo extends JFrame {
             }
         });
 
-        btnNotification = new JButton();
-        btnNotification.setText("Notification");
-        btnNotification.setEnabled(false);
-        btnNotification.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                createNotification();
-            }
-        });
-
-        btnToggleNotification = new JButton();
-        btnToggleNotification.setText("Toggle Notification CENTER");
-        btnToggleNotification.setEnabled(false);
-        btnToggleNotification.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                toggleNotificationCenter();
-            }
-        });
-
         btnGenerateWorkSpace = new JButton();
         btnGenerateWorkSpace.setText("Generate WorkSpace");
         btnGenerateWorkSpace.setEnabled(false);
@@ -157,8 +133,6 @@ public class LauncherBusDemo extends JFrame {
         topPanel.add(btnOFApp2, "1,4,1,4");
         topPanel.add(btnOFSendApp1, "1,6,1,6");
         topPanel.add(btnOFSendApp2, "1,8,1,8");
-        topPanel.add(btnNotification, "1,10,1,10");
-        topPanel.add(btnToggleNotification, "1,12,1,12");
         topPanel.add(btnGenerateWorkSpace, "1,14,1,14");
         topPanel.add(btnRestoreWorkSpace, "1,16,1,16");
         topPanel.add(btnUndock, "1,18,1,18");
@@ -242,7 +216,6 @@ public class LauncherBusDemo extends JFrame {
                         configAppEventListener();
                         createEmbddedApp();
                         createLayoutClient();
-                        createNotificationClient();
                     }
 
                     @Override
@@ -467,47 +440,6 @@ public class LauncherBusDemo extends JFrame {
             public void onError(Ack ack) {
             }
         });
-    }
-    private void createNotificationClient() {
-        this.notificationClient = new NotificationClient(this.desktopConnection, new AckListener() {
-            @Override
-            public void onSuccess(Ack ack) {
-                btnNotification.setEnabled(true);
-                btnToggleNotification.setEnabled(true);
-                LauncherBusDemo.this.notificationClient.addNotificationListener(new NotificationListener() {
-                    @Override
-                    public void onClick(NotificationOptions options) {
-                        logger.info(String.format("Notification clicked %s", options.getId()));
-                    }
-                    @Override
-                    public void onButtonClick(NotificationOptions options) {
-                        logger.info(String.format("Notification button clicked %s button index %d", options.getId(),
-                                    options.getButtonIndex()));
-                    }
-                    @Override
-                    public void onClose(NotificationOptions options) {
-                        logger.info(String.format("Notification closed %s", options.getId()));
-                    }
-                });
-            }
-            @Override
-            public void onError(Ack ack) {
-
-            }
-        });
-    }
-    private void createNotification() {
-        NotificationOptions options = new NotificationOptions();
-        options.setId(UUID.randomUUID().toString());
-        options.setBody("Hello From Java app");
-        options.setTitle("Java Demo");
-        options.setIcon("https://openfin.co/favicon.ico");
-        options.addButton(null, "button1");
-        options.addButton(null, "button2");
-        this.notificationClient.create(options, null);
-    }
-    private void toggleNotificationCenter() {
-        this.notificationClient.toggleNotificationCenter(null);
     }
 
     private void generateWorkSpace() {
