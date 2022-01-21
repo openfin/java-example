@@ -1,9 +1,6 @@
 package com.openfin.desktop;
 
-import com.openfin.desktop.snapshot.SnapshotSource;
 import com.openfin.desktop.snapshot.SnapshotSourceProvider;
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.LocatorEx;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -16,7 +13,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class SnapshotTest implements SnapshotSourceProvider {
 
