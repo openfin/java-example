@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.openfin.desktop.channel.*;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -16,13 +17,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.openfin.desktop.channel.ChannelAction;
-import com.openfin.desktop.channel.ChannelClient;
-import com.openfin.desktop.channel.ChannelListener;
-import com.openfin.desktop.channel.ChannelProvider;
-import com.openfin.desktop.channel.ConnectionEvent;
-import com.openfin.desktop.channel.Middleware;
 
 /**
  * JUnit tests for com.openfin.desktop.Channel class
@@ -312,5 +306,44 @@ public class ChannelTest {
 		assertEquals(0, latch.getCount());
 		assertEquals(initValue + 3, resultValue.get());
 	}
+
+	@Test
+	public void rejectConnection() throws Exception {
+		final String channelName = "rejectConnectionTest";
+		final String payloadValue = "reject me";
+		final String rejectReason = "not allowed";
+
+		CountDownLatch latch = new CountDownLatch(1);
+
+		desktopConnection.getChannel(channelName).createAsync().thenAccept(provider -> {
+			provider.addProviderListener(new ChannelProviderListener() {
+				@Override
+				public void onClientConnect(ChannelClientConnectEvent connectionEvent) throws Exception {
+					String payload = (String) connectionEvent.getPayload();
+					if (payloadValue.equals(payload)) {
+						throw new Exception(rejectReason);
+					}
+				}
+				@Override
+				public void onClientDisconnect(ChannelClientConnectEvent connectionEvent) {
+				}
+			});
+
+			desktopConnection.getChannel(channelName).connectAsync(payloadValue).thenAccept(client -> {
+				if (Objects.isNull(client)) {
+					latch.countDown();
+				}
+			}).exceptionally(ex -> {
+				if (ex.getMessage().contains(rejectReason)) {
+					latch.countDown();
+				}
+				return null;
+			});
+		});
+
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals(0, latch.getCount());
+	}
+
 
 }

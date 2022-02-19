@@ -225,7 +225,7 @@ public class RtcChannelTest {
     @Test
     public void invokeClientActionFromJS() throws Exception {
         CountDownLatch latch = new CountDownLatch(2);
-        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
+        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync("", Channel.RTC_PROTOCOL).thenAccept(client -> {
             client.register(CLIENT_ACTION, new ChannelAction() {
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
