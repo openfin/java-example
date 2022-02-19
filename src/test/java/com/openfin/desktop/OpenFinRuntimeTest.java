@@ -48,7 +48,7 @@ public class OpenFinRuntimeTest {
     public void getDeviceId() throws Exception {
         logger.debug("start getDeviceId");
         CountDownLatch latch = new CountDownLatch(1);
-        runtime.getDeviceId(new AckListener() {
+        runtime.getMachineId(new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
                 if (ack.isSuccessful()) {

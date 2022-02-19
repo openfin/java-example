@@ -298,7 +298,7 @@ public class TestUtils {
         };
         addEventListener(application, "closed", listener);
 
-        application.close(new AckListener() {
+        application.close(true, new AckListener() {
             @Override
             public void onSuccess(Ack ack) {
             }

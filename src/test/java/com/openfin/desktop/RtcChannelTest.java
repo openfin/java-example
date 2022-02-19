@@ -68,7 +68,7 @@ public class RtcChannelTest {
     @Test
     public void createChannelClient() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
             if (Objects.nonNull(client)) {
                 latch.countDown();
             }
@@ -83,7 +83,7 @@ public class RtcChannelTest {
         CountDownLatch latch2 = new CountDownLatch(1);
 
         //first channel client
-        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(Channel.CLASSIC_PROTOCOL).thenAccept(client -> {
+        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(null, Channel.CLASSIC_PROTOCOL).thenAccept(client -> {
             client.register(CLIENT_ACTION, new ChannelAction() {
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
@@ -93,7 +93,7 @@ public class RtcChannelTest {
             });
         });
         //second channel client
-        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
             client.register(CLIENT_ACTION, new ChannelAction() {
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
@@ -198,7 +198,7 @@ public class RtcChannelTest {
                 }
             });
 
-            desktopConnection.getChannel(channelName).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+            desktopConnection.getChannel(channelName).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
                 client.register(clientActionName, new ChannelAction() {
                     @Override
                     public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
@@ -225,7 +225,7 @@ public class RtcChannelTest {
     @Test
     public void invokeClientActionFromJS() throws Exception {
         CountDownLatch latch = new CountDownLatch(2);
-        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+        desktopConnection.getChannel(JS_CHANNEL_NAME).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
             client.register(CLIENT_ACTION, new ChannelAction() {
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
@@ -258,7 +258,7 @@ public class RtcChannelTest {
 
         CountDownLatch latch = new CountDownLatch(1);
         desktopConnection.getChannel(channelName).createAsync(AllProtocols).thenAccept(provider -> {
-            desktopConnection.getChannel(channelName).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+            desktopConnection.getChannel(channelName).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
                 client.register(actionName, new ChannelAction() {
                     @Override
                     public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
@@ -301,7 +301,7 @@ public class RtcChannelTest {
                 }
             });
 
-            desktopConnection.getChannel(channelName).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+            desktopConnection.getChannel(channelName).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
                 client.disconnect();
             });
         });
@@ -342,7 +342,7 @@ public class RtcChannelTest {
                     return ((JSONObject) payload).put("value", currentValue + 1);
                 }
             });
-            desktopConnection.getChannel(channelName).connectAsync(Channel.RTC_PROTOCOL).thenAccept(client -> {
+            desktopConnection.getChannel(channelName).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
                 JSONObject payload = new JSONObject();
                 payload.put("value", initValue);
                 client.dispatchAsync(actionName, payload).thenAccept(ack -> {
@@ -350,6 +350,8 @@ public class RtcChannelTest {
                         resultValue.set(ack.getJsonObject().getJSONObject("data").getJSONObject("result")
                                 .getInt("value"));
                         latch.countDown();
+                    } else {
+                        logger.error(String.format("Dispatching failed %s", ack.getReason()));
                     }
                 });
             });
