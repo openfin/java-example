@@ -119,6 +119,15 @@ public class ChannelExample implements DesktopStateListener {
         JSONObject payload = new JSONObject();
         payload.put("name", "java example");
         desktopConnection.getChannel(CHANNEL_NAME).connectAsync(false, payload).thenAccept(client -> {
+            client.addChannelListener(new ChannelListener() {
+                @Override
+                public void onChannelConnect(ConnectionEvent connectionEvent) {
+                }
+                @Override
+                public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+                    logger.info("channel disconnected {}", connectionEvent.getChannelId());
+                }
+            });
             client.register("event", new ChannelAction() {
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {

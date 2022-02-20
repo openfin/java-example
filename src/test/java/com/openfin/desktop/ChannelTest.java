@@ -16,12 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JUnit tests for com.openfin.desktop.InterApplicationBus class
- *
- * Test cases in this class need to have access to an OpenFin HTML5 app to
- * verify sub/pub workflow. Sources for the app can be found in release
- * directory: PubSubExample.html. It is hosted by OpenFin at
- * https://cdn.openfin.co/examples/junit/PubSubExample.html
+ * JUnit tests for OpenFin Channel API
  *
  * Created by wche on 1/27/16.
  *
@@ -321,16 +316,15 @@ public class ChannelTest {
 			});
 
 			desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
-				client.addChannelListener(new ChannelListener() {
+				client.disconnect(new AckListener() {
 					@Override
-					public void onChannelConnect(ConnectionEvent connectionEvent) {
-					}
-					@Override
-					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+					public void onSuccess(Ack ack) {
 						latch.countDown();
 					}
+					@Override
+					public void onError(Ack ack) {
+					}
 				});
-				client.disconnect(null);
 			});
 		});
 		latch.await(10, TimeUnit.SECONDS);
