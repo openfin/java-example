@@ -236,22 +236,29 @@ public class ChannelTest {
 	@Test
 	public void connectionListener() throws Exception {
 		final String channelName = "connectionListenerTest";
-		CountDownLatch latch = new CountDownLatch(2);
+		CountDownLatch latch = new CountDownLatch(3);
 
 		desktopConnection.getChannel(channelName).createAsync().thenAccept(provider -> {
-			desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
+			provider.addProviderListener(new ChannelProviderListener() {
 				@Override
-				public void onChannelConnect(ConnectionEvent connectionEvent) {
+				public void onClientConnect(ChannelClientConnectEvent connectionEvent) throws Exception {
 					latch.countDown();
 				}
-
 				@Override
-				public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+				public void onClientDisconnect(ChannelClientConnectEvent connectionEvent) {
 					latch.countDown();
 				}
 			});
-
 			desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
+				client.addChannelListener(new ChannelListener() {
+					@Override
+					public void onChannelConnect(ConnectionEvent connectionEvent) {
+					}
+					@Override
+					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+						latch.countDown();
+					}
+				});
 				client.disconnect();
 			});
 		});
