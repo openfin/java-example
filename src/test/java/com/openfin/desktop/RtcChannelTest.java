@@ -289,25 +289,21 @@ public class RtcChannelTest {
         CountDownLatch latch = new CountDownLatch(2);
 
         desktopConnection.getChannel(channelName).createAsync(AllProtocols).thenAccept(provider -> {
-            desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
+            provider.addProviderListener(new ChannelProviderListener() {
                 @Override
-                public void onChannelConnect(ConnectionEvent connectionEvent) {
+                public void onClientConnect(ChannelClientConnectEvent channelClientConnectEvent) throws Exception {
                     latch.countDown();
                 }
-
                 @Override
-                public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+                public void onClientDisconnect(ChannelClientConnectEvent channelClientConnectEvent) {
                     latch.countDown();
                 }
             });
-
             desktopConnection.getChannel(channelName).connectAsync(null, Channel.RTC_PROTOCOL).thenAccept(client -> {
                 client.disconnect();
             });
         });
-
         latch.await(10, TimeUnit.SECONDS);
-
         assertEquals(0, latch.getCount());
     }
 
