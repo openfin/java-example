@@ -35,6 +35,7 @@ public class InteropTest {
 		cfg.setManifestLocation("https://testing-assets.openfin.co/adapters/interop/app.json");
 //		cfg.setManifestLocation("http://localhost:5555/app.json");
 		desktopConnection = TestUtils.setupConnection(DESKTOP_UUID, cfg);
+		Thread.sleep(3000);  // give time for the js app to start up and configure everything properly
 	}
 
 	@AfterClass

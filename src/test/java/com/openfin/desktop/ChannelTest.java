@@ -307,7 +307,7 @@ public class ChannelTest {
 	@Test
 	public void connectionListener() throws Exception {
 		final String channelName = "connectionListenerTest";
-		CountDownLatch latch = new CountDownLatch(2);
+		CountDownLatch latch = new CountDownLatch(3);
 		desktopConnection.getChannel(channelName).createAsync().thenAccept(provider -> {
 			provider.addProviderListener(new ChannelProviderListener() {
 				@Override
@@ -321,6 +321,15 @@ public class ChannelTest {
 			});
 
 			desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
+				client.addChannelListener(new ChannelListener() {
+					@Override
+					public void onChannelConnect(ConnectionEvent connectionEvent) {
+					}
+					@Override
+					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+						latch.countDown();
+					}
+				});
 				client.disconnect(null);
 			});
 		});
