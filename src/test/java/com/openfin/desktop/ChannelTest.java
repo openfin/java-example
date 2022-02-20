@@ -250,16 +250,11 @@ public class ChannelTest {
 				}
 			});
 			desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
-				client.addChannelListener(new ChannelListener() {
-					@Override
-					public void onChannelConnect(ConnectionEvent connectionEvent) {
-					}
-					@Override
-					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
+				client.disconnect().thenAccept(ack -> {
+					if (ack.isSuccessful()) {
 						latch.countDown();
 					}
 				});
-				client.disconnect();
 			});
 		});
 
