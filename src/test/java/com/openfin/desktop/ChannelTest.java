@@ -2,26 +2,18 @@ package com.openfin.desktop;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
+import com.openfin.desktop.channel.*;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.openfin.desktop.channel.ChannelAction;
-import com.openfin.desktop.channel.ChannelClient;
-import com.openfin.desktop.channel.ChannelListener;
-import com.openfin.desktop.channel.ChannelProvider;
-import com.openfin.desktop.channel.ConnectionEvent;
-import com.openfin.desktop.channel.Middleware;
 
 /**
  * JUnit tests for com.openfin.desktop.InterApplicationBus class
@@ -54,15 +46,25 @@ public class ChannelTest {
 	@Test
 	public void createChannelProvider() throws Exception {
 		CountDownLatch latch = new CountDownLatch(1);
-		desktopConnection.getChannel("createChannelProviderTest").create(new AsyncCallback<ChannelProvider>() {
+		desktopConnection.getChannel("createChannelProvider").create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
 				latch.countDown();
 			}
 		});
-
 		latch.await(10, TimeUnit.SECONDS);
+		assertEquals(0, latch.getCount());
+	}
 
+	@Test
+	public void createChannelProviderAsync() throws Exception {
+		CountDownLatch latch = new CountDownLatch(1);
+		desktopConnection.getChannel("createChannelProviderAsync").createAsync().thenAccept(provider -> {
+			if (Objects.nonNull(provider)) {
+				latch.countDown();
+			}
+		});
+		latch.await(10, TimeUnit.SECONDS);
 		assertEquals(0, latch.getCount());
 	}
 
@@ -81,12 +83,24 @@ public class ChannelTest {
 				});
 			}
 		});
-
 		latch.await(10, TimeUnit.SECONDS);
-
 		assertEquals(0, latch.getCount());
 	}
-	
+	@Test
+	public void createChannelClientAsync() throws Exception {
+		CountDownLatch latch = new CountDownLatch(1);
+		final String channelName = "createChannelClientAsync";
+		desktopConnection.getChannel(channelName).createAsync().thenAccept(provider -> {
+			desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
+				if (Objects.nonNull(client)) {
+					latch.countDown();
+				}
+			});
+		});
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals(0, latch.getCount());
+	}
+
 	@Test
 	public void multipleChannelClients() throws Exception {
 		CountDownLatch latch1 = new CountDownLatch(1);
@@ -97,9 +111,7 @@ public class ChannelTest {
 		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
 			@Override
 			public void onSuccess(ChannelProvider provider) {
-				
 				provider.register(providerActionName, new ChannelAction() {
-
 					@Override
 					public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
 						return null;
@@ -111,7 +123,6 @@ public class ChannelTest {
 					@Override
 					public void onSuccess(ChannelClient client) {
 						client.dispatch(providerActionName, new JSONObject(), null);
-						
 						client.register(clientActionName, new ChannelAction() {
 							@Override
 							public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
@@ -132,7 +143,6 @@ public class ChannelTest {
 								return null;
 							}
 						});
-						
 						provider.publish(clientActionName, new JSONObject(), null);
 					}
 				});
@@ -298,34 +308,23 @@ public class ChannelTest {
 	public void connectionListener() throws Exception {
 		final String channelName = "connectionListenerTest";
 		CountDownLatch latch = new CountDownLatch(2);
+		desktopConnection.getChannel(channelName).createAsync().thenAccept(provider -> {
+			provider.addProviderListener(new ChannelProviderListener() {
+				@Override
+				public void onClientConnect(ChannelClientConnectEvent connectionEvent) throws Exception {
+					latch.countDown();
+				}
+				@Override
+				public void onClientDisconnect(ChannelClientConnectEvent connectionEvent) {
+					latch.countDown();
+				}
+			});
 
-		desktopConnection.getChannel(channelName).create(new AsyncCallback<ChannelProvider>() {
-			@Override
-			public void onSuccess(ChannelProvider provider) {
-				desktopConnection.getChannel(channelName).addChannelListener(new ChannelListener() {
-					@Override
-					public void onChannelConnect(ConnectionEvent connectionEvent) {
-						latch.countDown();
-					}
-
-					@Override
-					public void onChannelDisconnect(ConnectionEvent connectionEvent) {
-						latch.countDown();
-					}
-				});
-
-				desktopConnection.getChannel(channelName).connect(new AsyncCallback<ChannelClient>() {
-					@Override
-					public void onSuccess(ChannelClient client) {
-						client.disconnect(null);
-					}
-
-				});
-			}
+			desktopConnection.getChannel(channelName).connectAsync().thenAccept(client -> {
+				client.disconnect(null);
+			});
 		});
-
 		latch.await(10, TimeUnit.SECONDS);
-
 		assertEquals(0, latch.getCount());
 	}
 
@@ -390,4 +389,38 @@ public class ChannelTest {
 		assertEquals(initValue + 3, resultValue.get());
 	}
 
+	@Test
+	public void rejectConnection() throws Exception {
+		final String channelName = "rejectConnectionTest";
+		final String payloadValue = "reject me";
+		final String rejectReason = "not allowed";
+
+		CountDownLatch latch = new CountDownLatch(1);
+
+		desktopConnection.getChannel(channelName).createAsync().thenAccept(provider -> {
+			provider.addProviderListener(new ChannelProviderListener() {
+				@Override
+				public void onClientConnect(ChannelClientConnectEvent connectionEvent) throws Exception {
+					String payload = (String) connectionEvent.getPayload();
+					if (payloadValue.equals(payload)) {
+						throw new Exception(rejectReason);
+					}
+				}
+				@Override
+				public void onClientDisconnect(ChannelClientConnectEvent connectionEvent) {
+				}
+			});
+
+			desktopConnection.getChannel(channelName).connectAsync(payloadValue).thenAccept(client -> {
+			}).exceptionally(ex -> {
+				if (ex.getMessage().contains(rejectReason)) {
+					latch.countDown();
+				}
+				return null;
+			});
+		});
+
+		latch.await(10, TimeUnit.SECONDS);
+		assertEquals(0, latch.getCount());
+	}
 }
