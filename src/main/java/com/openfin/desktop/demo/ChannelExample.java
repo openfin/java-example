@@ -47,16 +47,6 @@ public class ChannelExample implements DesktopStateListener {
      * Create a provider that supports "getValue", "increment" and "incrementBy n" actions
      */
     public void createChannelProvider() {
-        desktopConnection.getChannel(CHANNEL_NAME).addChannelListener(new ChannelListener() {
-            @Override
-            public void onChannelConnect(ConnectionEvent connectionEvent) {
-                logger.info(String.format("provider receives channel connect event from %s ", connectionEvent.getUuid()));
-            }
-            @Override
-            public void onChannelDisconnect(ConnectionEvent connectionEvent) {
-                logger.info(String.format("provider receives channel disconnect event from %s ", connectionEvent.getUuid()));
-            }
-        });
         desktopConnection.getChannel(CHANNEL_NAME).createAsync().thenAccept(provider -> {
             provider.addProviderListener(new ChannelProviderListener() {
                 @Override
