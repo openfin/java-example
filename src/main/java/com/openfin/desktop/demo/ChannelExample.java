@@ -55,9 +55,9 @@ public class ChannelExample implements DesktopStateListener {
                     JSONObject payload = (JSONObject) connectionEvent.getPayload();
                     if (payload != null) {
                         String name = payload.optString("name");
-                        if ("badguy".equals(name)) {
+                        if ("Invalid Client".equals(name)) {
                             // throw exception here to reject the connection
-                            throw new Exception("stay out");
+                            throw new Exception("request rejected");
                         }
                     }
                 }
