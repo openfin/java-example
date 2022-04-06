@@ -110,6 +110,7 @@ public class TestUtils {
         DesktopConnection desktopConnection = new DesktopConnection(connectionUuid);
         RuntimeConfiguration configuration = new RuntimeConfiguration();
         configuration.setRuntimeVersion(runtimeVersion);
+        configuration.setMaxMessageSize(738320);
         String args = java.lang.System.getProperty("com.openfin.test.runtime.additionalRuntimeArguments");
         if (args != null) {
             configuration.setAdditionalRuntimeArguments(args);
