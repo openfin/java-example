@@ -47,55 +47,111 @@ public class ChannelExample implements DesktopStateListener {
      * Create a provider that supports "getValue", "increment" and "incrementBy n" actions
      */
     public void createChannelProvider() {
+
+        // Create the channel provider.
         desktopConnection.getChannel(CHANNEL_NAME).createAsync().thenAccept(provider -> {
             provider.addProviderListener(new ChannelProviderListener() {
+
+                // Create the onChannelConnect event handler.
                 @Override
                 public void onClientConnect(ChannelClientConnectEvent connectionEvent) throws Exception {
+
+                    // Add a line to the log file to identify the UUID of the caller.
                     logger.info(String.format("provider receives client connect event from %s ", connectionEvent.getUuid()));
+
+                    // Extract the JSON payload.
                     JSONObject payload = (JSONObject) connectionEvent.getPayload();
+
+                    // If the "name" element of the payload says the client is invalid, reject the request.
                     if (payload != null) {
                         String name = payload.optString("name");
-                        if ("badguy".equals(name)) {
-                            // throw exception here to reject the connection
-                            throw new Exception("stay out");
+                        if ("Invalid Client".equals(name)) {
+                            throw new Exception("request rejected");
                         }
                     }
                 }
+
+                // Create the onChannelDisconnect event handler.
                 @Override
                 public void onClientDisconnect(ChannelClientConnectEvent connectionEvent) {
+
+                    // Add a line to the log file identifying the UUID of the caller.
                     logger.info(String.format("provider receives channel disconnect event from %s ", connectionEvent.getUuid()));
                 }
             });
 
-            //provider created, register actions.
-            AtomicInteger x = new AtomicInteger(0);
+            // The provider was created. Now to register the actions.
+            // ------------------------------------------------------
 
+            // This variable is used as the "value" element for the getValue, increment, and incrementBy actions.
+            AtomicInteger localInteger = new AtomicInteger(0);
+
+            // Register the "getValue" action.
+            // This action will return the value of the localInteger variable.
             provider.register("getValue", new ChannelAction() {
+
+                // This is the logic for the "getValue" action.
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+
+                    // Write a string to the logfile that shows the requested action and payload.
                     logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
+
+                    // Create a JSON object to return to the channel client.
                     JSONObject obj = new JSONObject();
-                    obj.put("value", x.get());
+
+                    // Set the "value" JSON element to the value of the localInteger variable.
+                    obj.put("value", localInteger.get());
+
+                    // Return the JSON object to the channel client.
                     return obj;
                 }
             });
+
+            // Register the "increment" action.
+            // This action will increment the value of the localInteger variable by one.
             provider.register("increment", new ChannelAction() {
+
+                // This is the logic for the "increment" action.
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+
+                    // Write a string to the logfile that identifies the action and payload.
                     logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
+
+                    // Create a JSON object to return to the channel client.
                     JSONObject obj = new JSONObject();
-                    obj.put("value", x.incrementAndGet());
+
+                    // Increment localInteger and set the "value" JSON element to the new value of localInteger.
+                    obj.put("value", localInteger.incrementAndGet());
                     provider.publish("event", obj, null);
+
+                    // Return the JSON object to the channel client.
                     return obj;
                 }
             });
+
+            // Register the "incrementBy" action.
+            // This action will increment the value of the localInteger variable by a specified amount.
             provider.register("incrementBy", new ChannelAction() {
+
+                // This is the logic for the "incrementBy" action.
                 @Override
                 public JSONObject invoke(String action, Object payload, JSONObject senderIdentity) {
+
+                    // Write a string to the logfile that identifies the action and payload.
                     logger.info(String.format("provider processing action %s, payload=%s", action, payload.toString()));
+
+                    // Extract the increment amount (delta) from the payload JSON object.
                     int delta = ((JSONObject)payload).getInt("delta");
+
+                    // Create a new JSON object to return to the channel client.
                     JSONObject obj = new JSONObject();
-                    obj.put("value", x.addAndGet(delta));
+
+                    // Increase localInteger by the delta amount and set the "value" JSON element to the new value of localInteger.
+                    obj.put("value", localInteger.addAndGet(delta));
+
+                    // Return the new JSON object to the channel client.
                     return obj;
                 }
             });
