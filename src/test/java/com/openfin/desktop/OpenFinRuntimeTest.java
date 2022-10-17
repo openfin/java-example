@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -398,6 +399,8 @@ public class OpenFinRuntimeTest {
         }
     }
 
+    // this test does not work anymore with Secure By Default in place
+    @Ignore
     @Test
     public void startAndTerminateExternalProcess() throws Exception {
         CountDownLatch startLatch = new CountDownLatch(1);

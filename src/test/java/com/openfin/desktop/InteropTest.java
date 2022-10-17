@@ -40,8 +40,7 @@ public class InteropTest {
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
-		runtime.exit();
+		TestUtils.teardownDesktopConnection(desktopConnection);
 	}
 
 	@Test
@@ -154,6 +153,15 @@ public class InteropTest {
 		CompletionStage<Void> fireIntentFuture = desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
 			return client.fireIntent(intent);
 		});
+		desktopConnection.getInterop().connect(BROKER_NANE).thenCompose(client->{
+			return client.registerIntentListener("JavaIntent", intentReceived->{
+				String ticker = intentReceived.getContext().getId().optString("ticker", "");
+				StringBuilder sb = new StringBuilder(context.getId().getString("ticker"));
+			}).thenCompose(v -> {
+				return client.fireIntent(intent);
+			});
+		});
+
 
 		fireIntentFuture.toCompletableFuture().get(10, TimeUnit.SECONDS);
 	}
