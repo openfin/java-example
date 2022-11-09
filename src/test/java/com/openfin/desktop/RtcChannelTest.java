@@ -28,9 +28,9 @@ import static org.junit.Assert.assertEquals;
 
 public class RtcChannelTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(ChannelTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RtcChannelTest.class.getName());
 
-    private static final String DESKTOP_UUID = ChannelTest.class.getName();
+    private static final String DESKTOP_UUID = RtcChannelTest.class.getName();
     private static DesktopConnection desktopConnection;
     private static final List<ProtocolOptions> AllProtocols = Arrays.asList(Channel.RTC_PROTOCOL, Channel.CLASSIC_PROTOCOL);
     private static final String JS_CHANNEL_NAME = "adapter-channel-test-js";  // provider on js side
@@ -142,7 +142,9 @@ public class RtcChannelTest {
         desktopConnection.getChannel(ADAPTER_CHANNEL_NAME).addChannelListener(new ChannelListener() {
             @Override
             public void onChannelConnect(ConnectionEvent connectionEvent) {
-                latch.countDown();
+                if (!connectionEvent.getUuid().equals(DESKTOP_UUID)) {
+                    latch.countDown();
+                }
             }
             @Override
             public void onChannelDisconnect(ConnectionEvent connectionEvent) {
@@ -159,7 +161,7 @@ public class RtcChannelTest {
                     JSONObject clientAction = new JSONObject();
                     clientAction.put("value", value);
                     provider.dispatchAsync(senderIdentity, "client-action", clientAction).thenAccept(ack -> {
-                        String retValue = ack.getJsonObject().getString("value");
+                        String retValue = ( (JSONObject) ack.getData()).getJSONObject("result").getString("value");
                         if (Objects.equals(value, retValue)) {
                             latch.countDown();
                         }

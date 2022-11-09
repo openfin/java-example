@@ -394,6 +394,7 @@ public class SystemTest {
     }
 
     @Test
+    @Ignore
     public void startAndTerminateExternalProcess() throws Exception {
         CountDownLatch startLatch = new CountDownLatch(1);
         AtomicReference<String> processUuid = new AtomicReference<>();

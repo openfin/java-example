@@ -39,8 +39,7 @@ public class InteropTest {
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		OpenFinRuntime runtime = new OpenFinRuntime(desktopConnection);
-		runtime.exit();
+		TestUtils.teardownDesktopConnection(desktopConnection);
 	}
 
 	@Test
