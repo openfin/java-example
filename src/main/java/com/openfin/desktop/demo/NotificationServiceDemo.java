@@ -157,8 +157,8 @@ public class NotificationServiceDemo {
 		JTextField tfBody = new JTextField("Body");
 		JTextField tfCategory = new JTextField("Category");
 		JTextField tfIcon = new JTextField("https://openfin.co/favicon-32x32.png");
-		JTextField tfIndicatorText = new JTextField("");
-		JTextField tfExpiresInSecs = new JTextField("5");
+		JTextField tfIndicatorText = new JTextField("Hello From Java");
+		JTextField tfExpiresInSecs = new JTextField("60");
 		
 		JComboBox<String> cbSticky = new JComboBox<>();
 		cbSticky.addItem(NotificationOptions.STICKY_STICKY);
@@ -168,6 +168,7 @@ public class NotificationServiceDemo {
 		cbIndicator.addItem(NotificationIndicator.TYPE_FAILURE);
 		cbIndicator.addItem(NotificationIndicator.TYPE_WARNING);
 		cbIndicator.addItem(NotificationIndicator.TYPE_SUCCESS);
+		cbIndicator.setSelectedIndex(2);
 		
 		JPanel pnlCenter = new JPanel(new GridBagLayout());
 		GridBagConstraints gbConst = new GridBagConstraints();
